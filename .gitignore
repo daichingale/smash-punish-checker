@@ -1,0 +1,5 @@
+node_modules/
+raw/
+tests/ufd_cache/
+logs/
+.vercel/
