@@ -60,27 +60,41 @@
         : "攻撃判定の値が無い";
       return { ok: false, reason: why };
     }
-    const seq = rows.some((r) => SEQ_RE.test(r.label));
-    const pRow = seq ? rows[rows.length - 1] : rows[0];
+    // 通常とアルセーヌが同じ技に並ぶときは、通常の段だけで有利を出す（アルセーヌは内訳だけ）
+    const baseRows = rows.filter((r) => !/アルセーヌ/.test(r.label));
+    let use = baseRows.length && baseRows.length < rows.length ? baseRows : rows;
+    // 前と後ろの両方がある技は、密着している正面の段だけを使う
+    if (use.some((r) => /（前）/.test(r.label)) && use.some((r) => /（後）/.test(r.label))) {
+      use = use.filter((r) => !/（後）/.test(r.label));
+    }
+    const seq = use.some((r) => SEQ_RE.test(r.label));
+    const pRow = seq ? use[use.length - 1] : use[0];
+    // ヒットするとバウンドし、その行だけ全体Fが書いてあるときは、空振りの着地隙ではなくその全体F
+    const bounce = isAir ? move.rows.find((r) => r.label === "バウンド" && r.damage == null && !r.stun && r.total != null) : null;
+    const L = bounce ? bounce.total : move.landingLag;
     // 終わりが '*' の判定は、終わり際の有利Fを数字にしない
-    const lateUnknown = rows.some((r) => r.active && r.active.open);
+    const lateUnknown = use.some((r) => r.active && r.active.open);
     let primary, worst, detail = [];
+    const groundAdv = (r, late) => r.total - (late ? r.active.end : r.active.starts[0]) - maxOf(r.stun);
     if (isAir) {
-      const L = move.landingLag;
       if (L == null) return { ok: false, reason: "着地隙がシートに無い" };
       const f = (r, late) => (r.label.includes("着地") ? L - (late && !r.active.open ? r.active.end : r.active.starts[0]) - maxOf(r.stun) : L - maxOf(r.stun));
       primary = f(pRow, false);
-      worst = lateUnknown ? primary : Math.min.apply(null, rows.map((r) => f(r, true)));
-      detail = rows.map((r) => ({ label: r.label || "本体", stun: r.stun, adv: f(r, false) }));
+      worst = lateUnknown ? primary : Math.min.apply(null, use.map((r) => f(r, true)));
+      detail = use.map((r) => ({ label: r.label || "本体", stun: r.stun, adv: f(r, false) }));
     } else {
       const hit = seq ? lastStart(pRow) : pRow.active.starts[0];
       primary = pRow.total - hit - maxOf(pRow.stun);
-      worst = lateUnknown ? primary : Math.min.apply(null, rows.map((r) => r.total - r.active.end - maxOf(r.stun)));
-      detail = rows.map((r) => ({ label: r.label || "本体", stun: r.stun, total: r.total, hitFrame: r.active.starts[0], adv: r.total - r.active.starts[0] - maxOf(r.stun) }));
+      worst = lateUnknown ? primary : Math.min.apply(null, use.map((r) => groundAdv(r, true)));
+      detail = use.map((r) => ({ label: r.label || "本体", stun: r.stun, total: r.total, hitFrame: r.active.starts[0], adv: groundAdv(r, false) }));
     }
+    const alt = rows.filter((r) => use.indexOf(r) < 0).map((r) => ({
+      label: r.label,
+      adv: isAir ? (L == null ? null : (r.label.includes("着地") ? L - r.active.starts[0] - maxOf(r.stun) : L - maxOf(r.stun))) : groundAdv(r, false),
+    }));
     const damage = pRow.damage && pRow.damage.length ? maxOf(pRow.damage) : null;
     const total = pRow.total == null ? null : pRow.total;
-    return { ok: true, primary, worst: Math.min(worst, primary), lateUnknown, primaryStun: maxOf(pRow.stun), primaryLabel: pRow.label || "", multiHit: seq, aerial: isAir, landingLag: isAir ? move.landingLag : null, damage, total, detail };
+    return { ok: true, primary, worst: Math.min(worst, primary), lateUnknown, primaryStun: maxOf(pRow.stun), primaryLabel: pRow.label || "", multiHit: seq, aerial: isAir, landingLag: isAir ? move.landingLag : null, bounceLag: bounce ? bounce.total : null, alt, damage, total, detail };
   }
 
   /** 表の1行分。読めない値は null（画面では —）。有利は shieldAdvantage と同じ */

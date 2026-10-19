@@ -191,8 +191,8 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
     <summary>この計算について</summary>
     <ul>
       <li><b>ガード側の有利F</b> ＝ 攻撃側の後隙 − ガード硬直。ヒットストップは双方に同じだけかかるので無視します（スマブラSPECIAL 検証wiki「ガード硬直差の計算方法」の式）。</li>
-      <li>地上技・必殺ワザの後隙 ＝ <code>全体F − 判定が出たF</code>。表示の大きい数字は<b>最速の判定</b>をガードした場合（多段技は最終段）。判定の終わり際をガードした場合の値も併記します。<code>20-*</code> は開始Fだけを使い、終わり際は出しません。<code>79-126 (199-246)</code> のように括弧で溜め最大が併記されているときは、括弧の外（最速）を使います。</li>
-      <li>空中攻撃は <code>着地隙 − ガード硬直</code>（着地直前に当てた場合の最小値。実際は着地までの時間ぶん有利が増えます）。</li>
+      <li>地上技・必殺ワザの後隙 ＝ <code>全体F − 判定が出たF</code>。表示の大きい数字は<b>最速の判定</b>をガードした場合（多段技は最終段）。シートが通常とアルセーヌを同じ技に並べているときは通常の最終段を使い、アルセーヌの段は内訳に出します（確定の数は通常時です）。前と後ろの両方がある技は、密着している正面の段を使います。判定の終わり際をガードした場合の値も併記します。<code>20-*</code> は開始Fだけを使い、終わり際は出しません。<code>79-126 (199-246)</code> のように括弧で溜め最大が併記されているときは、括弧の外（最速）を使います。</li>
+      <li>空中攻撃は <code>着地隙 − ガード硬直</code>（着地直前に当てた場合の最小値。実際は着地までの時間ぶん有利が増えます）。ヒットするとバウンドし、その行の全体Fだけがシートに別に書いてあるときは、空振りの着地隙ではなくその全体Fからガード硬直を引きます。</li>
       <li>空中で出した技を着地直前に当てた場合も、空中攻撃と同じ <code>着地隙 − ガード硬直</code> です（着地までの時間は含みません）。備考に条件のない着地隙が一つだけある技は「空中（着地）」を選べます。シートが地上と空中で全体Fや判定を分けて書いている技は、それぞれの数値で計算します（着地隙が無い空中版は <code>全体F − 発生F</code> で、着地直前とはみなしていません）。空中版の判定欄が空で、行の名前が地上版と一致するときは、地上版の判定フレームを使います。着地隙が複数ある、ヒットや状態で条件が変わる、行の一部だけが地上／空中で共有行の属先が決められないものは出しません。</li>
       <li>シートのダメージは<b>基礎ダメージ</b>で、1on1補正（アイテムなしの1対1で与ダメージが1.2倍になる補正）は掛かっていません。スマブラSPECIAL 検証wiki「ガード硬直」は「攻撃判定のダメージは、1on1補正の影響を受けない」としています。ガード硬直の式は <code>INT(基礎ダメージ×0.8×補正倍率)+2</code> で、シートの値はこの式と一致します（スマッシュは0.725、空中攻撃は0.33、飛び道具は0.29、それ以外は1.0。着地判定・空中必殺・空中の吸着は空中の0.33には入りません。ダッシュ攻撃など技ごとの倍率はシートの備考にあるものだけが別です）。1.2倍したダメージで同じ式を計算すると、シートの硬直と合いません。</li>
       <li>「1on1補正」をありにすると、<b>表示するダメージだけ</b>を基礎ダメージの1.2倍にします。ガード硬直・ガード有利・確定の数は変えません。硬直を1.2倍から作り直すと、シートにも検証wikiの説明にも合いません。ワンパターン相殺（未使用時の1.05倍）も掛けません。シートの硬直はその相殺を無視して計算されています。倍率が技ごとに違って式で作り直せない硬直は、シートの値をそのまま使います。ダメージと硬直の個数が合わず、どれがどの判定か決められないときは硬直を「—」にします。</li>
@@ -321,27 +321,41 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
         : "攻撃判定の値が無い";
       return { ok: false, reason: why };
     }
-    const seq = rows.some((r) => SEQ_RE.test(r.label));
-    const pRow = seq ? rows[rows.length - 1] : rows[0];
+    // 通常とアルセーヌが同じ技に並ぶときは、通常の段だけで有利を出す（アルセーヌは内訳だけ）
+    const baseRows = rows.filter((r) => !/アルセーヌ/.test(r.label));
+    let use = baseRows.length && baseRows.length < rows.length ? baseRows : rows;
+    // 前と後ろの両方がある技は、密着している正面の段だけを使う
+    if (use.some((r) => /（前）/.test(r.label)) && use.some((r) => /（後）/.test(r.label))) {
+      use = use.filter((r) => !/（後）/.test(r.label));
+    }
+    const seq = use.some((r) => SEQ_RE.test(r.label));
+    const pRow = seq ? use[use.length - 1] : use[0];
+    // ヒットするとバウンドし、その行だけ全体Fが書いてあるときは、空振りの着地隙ではなくその全体F
+    const bounce = isAir ? move.rows.find((r) => r.label === "バウンド" && r.damage == null && !r.stun && r.total != null) : null;
+    const L = bounce ? bounce.total : move.landingLag;
     // 終わりが '*' の判定は、終わり際の有利Fを数字にしない
-    const lateUnknown = rows.some((r) => r.active && r.active.open);
+    const lateUnknown = use.some((r) => r.active && r.active.open);
     let primary, worst, detail = [];
+    const groundAdv = (r, late) => r.total - (late ? r.active.end : r.active.starts[0]) - maxOf(r.stun);
     if (isAir) {
-      const L = move.landingLag;
       if (L == null) return { ok: false, reason: "着地隙がシートに無い" };
       const f = (r, late) => (r.label.includes("着地") ? L - (late && !r.active.open ? r.active.end : r.active.starts[0]) - maxOf(r.stun) : L - maxOf(r.stun));
       primary = f(pRow, false);
-      worst = lateUnknown ? primary : Math.min.apply(null, rows.map((r) => f(r, true)));
-      detail = rows.map((r) => ({ label: r.label || "本体", stun: r.stun, adv: f(r, false) }));
+      worst = lateUnknown ? primary : Math.min.apply(null, use.map((r) => f(r, true)));
+      detail = use.map((r) => ({ label: r.label || "本体", stun: r.stun, adv: f(r, false) }));
     } else {
       const hit = seq ? lastStart(pRow) : pRow.active.starts[0];
       primary = pRow.total - hit - maxOf(pRow.stun);
-      worst = lateUnknown ? primary : Math.min.apply(null, rows.map((r) => r.total - r.active.end - maxOf(r.stun)));
-      detail = rows.map((r) => ({ label: r.label || "本体", stun: r.stun, total: r.total, hitFrame: r.active.starts[0], adv: r.total - r.active.starts[0] - maxOf(r.stun) }));
+      worst = lateUnknown ? primary : Math.min.apply(null, use.map((r) => groundAdv(r, true)));
+      detail = use.map((r) => ({ label: r.label || "本体", stun: r.stun, total: r.total, hitFrame: r.active.starts[0], adv: groundAdv(r, false) }));
     }
+    const alt = rows.filter((r) => use.indexOf(r) < 0).map((r) => ({
+      label: r.label,
+      adv: isAir ? (L == null ? null : (r.label.includes("着地") ? L - r.active.starts[0] - maxOf(r.stun) : L - maxOf(r.stun))) : groundAdv(r, false),
+    }));
     const damage = pRow.damage && pRow.damage.length ? maxOf(pRow.damage) : null;
     const total = pRow.total == null ? null : pRow.total;
-    return { ok: true, primary, worst: Math.min(worst, primary), lateUnknown, primaryStun: maxOf(pRow.stun), primaryLabel: pRow.label || "", multiHit: seq, aerial: isAir, landingLag: isAir ? move.landingLag : null, damage, total, detail };
+    return { ok: true, primary, worst: Math.min(worst, primary), lateUnknown, primaryStun: maxOf(pRow.stun), primaryLabel: pRow.label || "", multiHit: seq, aerial: isAir, landingLag: isAir ? move.landingLag : null, bounceLag: bounce ? bounce.total : null, alt, damage, total, detail };
   }
 
   /** 表の1行分。読めない値は null（画面では —）。有利は shieldAdvantage と同じ */
@@ -880,6 +894,9 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     const cls = a.primaryEff > 0 ? "pos" : a.primaryEff < 0 ? "neg" : "zero";
     h += `<div class="big ${cls}">${fmtAdv(a.primaryEff)}<span>F</span></div>`;
     h += `<div class="late">${a.lateUnknown ? "終わり際はシート上で不定" : a.worstEff === a.primaryEff ? "終わり際をガードしても同じ" : `終わり際をガードすると ${fmtAdv(a.worstEff)}F`}</div>`;
+    if (a.bounceLag != null && a.landingLag != null && a.bounceLag !== a.landingLag) h += `<div class="note">ヒット時はバウンドの全体${a.bounceLag}Fから硬直を引いています。空振りの着地隙は${a.landingLag}Fです。</div>`;
+    const altLine = (a.alt || []).filter((x) => x.adv != null && /アルセーヌ|（後）/.test(x.label));
+    if (altLine.length) h += `<div class="note">${altLine.map((x) => `${esc(x.label)}は ${fmtAdv(x.adv + (state.ps ? C.PERFECT_SHIELD_BONUS : 0))}F`).join("、")}（確定の数には入れていません）</div>`;
     if (move.guardNote) h += `<div class="note">${esc(move.guardNote)}</div>`;
     h += `</div>`;
     const sure = r.list.filter((x) => x.status === "sure"), no = r.list.filter((x) => x.status === "impossible");
@@ -916,6 +933,8 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     $("sheetTitle").textContent = shortName(move);
     $("sheetBody").innerHTML = `<p>${a.aerial ? airTxt : `地上の技。最速の判定${a.multiHit ? "（多段の最終段）" : ""}をガードした場合の有利は ${fmtAdv(a.primaryEff)}F。`}</p>` +
       `<p>${state.oo ? "ダメージはシートの基礎ダメージ×1.2（1on1補正）です。ガード硬直はシートの値のままなので、有利と確定は変わりません。" : "ダメージはシートの基礎ダメージです。1on1補正は掛けていません。"}</p>` +
+      (a.bounceLag != null && a.landingLag != null && a.bounceLag !== a.landingLag ? `<p>この技はヒットするとバウンドします。シートのバウンド行の全体Fは${a.bounceLag}Fなので、有利は ${a.bounceLag}F − ガード硬直です。空振りの着地隙${a.landingLag}Fは使っていません。</p>` : "") +
+      (altLine.length ? `<p>${altLine.map((x) => `${esc(x.label)}をガードした有利は ${fmtAdv(x.adv)}F`).join("。")}。確定の数は通常の段だけです。</p>` : "") +
       (hitList ? `<ul class="hits">${hitList}</ul>` : `<p>基礎ダメージはシートにありません。</p>`) +
       `<p>${a.lateUnknown ? "判定の終わりがシート上で不定なので、終わり際の数字は出していません。" : `判定の終わり際をガードした場合の有利は ${fmtAdv(a.worstEff)}F。カードの2行目は、そのときの猶予です。`}</p>` +
       `<p>密着が前提です。リーチと、ガードで押される距離は見ていません。コマンド入力の時間も含めていません。</p>` +

@@ -349,6 +349,9 @@
     const cls = a.primaryEff > 0 ? "pos" : a.primaryEff < 0 ? "neg" : "zero";
     h += `<div class="big ${cls}">${fmtAdv(a.primaryEff)}<span>F</span></div>`;
     h += `<div class="late">${a.lateUnknown ? "終わり際はシート上で不定" : a.worstEff === a.primaryEff ? "終わり際をガードしても同じ" : `終わり際をガードすると ${fmtAdv(a.worstEff)}F`}</div>`;
+    if (a.bounceLag != null && a.landingLag != null && a.bounceLag !== a.landingLag) h += `<div class="note">ヒット時はバウンドの全体${a.bounceLag}Fから硬直を引いています。空振りの着地隙は${a.landingLag}Fです。</div>`;
+    const altLine = (a.alt || []).filter((x) => x.adv != null && /アルセーヌ|（後）/.test(x.label));
+    if (altLine.length) h += `<div class="note">${altLine.map((x) => `${esc(x.label)}は ${fmtAdv(x.adv + (state.ps ? C.PERFECT_SHIELD_BONUS : 0))}F`).join("、")}（確定の数には入れていません）</div>`;
     if (move.guardNote) h += `<div class="note">${esc(move.guardNote)}</div>`;
     h += `</div>`;
     const sure = r.list.filter((x) => x.status === "sure"), no = r.list.filter((x) => x.status === "impossible");
@@ -385,6 +388,8 @@
     $("sheetTitle").textContent = shortName(move);
     $("sheetBody").innerHTML = `<p>${a.aerial ? airTxt : `地上の技。最速の判定${a.multiHit ? "（多段の最終段）" : ""}をガードした場合の有利は ${fmtAdv(a.primaryEff)}F。`}</p>` +
       `<p>${state.oo ? "ダメージはシートの基礎ダメージ×1.2（1on1補正）です。ガード硬直はシートの値のままなので、有利と確定は変わりません。" : "ダメージはシートの基礎ダメージです。1on1補正は掛けていません。"}</p>` +
+      (a.bounceLag != null && a.landingLag != null && a.bounceLag !== a.landingLag ? `<p>この技はヒットするとバウンドします。シートのバウンド行の全体Fは${a.bounceLag}Fなので、有利は ${a.bounceLag}F − ガード硬直です。空振りの着地隙${a.landingLag}Fは使っていません。</p>` : "") +
+      (altLine.length ? `<p>${altLine.map((x) => `${esc(x.label)}をガードした有利は ${fmtAdv(x.adv)}F`).join("。")}。確定の数は通常の段だけです。</p>` : "") +
       (hitList ? `<ul class="hits">${hitList}</ul>` : `<p>基礎ダメージはシートにありません。</p>`) +
       `<p>${a.lateUnknown ? "判定の終わりがシート上で不定なので、終わり際の数字は出していません。" : `判定の終わり際をガードした場合の有利は ${fmtAdv(a.worstEff)}F。カードの2行目は、そのときの猶予です。`}</p>` +
       `<p>密着が前提です。リーチと、ガードで押される距離は見ていません。コマンド入力の時間も含めていません。</p>` +
