@@ -186,6 +186,55 @@ def parse_damage(raw):
         return None
     return vals
 
+_LL_NOTE = re.compile(
+    r"着地隙"
+    r"(?:[（(]([^）)]*)[）)])?"
+    r"[:：]\s*(\d+)F"
+    r"(?:\s*[（(]([^）)]*)[）)])?"
+)
+
+def landing_variant_specs(text):
+    """備考の着地隙から「空中（着地）」を作る。
+    条件の無い着地隙がちょうど一つのときだけ返す。
+    複数、括弧付き（ヒットごと・状態ごと）、読みきれない『着地隙』は空（どれか一つに決めない）。"""
+    if not text or "着地隙" not in text:
+        return []
+    mentions = len(re.findall("着地隙", text))
+    found = list(_LL_NOTE.finditer(text))
+    if len(found) != mentions or not found:
+        return []
+    uniq = []
+    seen = set()
+    for m in found:
+        pre, n, post = m.group(1), int(m.group(2)), m.group(3)
+        cond = " ".join(x for x in (pre, post) if x)
+        key = (n, cond)
+        if key in seen:
+            continue
+        seen.add(key)
+        uniq.append(key)
+    if len(uniq) == 1 and uniq[0][1] == "":
+        return [{"lag": uniq[0][0], "label": "空中（着地）"}]
+    return []
+
+def add_landing_variants(moves):
+    """必殺ワザの備考に着地隙が一つだけあるとき、着地計算用の別技を直後に足す。
+    反撃手段には入れない（landingVariant）。id は元技の後ろに ~air を付ける。"""
+    out = []
+    for m in moves:
+        out.append(m)
+        if m.get("category") != "special" or m.get("landingVariant"):
+            continue
+        text = "\n".join((r.get("rowNote") or "") for r in m.get("rows") or [])
+        specs = landing_variant_specs(text)
+        for i, spec in enumerate(specs):
+            v = json.loads(json.dumps(m))
+            v["landingLag"] = spec["lag"]
+            v["landingVariant"] = spec["label"]
+            v["id"] = f"{m['id']}~air" if len(specs) == 1 else f"{m['id']}~air{i}"
+            out.append(v)
+    return out
+
 def label_tokens(label):
     return [t.strip() for t in one_line(label).replace("/", ",").split(",") if t.strip()]
 
@@ -486,7 +535,7 @@ def parse_char(name, gid):
             m["command"], m["inputNote"], m["commandDerived"] = "下B（ボタン）", None, False
     for k, m in enumerate(final):
         m["id"] = f"{ch['gid']}-{k}"
-    ch["moves"] = [m for m in final if m["rows"]]
+    ch["moves"] = add_landing_variants([m for m in final if m["rows"]])
     ch["materials"] = [x for x in MATERIALS if any(m.get("material") == x for m in ch["moves"])]
     return ch
 

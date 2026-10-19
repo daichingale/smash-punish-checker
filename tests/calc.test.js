@@ -141,6 +141,17 @@ test("開始が全体Fより後の窓は、より早い窓があるときだけ�
   assert.equal(b.primary, 41 - 79 - 3);
 });
 
+test("空中着地の必殺は着地隙−ガード硬直で、反撃手段には入れない", () => {
+  const mv = { name: "横B", category: "special", group: "横B", variant: "地上・空中", landingVariant: "空中（着地）", landingLag: 12, rows: [row({ active: act([18], 37), total: 55, stun: [3] })] };
+  const a = C.shieldAdvantage(mv);
+  assert.equal(a.ok, true);
+  assert.equal(a.aerial, true);
+  assert.equal(a.landingLag, 12);
+  assert.equal(a.primary, 9);
+  const ch = { name: "N", jumpsquat: 3, moves: [mv, { name: "上B", category: "special", group: "上B", variant: "地上・空中", rows: [row({ active: act([5], 6) })] }] };
+  assert.deepEqual(C.punishOptions(ch).map((o) => o.move.name), ["上B"]);
+});
+
 test("飛び道具・ガード時特殊仕様・全体F不明は計算対象外（数値を作らない）", () => {
   assert.equal(C.shieldAdvantage({ name: "NB", category: "special", projectile: true, rows: [] }).ok, false);
   assert.equal(C.shieldAdvantage({ name: "最速風神拳", category: "command", specialShield: true, rows: [] }).ok, false);

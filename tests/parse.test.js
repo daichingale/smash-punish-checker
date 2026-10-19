@@ -61,9 +61,33 @@ test("全体Fが '(98)' だけのセルも読み、開始が全体Fより後し�
 test("計算できる技は 1722 から 1755 に増え、以前計算できた技は落ちていない", () => {
   let ok = 0;
   for (const c of data.chars) for (const m of c.moves) {
-    if (m.category === "grab") continue;
+    if (m.category === "grab" || m.landingVariant) continue;
     if (!m.rows.some((r) => r.active && (r.damage == null || Math.max.apply(null, r.damage) > 0))) continue;
     if (C.shieldAdvantage(m).ok) ok++;
   }
   assert.equal(ok, 1755);
+});
+
+test("ネス PKファイヤーの空中（着地）は備考の着地隙12F。条件付きの着地隙は作らない", () => {
+  const ness = ch("ネス");
+  const ground = mv(ness, "横B");
+  const air = ness.moves.find((m) => m.id === ground.id + "~air");
+  assert.equal(ground.landingLag, undefined);
+  assert.equal(C.shieldAdvantage(ground).primary, 34); // 全体55 − 発生18 − 硬直3
+  assert.equal(air.landingVariant, "空中（着地）");
+  assert.equal(air.landingLag, 12);
+  const a = C.shieldAdvantage(air);
+  assert.equal(a.ok, true);
+  assert.equal(a.aerial, true);
+  assert.equal(a.primary, 9); // 着地隙12 − 硬直3
+  assert.ok(!C.punishOptions(ness).some((o) => o.move.landingVariant));
+  const peach = ch("ピーチ").moves.find((m) => m.name === "上B");
+  assert.equal(peach.rows.some((r) => (r.rowNote || "").includes("着地隙")), true);
+  assert.ok(!ch("ピーチ").moves.some((m) => m.landingVariant && m.name === "上B"));
+  const mario = ch("マリオ");
+  const rev = C.evaluate(ness, air, mario, {});
+  assert.equal(rev.adv.primaryEff, 9);
+  assert.ok(rev.list.some((x) => x.status === "sure"));
+  const n = data.chars.reduce((s, c) => s + c.moves.filter((m) => m.landingVariant).length, 0);
+  assert.equal(n, 97);
 });

@@ -21,7 +21,7 @@
       const v = m.variant || "";
       const base = v && !/^(地上|空中|地上・空中|通常|地上\s*\(空中\))$/.test(v) ? v : (m.title || "");
       const place = /^(地上|空中)$/.test(v) ? `・${v}` : "";
-      return `${m.group}${base ? " " + base : ""}${place}${m.strength ? `（${m.strength}）` : ""}`;
+      return `${m.group}${base ? " " + base : ""}${place}${m.strength ? `（${m.strength}）` : ""}${m.landingVariant ? " " + m.landingVariant : ""}`;
     }
     return m.name.replace(/［(ボタン|コマンド)］$/, "");
   };
@@ -195,7 +195,10 @@
       $("result").innerHTML = h; return;
     }
     h += `<div class="big ${a.primaryEff < 0 ? "neg" : ""}">${defWho}が ${fmtAdv(a.primaryEff)} 有利</div>`;
-    h += `<div class="s">${a.aerial ? `空中攻撃: 着地隙${a.landingLag}F − ガード硬直（着地直前に当てた場合の最小値）` : `最速の判定${a.multiHit ? "（多段技は最終段）" : ""}をガードした場合`}${!a.lateUnknown && a.worstEff !== a.primaryEff ? ` ／ 判定の終わり際なら ${fmtAdv(a.worstEff)}` : ""}${a.lateUnknown ? " ／ 判定の終わりはシート上で不定" : ""}</div>`;
+    const airTxt = move.landingVariant
+      ? `空中必殺の着地: 着地隙${a.landingLag}F − ガード硬直（着地直前に当てた場合の最小値。空中にいる時間は含まない）`
+      : `空中攻撃: 着地隙${a.landingLag}F − ガード硬直（着地直前に当てた場合の最小値）`;
+    h += `<div class="s">${a.aerial ? airTxt : `最速の判定${a.multiHit ? "（多段技は最終段）" : ""}をガードした場合`}${!a.lateUnknown && a.worstEff !== a.primaryEff ? ` ／ 判定の終わり際なら ${fmtAdv(a.worstEff)}` : ""}${a.lateUnknown ? " ／ 判定の終わりはシート上で不定" : ""}</div>`;
     if (move.guardNote) h += `<div class="note">${esc(move.guardNote)}</div>`;
     h += `</div>`;
     const sure = r.list.filter((x) => x.status === "sure"), no = r.list.filter((x) => x.status === "impossible");

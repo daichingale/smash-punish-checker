@@ -43,7 +43,8 @@
     if (move.category === "grab") return { ok: false, reason: "つかみはガードできない" };
     if (move.projectile) return { ok: false, reason: "飛び道具（防御側だけにヒットストップ・距離で変わる）のため計算対象外" };
     if (move.specialShield) return { ok: false, reason: "ガードさせた際の特殊仕様がある（シート備考）ため計算対象外" };
-    const isAir = move.category === "aerial";
+    // 空中（着地）の必殺は、空中攻撃と同じく着地隙で後隙を出す（全体Fは使わない）
+    const isAir = move.category === "aerial" || !!move.landingVariant;
     const candidates = move.rows.filter((r) => {
       if (!hasHit(r) || !r.stun) return false;
       if (isAir) return true;
@@ -93,6 +94,7 @@
     const out = [];
     const js = ch.jumpsquat;
     for (const m of ch.moves) {
+      if (m.landingVariant) continue; // 着地版は攻撃側の見方。反撃手段としては元の必殺を使う
       if (material && m.material && m.material !== material) continue;
       if (!isStarter(m)) continue;
       const st = startupOf(m);

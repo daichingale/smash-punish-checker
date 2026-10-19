@@ -94,6 +94,28 @@ class ParseStun(unittest.TestCase):
             self.assertIsNone(c, raw)
 
 
+class LandingNote(unittest.TestCase):
+    def test_single_plain(self):
+        self.assertEqual(
+            bd.landing_variant_specs("着地隙：12F 着弾の1F後に発火。 火柱は相殺なし。"),
+            [{"lag": 12, "label": "空中（着地）"}],
+        )
+
+    def test_repeated_same_value(self):
+        self.assertEqual(
+            bd.landing_variant_specs("着地隙：12F\n着地隙：12F"),
+            [{"lag": 12, "label": "空中（着地）"}],
+        )
+
+    def test_skip_multiple_and_conditional(self):
+        self.assertEqual(bd.landing_variant_specs("着地隙：26F（傘・開） 着地隙：40F（傘・閉）"), [])
+        self.assertEqual(bd.landing_variant_specs("着地隙：7F (パラシュート)"), [])
+        self.assertEqual(bd.landing_variant_specs("着地隙(小)：16F 着地隙(大)：20F"), [])
+        self.assertEqual(bd.landing_variant_specs("着地隙：20F (弱, 空振り) 着地隙：28F (弱, ヒット時)"), [])
+        self.assertEqual(bd.landing_variant_specs("着地隙は状況による"), [])
+        self.assertEqual(bd.landing_variant_specs("着地は相殺なし。"), [])
+
+
 class ParseDamage(unittest.TestCase):
     def test_range_and_floor(self):
         self.assertEqual(bd.parse_damage("10 ~ 28"), [10.0, 28.0])
