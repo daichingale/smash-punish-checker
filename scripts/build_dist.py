@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """src/ と data/ から dist/ を作る。
 - dist/index.html: CSS・JS・データをすべて埋め込んだ単体HTML（スマホでファイルを開くだけで動く／そのまま静的公開できる）
+- dist/table.html: 全技表。データは dist/data.json を別リクエストで読む（index.html のサイズは増やさない）
 - dist/manifest.webmanifest, icon.svg, sw.js: ホーム画面追加とオフライン用（ネットワーク優先）"""
 import hashlib, json, pathlib, re
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -9,7 +10,11 @@ dist.mkdir(exist_ok=True)
 html = (src / "index.html").read_text(encoding="utf-8")
 css = (src / "style.css").read_text(encoding="utf-8")
 calc = (src / "calc.js").read_text(encoding="utf-8")
+names = (src / "names.js").read_text(encoding="utf-8")
 app = (src / "app.js").read_text(encoding="utf-8")
+table_js = (src / "table.js").read_text(encoding="utf-8")
+table_page = (src / "table-page.js").read_text(encoding="utf-8")
+table_css = (src / "table.css").read_text(encoding="utf-8")
 d = json.loads((data / "data.json").read_text(encoding="utf-8"))
 # 画面で使わない生値・備考を落として軽くする（data.json 側はデバッグ用に残す）
 for c in d["chars"]:
@@ -21,8 +26,13 @@ for c in d["chars"]:
 blob = json.dumps(d, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
 html = re.sub(r"<!--STYLE-->.*?<!--/STYLE-->", lambda m: f"<style>{css}</style>", html, flags=re.S)
 html = re.sub(r"<!--DATA-->.*?<!--/DATA-->", lambda m: f"<script>window.__DATA__={blob};</script>", html, flags=re.S)
-html = re.sub(r"<!--SCRIPTS-->.*?<!--/SCRIPTS-->", lambda m: f"<script>{calc}</script><script>{app}</script>", html, flags=re.S)
+html = re.sub(r"<!--SCRIPTS-->.*?<!--/SCRIPTS-->", lambda m: f"<script>{calc}</script><script>{names}</script><script>{app}</script>", html, flags=re.S)
 (dist / "index.html").write_text(html, encoding="utf-8")
+(dist / "data.json").write_text(blob, encoding="utf-8")
+table = (src / "table.html").read_text(encoding="utf-8")
+table = re.sub(r"<!--STYLE-->.*?<!--/STYLE-->", lambda m: f"<style>{table_css}</style>", table, flags=re.S)
+table = re.sub(r"<!--SCRIPTS-->.*?<!--/SCRIPTS-->", lambda m: f"<script>{calc}</script><script>{names}</script><script>{table_js}</script><script>{table_page}</script>", table, flags=re.S)
+(dist / "table.html").write_text(table, encoding="utf-8")
 stamp = hashlib.sha256(html.encode()).hexdigest()[:10]
 (dist / "manifest.webmanifest").write_text(json.dumps({
     "name": "スマブラSP 確定反撃チェッカー",
@@ -45,4 +55,4 @@ stamp = hashlib.sha256(html.encode()).hexdigest()[:10]
     'self.addEventListener("activate",e=>e.waitUntil((async()=>{const ks=await caches.keys();await Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)));await self.clients.claim();})()));\n'
     'self.addEventListener("fetch",e=>{if(e.request.method!=="GET")return;e.respondWith((async()=>{try{const res=await fetch(e.request);if(res.ok){const c=await caches.open(CACHE);c.put(e.request,res.clone());}return res;}catch(err){const hit=await caches.match(e.request);if(hit)return hit;throw err;}})());});\n',
     encoding="utf-8")
-print("dist/index.html", len(html.encode()) // 1024, "KB")
+print("dist/index.html", len(html.encode()) // 1024, "KB", "/ table.html", len(table.encode()) // 1024, "KB", "/ data.json", len(blob.encode()) // 1024, "KB")

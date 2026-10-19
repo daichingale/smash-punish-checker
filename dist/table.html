@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0e1116" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f3f5f7" media="(prefers-color-scheme: light)">
+<title>全技フレーム表 — スマブラSP 確定反撃チェッカー</title>
+<style>:root{
+  --bg:#0e1116;--card:#171c24;--line:#313846;--text:#f2f5f8;--sub:#c5ced8;
+  --accent:#6cb4ff;--on-accent:#04121f;--sure:#3ddc84;--bad:#ff9b9b;
+  --cols:36px 168px 76px 52px 80px 64px 64px 72px 80px 76px 64px;
+  color-scheme:dark
+}
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#f3f5f7;--card:#fff;--line:#d5dbe3;--text:#14181f;--sub:#3d4754;
+    --accent:#0b6bcb;--on-accent:#fff;--sure:#067a3a;--bad:#9f1d1d;
+    color-scheme:light
+  }
+}
+@media (min-width:900px){
+  :root{--cols:44px 220px 96px 64px 96px 72px 72px 84px 96px 96px 72px}
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;font-size:15px;line-height:1.35}
+body{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.headbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:max(8px,env(safe-area-inset-top)) 12px 6px;border-bottom:1px solid var(--line)}
+.headbar h1{font-size:16px;margin:0;font-weight:750}
+.headbar h1 small{display:block;color:var(--sub);font-weight:500;font-size:12px}
+.back{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--text);text-decoration:none;font-weight:750;white-space:nowrap}
+.filters{padding:6px 12px 0;display:flex;flex-direction:column;gap:6px}
+.frow{display:flex;gap:6px;align-items:center}
+.frow input,.frow select,.frow .cbtn{min-height:44px;border-radius:12px;border:1px solid var(--line);background:var(--card);padding:0 10px}
+#q{flex:1;min-width:0;font-size:16px}
+#vs{max-width:42%}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.chips button{flex:0 0 auto;min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);white-space:nowrap}
+.chips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:750}
+.picked{display:flex;gap:6px;overflow-x:auto}
+.picked:empty{display:none}
+.picked button{flex:0 0 auto;min-height:36px;padding:0 10px;border-radius:999px;border:1px solid var(--line);background:var(--card)}
+.meta{color:var(--sub);font-size:12px;padding:0 12px 6px}
+.scroller{flex:1;overflow:auto;-webkit-overflow-scrolling:touch}
+.space{position:relative;min-width:max-content}
+#win{position:absolute;top:0;left:0}
+.gridline{display:grid;grid-template-columns:var(--cols);align-items:stretch;min-width:max-content}
+.head{position:sticky;top:0;z-index:3;background:var(--card);border-bottom:1px solid var(--line)}
+.head button{min-height:44px;border:0;background:transparent;text-align:right;padding:0 6px;font-size:12px;font-weight:750;color:var(--sub)}
+.head button.left{text-align:left}
+.head button[aria-sort="ascending"]::after{content:" ↑"}
+.head button[aria-sort="descending"]::after{content:" ↓"}
+.c-rank,.c-name{position:sticky;background:var(--bg);z-index:1}
+.c-rank{left:0}
+.c-name{left:36px}
+.head .c-rank,.head .c-name{z-index:4;background:var(--card)}
+@media (min-width:900px){.c-name{left:44px}}
+.row{color:inherit;text-decoration:none;border-bottom:1px solid var(--line);height:56px}
+.row span{display:flex;align-items:center;justify-content:flex-end;padding:0 6px;font-variant-numeric:tabular-nums}
+.row .c-rank,.row .c-name,.row .c-kind{justify-content:flex-start}
+a.row > .c-name{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:0;min-width:0;overflow:hidden}
+a.row > .c-name b,a.row > .c-name span{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0;font-weight:650}
+a.row > .c-name b{font-size:12px;font-weight:750;color:var(--sub)}
+a.row > .c-name span{font-size:14px;color:var(--text)}
+.c-name small{color:var(--sub);font-size:11px;font-weight:500;padding:0}
+.pos{color:var(--sure);font-weight:750}
+.neg{color:var(--bad);font-weight:750}
+.zero{font-weight:750}
+.row:nth-child(even) .c-rank,.row:nth-child(even) .c-name{background:var(--card)}
+.row:nth-child(odd) .c-rank,.row:nth-child(odd) .c-name{background:var(--bg)}
+.empty{padding:24px 12px;color:var(--sub)}
+footer{flex:none;padding:8px 12px calc(8px + env(safe-area-inset-bottom));border-top:1px solid var(--line);color:var(--sub);font-size:11px;background:var(--bg)}
+#picker{position:fixed;inset:0;z-index:20;background:var(--bg);display:flex;flex-direction:column}
+#picker[hidden]{display:none}
+.pkHead{padding:max(10px,env(safe-area-inset-top)) 12px 8px;border-bottom:1px solid var(--line)}
+.pkTop{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+#pkClose,#pkDone{min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--card)}
+#pkQ{width:100%;min-height:44px;font-size:16px;border-radius:12px;border:1px solid var(--line);background:var(--card);padding:0 10px}
+#pkBody{flex:1;overflow:auto;padding:8px 12px 20px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.ch{min-height:44px;text-align:left;border-radius:12px;border:1px solid var(--line);background:var(--card);padding:6px 8px;font-size:13px}
+.ch.on{border-color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent)}
+.ch .no{display:block;color:var(--sub);font-size:11px}
+body.noscroll{overflow:hidden}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto !important}}
+</style>
+</head>
+<body>
+<header class="headbar">
+  <h1>全技フレーム表<small>スマブラSP・タイマン・試作版</small></h1>
+  <a class="back" href="index.html">反撃チェック</a>
+</header>
+<div class="filters">
+  <div class="frow">
+    <input id="q" type="search" placeholder="技名で検索" autocomplete="off" enterkeyhint="search" aria-label="技名で検索">
+    <button type="button" id="charBtn" class="cbtn">キャラ</button>
+    <select id="vs" aria-label="確定数の相手"></select>
+  </div>
+  <div id="presets" class="chips" role="toolbar" aria-label="ランキング"></div>
+  <div id="kinds" class="chips" role="toolbar" aria-label="技の種類"></div>
+  <div id="places" class="chips" role="toolbar" aria-label="地上か空中か"></div>
+  <div id="picked" class="picked"></div>
+</div>
+<p class="meta" id="meta">読み込み中</p>
+<div class="scroller" id="scroll">
+  <div class="space" id="space">
+    <div class="gridline head" id="head"></div>
+    <div id="win"></div>
+  </div>
+</div>
+<footer>
+  <a href="index.html">反撃チェックに戻る</a><br>
+  フレームデータ: <a href="https://docs.google.com/spreadsheets/d/15SClMwvDIqovtO3DJnf1GGIteH35UX3IM7-mnbdG6eE/edit" target="_blank" rel="noopener">スマブラSP検証窓</a>（<a href="https://w.atwiki.jp/smashsp_kensyou/" target="_blank" rel="noopener">スマブラSPECIAL 検証wiki</a>）のフレームシートをもとに計算しています。<br>
+  このページは個人が作った非公式の試作です。検証窓・任天堂とは関係ありません。表示内容の正確さは保証しません。実際の対戦ではトレーニングモードで確認してください。<br>
+  ガード有利は反撃チェックと同じ式（ガード側の有利。＋ならガードした側が有利）。確定数は、密着でフレームが間に合う反撃の数です。
+</footer>
+<div id="picker" hidden role="dialog" aria-modal="true" aria-labelledby="pkTitle">
+  <div class="pkHead">
+    <div class="pkTop"><b id="pkTitle">キャラを選ぶ（複数可）</b><button type="button" id="pkClose">閉じる</button></div>
+    <input id="pkQ" type="search" placeholder="名前・読み・番号（mario / まりお）" autocomplete="off" aria-label="キャラを検索">
+  </div>
+  <div id="pkBody"></div>
+  <div class="pkHead"><button type="button" id="pkDone">このキャラで絞る</button></div>
+</div>
+<script>/* 確定反撃の計算ロジック（ブラウザ / Node 共通）
+ * 根拠: スマブラSPECIAL 検証wiki「ガード硬直差の計算方法」「ガード硬直」
+ *  - ガード側の有利F = 攻撃側の後隙 − ガード硬直（ヒットストップは双方同数なので相殺）
+ *    地上技・必殺ワザ: 後隙 = 全体F − 判定が出たF
+ *    空中攻撃（着地際）: 後隙 = 着地隙（着地直前に当てた場合の最小値）
+ *  - 反撃に必要なF（ガード硬直が終わってから）:
+ *    ガーキャン上B・上スマ: 発生F / ガーキャン空中攻撃: ジャンプ踏切(通常3F)+発生F
+ *    ガーキャンつかみ: 4F+発生F / シールド解除からの技: 11F+発生F
+ *    ジャストシールド: 攻撃側の後隙+3F、ガード解除11Fとつかみ4Fが不要
+ */
+(function (root) {
+  "use strict";
+  const SHIELD_DROP = 11, GRAB_EXTRA = 4, PERFECT_SHIELD_BONUS = 3;
+  /* 表示ラベルのしきい値（ここだけ変えれば画面・テストに反映される）
+   *  severeMax: 猶予が 0〜severeMax F なら「シビア」（最速から1〜2F遅れると間に合わない）
+   *  easyMin:   猶予が easyMin F 以上なら「余裕」（最速から7F≒0.12秒以上遅れても間に合う）
+   */
+  const THRESHOLDS = { severeMax: 2, easyMin: 8 };
+  const SEQ_RE = /Hit|連|〆|派生/;
+  const STARTER_SEQ = /^(弱1|横強1|空N1|空前1)/;
+
+  const maxOf = (a) => Math.max.apply(null, a);
+  function hasHit(row) {
+    return !!row.active && (row.damage == null || maxOf(row.damage) > 0);
+  }
+  function firstHitRow(move) {
+    // 着地判定（ランディングフォース）は技の出だしではないので発生Fの算出から除く
+    return move.rows.find((r) => hasHit(r) && !r.label.includes("着地")) || null;
+  }
+  function startupOf(move) {
+    const r = move.category === "grab" ? move.rows.find((x) => x.label === "その場" && x.active) : firstHitRow(move);
+    return r ? r.active.starts[0] : null;
+  }
+  function lastStart(row) {
+    // open（20-*）は終わりFがシートに無い。開始Fを最速として使い、終わり際は作らない
+    if (row.active.open) return row.active.starts[row.active.starts.length - 1];
+    return row.active.rehit ? row.active.end : row.active.starts[row.active.starts.length - 1];
+  }
+
+  /** 攻撃側の技をガードしたときのガード側有利F。
+   * primary: 最速判定（多段技は最終段）をガードした場合 / worst: いちばん遅い判定の終わり際をガードした場合 */
+  function shieldAdvantage(move) {
+    if (move.category === "grab") return { ok: false, reason: "つかみはガードできない" };
+    if (move.projectile) return { ok: false, reason: "飛び道具（防御側だけにヒットストップ・距離で変わる）のため計算対象外" };
+    if (move.specialShield) return { ok: false, reason: "ガードさせた際の特殊仕様がある（シート備考）ため計算対象外" };
+    // 空中（着地）の必殺は、空中攻撃と同じく着地隙で後隙を出す（全体Fは使わない）
+    const isAir = move.category === "aerial" || !!move.landingVariant;
+    const candidates = move.rows.filter((r) => {
+      if (!hasHit(r) || !r.stun) return false;
+      if (isAir) return true;
+      return r.total != null;
+    });
+    // 開始が全体Fより後の窓は、溜め最大など別バージョンが短い全体Fに載っているだけ。
+    // ただし全部がそうなら（召喚の持続など）従来どおりその行を使う。
+    const inWindow = candidates.filter((r) => isAir || r.active.starts[0] <= r.total);
+    const rows = inWindow.length ? inWindow : candidates;
+    if (!rows.length) {
+      const why = move.rows.some(hasHit)
+        ? (isAir ? "ガード硬直が読めない" : "全体フレームかガード硬直がシートに無い／可変")
+        : "攻撃判定の値が無い";
+      return { ok: false, reason: why };
+    }
+    const seq = rows.some((r) => SEQ_RE.test(r.label));
+    const pRow = seq ? rows[rows.length - 1] : rows[0];
+    // 終わりが '*' の判定は、終わり際の有利Fを数字にしない
+    const lateUnknown = rows.some((r) => r.active && r.active.open);
+    let primary, worst, detail = [];
+    if (isAir) {
+      const L = move.landingLag;
+      if (L == null) return { ok: false, reason: "着地隙がシートに無い" };
+      const f = (r, late) => (r.label.includes("着地") ? L - (late && !r.active.open ? r.active.end : r.active.starts[0]) - maxOf(r.stun) : L - maxOf(r.stun));
+      primary = f(pRow, false);
+      worst = lateUnknown ? primary : Math.min.apply(null, rows.map((r) => f(r, true)));
+      detail = rows.map((r) => ({ label: r.label || "本体", stun: r.stun, adv: f(r, false) }));
+    } else {
+      const hit = seq ? lastStart(pRow) : pRow.active.starts[0];
+      primary = pRow.total - hit - maxOf(pRow.stun);
+      worst = lateUnknown ? primary : Math.min.apply(null, rows.map((r) => r.total - r.active.end - maxOf(r.stun)));
+      detail = rows.map((r) => ({ label: r.label || "本体", stun: r.stun, total: r.total, hitFrame: r.active.starts[0], adv: r.total - r.active.starts[0] - maxOf(r.stun) }));
+    }
+    const damage = pRow.damage && pRow.damage.length ? maxOf(pRow.damage) : null;
+    const total = pRow.total == null ? null : pRow.total;
+    return { ok: true, primary, worst: Math.min(worst, primary), lateUnknown, primaryStun: maxOf(pRow.stun), primaryLabel: pRow.label || "", multiHit: seq, aerial: isAir, landingLag: isAir ? move.landingLag : null, damage, total, detail };
+  }
+
+  /** 表の1行分。読めない値は null（画面では —）。有利は shieldAdvantage と同じ */
+  function listFrames(move) {
+    const startup = startupOf(move);
+    const isAir = move.category === "aerial" || !!move.landingVariant;
+    const landing = isAir && move.landingLag != null ? move.landingLag : null;
+    const adv = shieldAdvantage(move);
+    const activeRows = (move.rows || []).filter((r) => r.active);
+    const activeEnd = !activeRows.length || activeRows.some((r) => r.active.open) ? null : Math.max.apply(null, activeRows.map((r) => r.active.end));
+    if (!adv.ok) {
+      const r = firstHitRow(move);
+      return {
+        startup, activeEnd, landing, adv: null,
+        total: r && r.total != null ? r.total : null,
+        damage: r && r.damage && r.damage.length ? maxOf(r.damage) : null,
+        stun: r && r.stun && r.stun.length ? maxOf(r.stun) : null,
+      };
+    }
+    return { startup, activeEnd, total: adv.total, landing, damage: adv.damage, stun: adv.primaryStun, adv: adv.primary };
+  }
+
+  function isStarter(move) {
+    if (move.seqOf && !STARTER_SEQ.test(move.name)) return false;
+    if (move.name.startsWith("10連")) return false;
+    const fr = firstHitRow(move);
+    if (fr && /^派生([2-9]|10)/.test(fr.label)) return false;
+    return true;
+  }
+
+  /** ガード側キャラの反撃候補（経路つき） */
+  function punishOptions(ch, material) {
+    const out = [];
+    const js = ch.jumpsquat;
+    for (const m of ch.moves) {
+      if (m.landingVariant || m.versionLabel === "空中" || m.derivedAir) continue; // 空中版は攻撃側の見方。反撃手段は地上版を使う
+      if (material && m.material && m.material !== material) continue;
+      if (!isStarter(m)) continue;
+      const st = startupOf(m);
+      if (st == null) continue;
+      const v = m.variant || "";
+      let route = null;
+      if (m.category === "grab") route = "grab";
+      else if (m.category === "aerial") route = "jump";
+      else if (m.category === "special" && m.group === "上B") route = v.includes("空中") && !v.includes("地上") ? null : "oos";
+      else if (m.category === "ground" && m.name.startsWith("上スマッシュ")) route = "oos";
+      else if (m.category === "ground" || m.category === "command" || m.category === "special") {
+        if (/ダッシュ攻撃|左踵落とし/.test(m.name)) route = null; // 走行が必要
+        else if (/^(しゃがみ|立ち途中)/.test(m.name)) route = null; // しゃがみ状態が必要
+        else if (m.category === "special" && v.includes("空中") && !v.includes("地上")) route = null;
+        else route = "drop";
+      }
+      if (!route) continue;
+      if (route === "jump" && js == null) continue;
+      out.push({ move: m, route, startup: st });
+    }
+    return out;
+  }
+
+  const ROUTE_LABEL = { oos: "ガーキャン", jump: "ガーキャン空中", grab: "ガーキャンつかみ", drop: "シールド解除から" };
+  function routeCost(route, js, perfect) {
+    if (route === "oos") return 0;
+    if (route === "jump") return js;
+    if (route === "grab") return perfect ? 0 : GRAB_EXTRA;
+    return perfect ? 0 : SHIELD_DROP;
+  }
+
+  /** 猶予のラベル: "severe"（シビア）/ "easy"（余裕）/ null */
+  function marginTier(margin) {
+    if (margin < 0) return null;
+    if (margin <= THRESHOLDS.severeMax) return "severe";
+    if (margin >= THRESHOLDS.easyMin) return "easy";
+    return null;
+  }
+
+  /** attacker の move をガードした defender の反撃一覧 */
+  function evaluate(attacker, move, defender, o) {
+    o = o || {};
+    const adv = shieldAdvantage(move);
+    if (!adv.ok) return { adv, list: [] };
+    const bonus = o.perfectShield ? PERFECT_SHIELD_BONUS : 0;
+    const list = punishOptions(defender, o.defenderMaterial).map((opt) => {
+      const cost = routeCost(opt.route, defender.jumpsquat, o.perfectShield);
+      const need = opt.startup + cost;
+      const margin = adv.primary + bonus - need;
+      const marginWorst = adv.worst + bonus - need;
+      // 密着を前提に、フレームが間に合えば「確定」（リーチ・ガードで押される距離は考慮しない）
+      const status = margin >= 0 ? "sure" : "impossible";
+      return { ...opt, cost, need, margin, marginWorst, status, tier: marginTier(margin), routeLabel: ROUTE_LABEL[opt.route] };
+    });
+    // 猶予の大きい順（同じなら必要Fの小さい順）。「不可」は後ろ
+    list.sort((a, b) => (a.status === b.status ? 0 : a.status === "sure" ? -1 : 1) || b.margin - a.margin || a.need - b.need);
+    return { adv: { ...adv, primaryEff: adv.primary + bonus, worstEff: adv.worst + bonus }, list };
+  }
+
+  const api = { THRESHOLDS, marginTier, shieldAdvantage, listFrames, punishOptions, evaluate, startupOf, routeCost, isStarter, ROUTE_LABEL, SHIELD_DROP, GRAB_EXTRA, PERFECT_SHIELD_BONUS };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else root.PunishCalc = api;
+})(typeof window !== "undefined" ? window : globalThis);
+</script><script>/* キャラ検索用の正規化と読み。表示名は変えない */
+(function (root) {
+  "use strict";
+const toKata = (s) => s.replace(/[\u3041-\u3096]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 0x60));
+const norm = (s) => toKata(String(s).normalize("NFKC").toLowerCase()).replace(/[\s・&＆.．ー\-'’／/]/g, "");
+const charNo = (c) => (c.sheetTab.match(/^(\d+'?)/) || [])[1] || "";
+const ALIAS = { "Mii": "ミイ ミー mii", "ドンキーコング": "dk", "Mr.ゲーム&ウォッチ": "ゲムヲ ゲーム&ウォッチ", "Wii Fit トレーナー": "ウィーフィット wiifit",
+  "キャプテン・ファルコン": "cf", "ピクミン&オリマー": "オリマー", "ロゼッタ&チコ": "ロゼチコ", "バンジョー&カズーイ": "バンカズ",
+  "ゼロスーツサムス": "ゼロサム", "パックンフラワー": "パックン", "トゥーンリンク": "トゥーン", "こどもリンク": "こどリン", "ガノンドロフ": "ガノン" };
+// 検索用の読み。表示名は変えない
+const READ = { "マリオ": "まりお mario", "ドンキーコング": "どんきーこんぐ donkeykong", "リンク": "りんく link", "サムス": "さむす samus", "ダークサムス": "だーくさむす darksamus",
+  "ヨッシー": "よっしー yoshi", "カービィ": "かーびぃ kirby", "フォックス": "ふぉっくす fox", "ピカチュウ": "ぴかちゅう pikachu", "ルイージ": "るいーじ luigi", "ネス": "ねす ness",
+  "キャプテン・ファルコン": "きゃぷてんふぁるこん captainfalcon falcon", "プリン": "ぷりん jigglypuff purin", "ピーチ": "ぴーち peach", "デイジー": "でいじー daisy", "クッパ": "くっぱ bowser koopa",
+  "アイスクライマー": "あいすくらいまー icies iceclimber", "シーク": "しーく sheik", "ゼルダ": "ぜるだ zelda", "ドクターマリオ": "どくたーまりお drmario doc", "ピチュー": "ぴちゅー pichu",
+  "ファルコ": "ふぁるこ falco", "マルス": "まるす marth", "ルキナ": "るきな lucina", "こどもリンク": "こどもりんく younglink", "ガノンドロフ": "がのんどろふ ganondorf",
+  "ミュウツー": "みゅうつー mewtwo", "ロイ": "ろい roy", "クロム": "くろむ chrom", "Mr.ゲーム&ウォッチ": "みすたーげーむ gamewatch gnw", "メタナイト": "めたないと metaknight",
+  "ピット": "ぴっと pit", "ブラックピット": "ぶらっくぴっと darkpit", "ゼロスーツサムス": "ぜろすーつさむす zerosuit zss", "ワリオ": "わりお wario", "スネーク": "すねーく snake",
+  "アイク": "あいく ike", "ゼニガメ": "ぜにがめ squirtle", "フシギソウ": "ふしぎそう ivysaur", "リザードン": "りざーどん charizard", "ディディーコング": "でぃでぃーこんぐ diddykong diddy",
+  "リュカ": "りゅか lucas", "ソニック": "そにっく sonic", "デデデ": "ででで dedede", "ピクミン&オリマー": "ぴくみんおりまー olimar pikmin", "ルカリオ": "るかリオ lucario",
+  "ロボット": "ろぼっと rob roboto", "トゥーンリンク": "とぅーんりんく toonlink", "ウルフ": "うるふ wolf", "むらびと": "むらびと villager", "ロックマン": "ろっくまん megaman rockman",
+  "Wii Fit トレーナー": "うぃーふぃっと wiifittrainer", "ロゼッタ&チコ": "ろぜったちこ rosalina", "リトル・マック": "りとるまっく littlemac", "ゲッコウガ": "げっこうが greninja",
+  "格闘Mii": "かくとうみい brawler", "剣術Mii": "けんじゅつみい swordfighter", "射撃Mii": "しゃげきみい gunner", "パルテナ": "ぱるてな palutena", "パックマン": "ぱっくまん pacman",
+  "ルフレ": "るふれ robin", "シュルク": "しゅるく shulk", "クッパ Jr.": "くっぱじゅにあ bowserjr", "ダックハント": "だっくはんと duckhunt", "リュウ": "りゅう ryu", "ケン": "けん ken",
+  "クラウド": "くらうど cloud", "カムイ": "かむい corrin", "ベヨネッタ": "べよねった bayonetta bayo", "インクリング": "いんくりんぐ inkling", "リドリー": "りどりー ridley",
+  "シモン": "しもん simon", "リヒター": "りひたー richter", "キングクルール": "きんぐくるーる kingkrool kkr", "しずえ": "しずえ isabelle", "ガオガエン": "がおがえん incineroar",
+  "パックンフラワー": "ぱっくんふらわー piranha plant", "ジョーカー": "じょーかー joker", "勇者": "ゆうしゃ hero", "バンジョー&カズーイ": "ばんじょーかずーい banjo", "テリー": "てりー terry",
+  "ベレト／ベレス": "べれとべれす byleth", "ミェンミェン": "みぇんみぇん minmin", "スティーブ／アレックス": "すてぃーぶあれっくす steve alex", "セフィロス": "せふぃろす sephiroth",
+  "ホムラ": "ほむら pyra homura", "ヒカリ": "ひかり mythra hikari", "カズヤ": "かずや kazuya", "ソラ": "そら sora" };
+const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || "") + " " + Object.keys(ALIAS).filter((k) => c.name.includes(k)).map((k) => ALIAS[k]).join(" "));
+
+  const api = { norm, charNo, haystack };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else root.Names = api;
+})(typeof window !== "undefined" ? window : globalThis);
+</script><script>/* 全技表の行・ソート・プリセット。ブラウザ / Node 共通。計算は calc.js を使う */
+(function (root) {
+  "use strict";
+  const KIND_LABEL = { tilt: "弱・強", smash: "スマッシュ", air: "空中", special: "必殺", command: "コマンド", grab: "つかみ" };
+  const KIND_IDS = Object.keys(KIND_LABEL);
+  const PLACE_LABEL = { ground: "地上", air: "空中" };
+  const SORT_KEYS = ["order", "char", "name", "kind", "startup", "activeEnd", "total", "landing", "damage", "stun", "adv", "sure"];
+  const FIRST_DIR = { startup: "asc", activeEnd: "asc", total: "asc", landing: "asc", damage: "desc", stun: "desc", adv: "desc", sure: "desc", char: "asc", name: "asc", kind: "asc", order: "asc" };
+  const PRESETS = [
+    { id: "fast", label: "発生が速い技", sort: "startup", dir: "asc" },
+    { id: "safe", label: "ガードされても安全な技", sort: "adv", dir: "asc" },
+    { id: "land", label: "着地隙が少ない空中攻撃", sort: "landing", dir: "asc", where: (r) => r.place === "air" && r.landing != null },
+    { id: "total", label: "全体Fが短い技", sort: "total", dir: "asc" },
+    { id: "tools", label: "キャラ別の最速手段", sort: "startup", dir: "asc", tools: true },
+    { id: "punish", label: "確定反撃が多い技", sort: "sure", dir: "desc" },
+  ];
+  const PRESET_BY_ID = {};
+  PRESETS.forEach((p) => { PRESET_BY_ID[p.id] = p; });
+
+  const toKata = (s) => s.replace(/[\u3041-\u3096]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 0x60));
+  const norm = (s) => toKata(String(s).normalize("NFKC").toLowerCase()).replace(/[\s・&＆.．ー\-'’／/]/g, "");
+
+  function moveLabel(m) {
+    if (m.category === "special") {
+      const v = m.variant || "";
+      const base = v && !/^(地上|空中|地上・空中|通常|地上\s*\(空中\))$/.test(v) ? v : (m.title || "");
+      const place = /^(地上|空中)$/.test(v) ? "・" + v : "";
+      const tag = [m.versionLabel, m.landingVariant].filter(Boolean).join(" ");
+      return m.group + (base ? " " + base : "") + place + (m.strength ? "（" + m.strength + "）" : "") + (tag ? " " + tag : "");
+    }
+    return m.name.replace(/［(ボタン|コマンド)］$/, "");
+  }
+  function kindOf(m) {
+    if (m.category === "command" || m.input === "command") return "command";
+    if (m.category === "aerial") return "air";
+    if (m.category === "grab") return "grab";
+    if (m.category === "special") return "special";
+    if (m.category === "ground" && /スマッシュ/.test(m.name)) return "smash";
+    return "tilt";
+  }
+  function placeOf(m) {
+    if (m.category === "aerial" || m.landingVariant) return "air";
+    if (m.versionLabel === "空中") return "air";
+    const v = m.variant || "";
+    if (v === "空中" || (v.includes("空中") && !v.includes("地上"))) return "air";
+    return "ground";
+  }
+  function groupIndex(m) {
+    if (m.category === "ground" && !/スマッシュ/.test(m.name) && m.input !== "command") return 0;
+    if (m.category === "ground" && /スマッシュ/.test(m.name)) return 1;
+    if (m.category === "aerial") return 2;
+    if (m.category === "special" && m.input !== "command") return 3;
+    if (m.category === "command" || m.input === "command") return 4;
+    return 0;
+  }
+  function subLine(m, place) {
+    return [m.landingVariant || PLACE_LABEL[place], m.material || "", m.input === "command" ? "コマンド" : ""].filter(Boolean).join(" · ");
+  }
+
+  function buildRows(data, calc) {
+    const rows = [];
+    let order = 0;
+    data.chars.forEach((ch, ci) => {
+      ch.moves.forEach((m) => {
+        const f = calc.listFrames(m);
+        const kind = kindOf(m);
+        const place = placeOf(m);
+        const name = moveLabel(m);
+        rows.push({
+          order: order++, ci, id: m.id, char: ch.name, name, kind, place,
+          group: groupIndex(m), material: m.material || "", command: m.command || "",
+          slotGroup: m.group || "", sub: subLine(m, place),
+          hay: norm(name + " " + (m.command || "") + " " + (m.material || "")),
+          startup: f.startup, activeEnd: f.activeEnd, total: f.total, landing: f.landing,
+          damage: f.damage, stun: f.stun, adv: f.adv, sure: null,
+        });
+      });
+    });
+    return rows;
+  }
+
+  function defaultMaterial(ch) {
+    return ch.materials && ch.materials.length ? (ch.materials[1] || ch.materials[0]) : null;
+  }
+  function punishNeeds(chars, calc) {
+    return chars.map((ch) => calc.punishOptions(ch, defaultMaterial(ch)).map((o) => o.startup + calc.routeCost(o.route, ch.jumpsquat, false)));
+  }
+  function countSure(adv, needs) {
+    let k = 0;
+    for (let i = 0; i < needs.length; i++) if (adv >= needs[i]) k++;
+    return k;
+  }
+  /** vs が null なら全キャラ平均（小数1桁）。キャラ番号ならその相手への確定数。有利が無い技は null */
+  function fillSure(rows, needs, vs) {
+    const n = needs.length || 1;
+    for (const row of rows) {
+      if (row.adv == null) { row.sure = null; continue; }
+      if (vs == null) {
+        let s = 0;
+        for (let i = 0; i < needs.length; i++) s += countSure(row.adv, needs[i]);
+        row.sure = Math.round((s / n) * 10) / 10;
+      } else row.sure = countSure(row.adv, needs[vs] || []);
+    }
+    return rows;
+  }
+
+  function missing(v) { return v == null || (typeof v === "number" && Number.isNaN(v)); }
+  function sortRows(rows, key, dir) {
+    const sign = dir === "desc" ? -1 : 1;
+    const out = rows.slice();
+    out.sort((a, b) => {
+      const av = a[key], bv = b[key];
+      const aBad = missing(av), bBad = missing(bv);
+      if (aBad || bBad) return aBad === bBad ? a.order - b.order : (aBad ? 1 : -1);
+      if (typeof av === "number" && typeof bv === "number") {
+        if (av !== bv) return av < bv ? -sign : sign;
+        return a.order - b.order;
+      }
+      const c = String(av).localeCompare(String(bv), "ja");
+      return c ? c * sign : a.order - b.order;
+    });
+    return out;
+  }
+
+  function toolPick(rows) {
+    const best = new Map();
+    function take(row, slot) {
+      const k = row.ci + "/" + slot;
+      const cur = best.get(k);
+      if (!cur || row.startup < cur.startup || (row.startup === cur.startup && row.name < cur.name)) best.set(k, row);
+    }
+    for (const r of rows) {
+      if (r.startup == null) continue;
+      if (r.kind === "tilt" && /^弱/.test(r.name)) take(r, "jab");
+      if (r.slotGroup === "上B" && r.place === "ground" && r.kind === "special") take(r, "upb");
+      if (r.kind === "smash" && /^上スマッシュ/.test(r.name)) take(r, "usmash");
+      if (r.kind === "air") take(r, "air");
+      if (r.kind === "grab") take(r, "grab");
+    }
+    return Array.from(best.values());
+  }
+
+  function applyView(rows, q) {
+    q = q || {};
+    let out = rows;
+    if (q.chars && q.chars.length) {
+      const set = new Set(q.chars);
+      out = out.filter((r) => set.has(r.ci));
+    }
+    if (q.kinds && q.kinds.length) {
+      const set = new Set(q.kinds);
+      out = out.filter((r) => set.has(r.kind));
+    }
+    if (q.place === "air" || q.place === "ground") out = out.filter((r) => r.place === q.place);
+    if (q.text) {
+      const n = norm(q.text);
+      if (n) out = out.filter((r) => r.hay.includes(n));
+    }
+    const preset = PRESET_BY_ID[q.preset];
+    if (preset && preset.tools) out = toolPick(out);
+    else if (preset && preset.where) out = out.filter(preset.where);
+    const sort = q.sort || (preset && preset.sort) || "order";
+    const dir = q.dir || (preset && preset.dir) || "asc";
+    return sortRows(out, sort, dir);
+  }
+
+  function parseQuery(hash) {
+    const q = new URLSearchParams(String(hash || "").replace(/^#/, ""));
+    const chars = (q.get("c") || "").split(",").filter((s) => /^\d+$/.test(s)).map((s) => +s);
+    const kinds = (q.get("kind") || "").split(",").filter((k) => PRESET_BY_ID && KIND_IDS.indexOf(k) >= 0);
+    const preset = PRESET_BY_ID[q.get("preset")] ? q.get("preset") : "";
+    const sort = SORT_KEYS.indexOf(q.get("sort")) >= 0 ? q.get("sort") : (preset ? PRESET_BY_ID[preset].sort : "order");
+    const dirRaw = q.get("dir");
+    const dir = dirRaw === "asc" || dirRaw === "desc" ? dirRaw : (preset ? PRESET_BY_ID[preset].dir : "asc");
+    const place = q.get("place") === "air" || q.get("place") === "ground" ? q.get("place") : "";
+    const vsRaw = q.get("vs");
+    const vs = vsRaw != null && /^\d+$/.test(vsRaw) ? +vsRaw : null;
+    return { sort, dir, preset, kinds, place, chars, text: q.get("q") || "", vs };
+  }
+  function serialize(s) {
+    const p = new URLSearchParams();
+    if (s.preset) p.set("preset", s.preset);
+    if (s.sort && s.sort !== "order") p.set("sort", s.sort);
+    if (s.dir === "desc" || (s.sort && s.sort !== "order")) p.set("dir", s.dir || "asc");
+    if (s.kinds && s.kinds.length) p.set("kind", s.kinds.join(","));
+    if (s.place) p.set("place", s.place);
+    if (s.chars && s.chars.length) p.set("c", s.chars.join(","));
+    if (s.text) p.set("q", s.text);
+    if (s.vs != null) p.set("vs", String(s.vs));
+    return p.toString();
+  }
+
+  const api = {
+    KIND_LABEL, KIND_IDS, PLACE_LABEL, SORT_KEYS, FIRST_DIR, PRESETS, PRESET_BY_ID,
+    moveLabel, kindOf, placeOf, buildRows, punishNeeds, fillSure, sortRows, applyView, parseQuery, serialize, norm,
+  };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else root.FrameTable = api;
+})(typeof window !== "undefined" ? window : globalThis);
+</script><script>/* 全技表の画面。行データは FrameTable、数値は PunishCalc */
+(function () {
+  "use strict";
+  const T = window.FrameTable;
+  const N = window.Names;
+  const C = window.PunishCalc;
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const COLS = [
+    ["char", "キャラ・技", "left"],
+    ["kind", "種類", ""],
+    ["startup", "発生", ""],
+    ["activeEnd", "持続終わり", ""],
+    ["total", "全体F", ""],
+    ["landing", "着地隙", ""],
+    ["damage", "ダメージ", ""],
+    ["stun", "ガード硬直", ""],
+    ["adv", "ガード有利", ""],
+    ["sure", "確定数", ""],
+  ];
+  const ROW = 56;
+  const state = T.parseQuery(location.hash);
+  let rows = [], needs = [], chars = [], view = [], headH = 44, start = -1, end = -1, pushNext = false, sureMode, draft = [];
+
+  function fmt(key, v) {
+    if (v == null || Number.isNaN(v)) return "—";
+    if (key === "adv") return (v > 0 ? "+" : "") + v;
+    if (key === "sure") return Number.isInteger(v) ? String(v) : v.toFixed(1);
+    if (key === "damage") return String(Math.round(v * 10) / 10);
+    return String(v);
+  }
+  function writeHash() {
+    const next = T.serialize(state);
+    const cur = T.serialize(T.parseQuery(location.hash));
+    if (cur === next) { pushNext = false; return; }
+    const url = next ? "#" + next : location.pathname + location.search;
+    if (pushNext) history.pushState(null, "", next ? "#" + next : location.pathname + location.search);
+    else history.replaceState(null, "", url);
+    pushNext = false;
+  }
+  function renderChrome() {
+    $("presets").innerHTML = T.PRESETS.map((p) => `<button type="button" data-preset="${p.id}" aria-pressed="${state.preset === p.id}">${esc(p.label)}</button>`).join("");
+    $("kinds").innerHTML = T.KIND_IDS.map((k) => `<button type="button" data-kind="${k}" aria-pressed="${state.kinds.indexOf(k) >= 0}">${esc(T.KIND_LABEL[k])}</button>`).join("");
+    $("places").innerHTML = [["", "すべて"], ["ground", "地上"], ["air", "空中"]].map(([id, label]) => `<button type="button" data-place="${id}" aria-pressed="${state.place === id}">${label}</button>`).join("");
+    $("picked").innerHTML = state.chars.map((i) => `<button type="button" data-drop="${i}">${esc(chars[i] ? chars[i].name : i)} ×</button>`).join("");
+    $("charBtn").textContent = state.chars.length ? "キャラ " + state.chars.length : "キャラ";
+    const bits = [`${view.length}件`];
+    if (rows.length && view.length !== rows.length) bits[0] += ` / ${rows.length}`;
+    const preset = T.PRESET_BY_ID[state.preset];
+    if (preset) bits.push(preset.label);
+    bits.push(state.vs == null ? "確定数は全キャラ平均" : "確定数は対 " + (chars[state.vs] ? chars[state.vs].name : ""));
+    $("meta").textContent = bits.join(" · ");
+    $("head").innerHTML = `<span class="c-rank"></span>` + COLS.map(([key, label, side]) => {
+      const on = state.sort === key;
+      const aria = on ? (state.dir === "asc" ? "ascending" : "descending") : "none";
+      return `<button type="button" class="${side}" data-sort="${key}" aria-sort="${aria}">${esc(label)}</button>`;
+    }).join("");
+    $("vs").value = state.vs == null ? "" : String(state.vs);
+  }
+  function paint(force) {
+    const top = Math.max(0, $("scroll").scrollTop - headH);
+    const vis = Math.ceil($("scroll").clientHeight / ROW) + 8;
+    const s = Math.max(0, Math.floor(top / ROW) - 4);
+    const e = Math.min(view.length, s + vis);
+    $("space").style.height = (headH + view.length * ROW) + "px";
+    if (!force && s === start && e === end) return;
+    start = s; end = e;
+    if (!view.length) {
+      $("space").style.height = (headH + 80) + "px";
+      $("win").innerHTML = `<p class="empty">該当する技がありません。</p>`;
+      $("win").style.transform = "translateY(" + headH + "px)";
+      return;
+    }
+    let h = "";
+    for (let i = s; i < e; i++) {
+      const r = view[i];
+      const advCls = r.adv == null ? "" : r.adv > 0 ? "pos" : r.adv < 0 ? "neg" : "zero";
+      const href = rowHref(r);
+      h += `<a class="gridline row" style="height:${ROW}px" href="${esc(href)}"><span class="c-rank">${i + 1}</span><span class="c-name"><b>${esc(r.char)}</b><span>${esc(r.name)}</span>${r.sub ? `<small>${esc(r.sub)}</small>` : ""}</span><span class="c-kind">${esc(T.KIND_LABEL[r.kind])}</span>`;
+      for (const key of ["startup", "activeEnd", "total", "landing", "damage", "stun"]) h += `<span>${fmt(key, r[key])}</span>`;
+      h += `<span class="${advCls}">${fmt("adv", r.adv)}</span><span>${fmt("sure", r.sure)}</span></a>`;
+    }
+    $("win").innerHTML = h;
+    $("win").style.transform = "translateY(" + (headH + s * ROW) + "px)";
+  }
+  function rowHref(r) {
+    const p = new URLSearchParams();
+    p.set("me", state.vs == null ? "0" : String(state.vs));
+    p.set("opp", String(r.ci));
+    p.set("mode", "A");
+    p.set("g", String(r.group));
+    p.set("move", r.id);
+    if (r.material) p.set("mo", r.material);
+    return "index.html#" + p.toString();
+  }
+  function apply(scrollTop) {
+    if (state.vs != null && (state.vs < 0 || state.vs >= chars.length)) state.vs = null;
+    state.chars = state.chars.filter((i) => chars[i]);
+    if (sureMode !== state.vs) { T.fillSure(rows, needs, state.vs); sureMode = state.vs; }
+    view = T.applyView(rows, state);
+    start = end = -1;
+    renderChrome();
+    headH = $("head").offsetHeight || 44;
+    if (scrollTop) $("scroll").scrollTop = 0;
+    paint(true);
+    writeHash();
+  }
+  function bind() {
+    $("presets").onclick = (e) => {
+      const b = e.target.closest("[data-preset]"); if (!b) return;
+      const id = b.dataset.preset;
+      if (state.preset === id) { state.preset = ""; state.sort = "order"; state.dir = "asc"; }
+      else { state.preset = id; state.sort = T.PRESET_BY_ID[id].sort; state.dir = T.PRESET_BY_ID[id].dir; }
+      pushNext = true; apply(true);
+    };
+    $("kinds").onclick = (e) => {
+      const b = e.target.closest("[data-kind]"); if (!b) return;
+      const k = b.dataset.kind;
+      const i = state.kinds.indexOf(k);
+      if (i >= 0) state.kinds.splice(i, 1); else state.kinds.push(k);
+      pushNext = true; apply(true);
+    };
+    $("places").onclick = (e) => {
+      const b = e.target.closest("[data-place]"); if (!b) return;
+      state.place = b.dataset.place; pushNext = true; apply(true);
+    };
+    $("picked").onclick = (e) => {
+      const b = e.target.closest("[data-drop]"); if (!b) return;
+      state.chars = state.chars.filter((i) => i !== +b.dataset.drop);
+      pushNext = true; apply(true);
+    };
+    $("head").onclick = (e) => {
+      const b = e.target.closest("[data-sort]"); if (!b) return;
+      const key = b.dataset.sort;
+      if (state.sort === key) state.dir = state.dir === "asc" ? "desc" : "asc";
+      else { state.sort = key; state.dir = T.FIRST_DIR[key] || "asc"; }
+      state.preset = "";
+      pushNext = true; apply(true);
+    };
+    let timer = 0;
+    $("q").value = state.text;
+    $("q").oninput = () => {
+      state.text = $("q").value;
+      clearTimeout(timer);
+      timer = setTimeout(() => { pushNext = false; apply(true); }, 120);
+    };
+    $("vs").onchange = () => {
+      state.vs = $("vs").value === "" ? null : +$("vs").value;
+      pushNext = true; apply(false);
+    };
+    $("scroll").addEventListener("scroll", () => { paint(false); }, { passive: true });
+    window.addEventListener("hashchange", () => {
+      const n = T.parseQuery(location.hash);
+      Object.assign(state, n);
+      $("q").value = state.text;
+      apply(true);
+    });
+    window.addEventListener("resize", () => { start = -1; paint(true); });
+    $("charBtn").onclick = openPicker;
+    $("pkClose").onclick = closePicker;
+    $("pkDone").onclick = () => { state.chars = draft.slice(); pushNext = true; closePicker(); apply(true); };
+    $("pkQ").oninput = renderPicker;
+    $("pkBody").onclick = (e) => {
+      const b = e.target.closest(".ch"); if (!b) return;
+      const i = +b.dataset.i;
+      const at = draft.indexOf(i);
+      if (at >= 0) draft.splice(at, 1); else draft.push(i);
+      renderPicker();
+    };
+    document.addEventListener("keydown", (e) => {
+      const typing = e.target && (e.target.tagName === "INPUT" || e.target.tagName === "SELECT");
+      if (e.key === "Escape" && !$("picker").hidden) { closePicker(); return; }
+      if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "/") { e.preventDefault(); $("q").focus(); }
+    });
+  }
+  function openPicker() {
+    draft = state.chars.slice();
+    $("pkQ").value = "";
+    $("picker").hidden = false;
+    document.body.classList.add("noscroll");
+    renderPicker();
+    setTimeout(() => $("pkQ").focus(), 30);
+  }
+  function closePicker() { $("picker").hidden = true; document.body.classList.remove("noscroll"); }
+  function renderPicker() {
+    const qv = N.norm($("pkQ").value.trim());
+    const list = chars.map((c, i) => i).filter((i) => !qv || N.haystack(chars[i]).includes(qv) || N.charNo(chars[i]).replace("'", "") === qv);
+    $("pkBody").innerHTML = list.length ? `<div class="grid">${list.map((i) => {
+      const c = chars[i];
+      return `<button type="button" class="ch${draft.indexOf(i) >= 0 ? " on" : ""}" data-i="${i}"><span class="no">${esc(N.charNo(c))}</span>${esc(c.name)}</button>`;
+    }).join("")}</div>` : `<p class="empty">「${esc($("pkQ").value)}」に一致するキャラはいません。</p>`;
+  }
+  function boot(data) {
+    chars = data.chars;
+    rows = T.buildRows(data, C);
+    needs = T.punishNeeds(chars, C);
+    $("vs").innerHTML = `<option value="">平均</option>` + chars.map((c, i) => `<option value="${i}">${esc(c.name)}</option>`).join("");
+    bind();
+    apply(false);
+  }
+  function load() {
+    const tries = ["data.json", "../data/data.json"];
+    (async () => {
+      if (window.__DATA__) return window.__DATA__;
+      for (const url of tries) {
+        try { const r = await fetch(url); if (r.ok) return await r.json(); } catch (e) {}
+      }
+      throw new Error("no data");
+    })().then(boot).catch(() => { $("meta").textContent = "フレームデータを読み込めませんでした。"; });
+  }
+  load();
+})();
+</script>
+</body>
+</html>

@@ -78,7 +78,29 @@
       worst = lateUnknown ? primary : Math.min.apply(null, rows.map((r) => r.total - r.active.end - maxOf(r.stun)));
       detail = rows.map((r) => ({ label: r.label || "本体", stun: r.stun, total: r.total, hitFrame: r.active.starts[0], adv: r.total - r.active.starts[0] - maxOf(r.stun) }));
     }
-    return { ok: true, primary, worst: Math.min(worst, primary), lateUnknown, primaryStun: maxOf(pRow.stun), primaryLabel: pRow.label || "", multiHit: seq, aerial: isAir, landingLag: isAir ? move.landingLag : null, detail };
+    const damage = pRow.damage && pRow.damage.length ? maxOf(pRow.damage) : null;
+    const total = pRow.total == null ? null : pRow.total;
+    return { ok: true, primary, worst: Math.min(worst, primary), lateUnknown, primaryStun: maxOf(pRow.stun), primaryLabel: pRow.label || "", multiHit: seq, aerial: isAir, landingLag: isAir ? move.landingLag : null, damage, total, detail };
+  }
+
+  /** 表の1行分。読めない値は null（画面では —）。有利は shieldAdvantage と同じ */
+  function listFrames(move) {
+    const startup = startupOf(move);
+    const isAir = move.category === "aerial" || !!move.landingVariant;
+    const landing = isAir && move.landingLag != null ? move.landingLag : null;
+    const adv = shieldAdvantage(move);
+    const activeRows = (move.rows || []).filter((r) => r.active);
+    const activeEnd = !activeRows.length || activeRows.some((r) => r.active.open) ? null : Math.max.apply(null, activeRows.map((r) => r.active.end));
+    if (!adv.ok) {
+      const r = firstHitRow(move);
+      return {
+        startup, activeEnd, landing, adv: null,
+        total: r && r.total != null ? r.total : null,
+        damage: r && r.damage && r.damage.length ? maxOf(r.damage) : null,
+        stun: r && r.stun && r.stun.length ? maxOf(r.stun) : null,
+      };
+    }
+    return { startup, activeEnd, total: adv.total, landing, damage: adv.damage, stun: adv.primaryStun, adv: adv.primary };
   }
 
   function isStarter(move) {
@@ -154,7 +176,7 @@
     return { adv: { ...adv, primaryEff: adv.primary + bonus, worstEff: adv.worst + bonus }, list };
   }
 
-  const api = { THRESHOLDS, marginTier, shieldAdvantage, punishOptions, evaluate, startupOf, routeCost, isStarter, ROUTE_LABEL, SHIELD_DROP, GRAB_EXTRA, PERFECT_SHIELD_BONUS };
+  const api = { THRESHOLDS, marginTier, shieldAdvantage, listFrames, punishOptions, evaluate, startupOf, routeCost, isStarter, ROUTE_LABEL, SHIELD_DROP, GRAB_EXTRA, PERFECT_SHIELD_BONUS };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.PunishCalc = api;
 })(typeof window !== "undefined" ? window : globalThis);

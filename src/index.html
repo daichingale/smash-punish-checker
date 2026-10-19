@@ -14,7 +14,10 @@
 <body>
 <header id="top">
   <div class="wrap">
-    <h1>確定反撃チェッカー<small>スマブラSP・タイマン・試作版</small></h1>
+    <div class="titlebar">
+      <h1>確定反撃チェッカー<small>スマブラSP・タイマン・試作版</small></h1>
+      <a class="navlink" href="table.html">フレーム表</a>
+    </div>
     <div class="pick">
       <div><span class="lab me">自分（ガードする側）</span><button id="meBtn" class="cbtn" type="button" aria-haspopup="dialog"></button></div>
       <button id="swap" type="button" title="自分と相手を入れ替え" aria-label="入れ替え">⇄</button>
@@ -69,6 +72,7 @@
 </main>
 <footer>
   <div class="wrap">
+  <a href="table.html">全技のフレーム表</a><br>
   フレームデータ: <a id="srcLink" href="https://docs.google.com/spreadsheets/d/15SClMwvDIqovtO3DJnf1GGIteH35UX3IM7-mnbdG6eE/edit" target="_blank" rel="noopener">スマブラSP検証窓</a>（<a href="https://w.atwiki.jp/smashsp_kensyou/" target="_blank" rel="noopener">スマブラSPECIAL 検証wiki</a>）のフレームシートをもとに計算しています。<br>
   このページは個人が作った非公式の試作です。検証窓・任天堂とは関係ありません。表示内容の正確さは保証しません。実際の対戦ではトレーニングモードで確認してください。<br>
   <span id="builtAt"></span>
@@ -97,6 +101,6 @@
   </div>
 </div>
 <!--DATA--><!--/DATA-->
-<!--SCRIPTS--><script src="calc.js"></script><script src="app.js"></script><!--/SCRIPTS-->
+<!--SCRIPTS--><script src="calc.js"></script><script src="names.js"></script><script src="app.js"></script><!--/SCRIPTS-->
 </body>
 </html>
