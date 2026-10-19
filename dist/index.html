@@ -33,7 +33,10 @@ button,input{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:max(8px,env(safe-area-inset-top)) 12px 8px}
-h1{font-size:16px;margin:0 0 8px;font-weight:750;letter-spacing:.01em}
+.titlebar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+h1{font-size:16px;margin:0;font-weight:750;letter-spacing:.01em}
+.navlink{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--text);text-decoration:none;font-size:14px;font-weight:750;white-space:nowrap}
+body.has-move .titlebar{display:none}
 h1 small{display:block;color:var(--sub);font-weight:500;font-size:12px;margin-top:1px}
 .pick{display:grid;grid-template-columns:1fr 44px 1fr;gap:6px;align-items:end}
 .lab{display:block;font-size:12px;color:var(--sub);margin-bottom:3px}
@@ -147,7 +150,10 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
 <body>
 <header id="top">
   <div class="wrap">
-    <h1>確定反撃チェッカー<small>スマブラSP・タイマン・試作版</small></h1>
+    <div class="titlebar">
+      <h1>確定反撃チェッカー<small>スマブラSP・タイマン・試作版</small></h1>
+      <a class="navlink" href="table.html">フレーム表</a>
+    </div>
     <div class="pick">
       <div><span class="lab me">自分（ガードする側）</span><button id="meBtn" class="cbtn" type="button" aria-haspopup="dialog"></button></div>
       <button id="swap" type="button" title="自分と相手を入れ替え" aria-label="入れ替え">⇄</button>
@@ -202,6 +208,7 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
 </main>
 <footer>
   <div class="wrap">
+  <a href="table.html">全技のフレーム表</a><br>
   フレームデータ: <a id="srcLink" href="https://docs.google.com/spreadsheets/d/15SClMwvDIqovtO3DJnf1GGIteH35UX3IM7-mnbdG6eE/edit" target="_blank" rel="noopener">スマブラSP検証窓</a>（<a href="https://w.atwiki.jp/smashsp_kensyou/" target="_blank" rel="noopener">スマブラSPECIAL 検証wiki</a>）のフレームシートをもとに計算しています。<br>
   このページは個人が作った非公式の試作です。検証窓・任天堂とは関係ありません。表示内容の正確さは保証しません。実際の対戦ではトレーニングモードで確認してください。<br>
   <span id="builtAt"></span>
@@ -310,7 +317,29 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
       worst = lateUnknown ? primary : Math.min.apply(null, rows.map((r) => r.total - r.active.end - maxOf(r.stun)));
       detail = rows.map((r) => ({ label: r.label || "本体", stun: r.stun, total: r.total, hitFrame: r.active.starts[0], adv: r.total - r.active.starts[0] - maxOf(r.stun) }));
     }
-    return { ok: true, primary, worst: Math.min(worst, primary), lateUnknown, primaryStun: maxOf(pRow.stun), primaryLabel: pRow.label || "", multiHit: seq, aerial: isAir, landingLag: isAir ? move.landingLag : null, detail };
+    const damage = pRow.damage && pRow.damage.length ? maxOf(pRow.damage) : null;
+    const total = pRow.total == null ? null : pRow.total;
+    return { ok: true, primary, worst: Math.min(worst, primary), lateUnknown, primaryStun: maxOf(pRow.stun), primaryLabel: pRow.label || "", multiHit: seq, aerial: isAir, landingLag: isAir ? move.landingLag : null, damage, total, detail };
+  }
+
+  /** 表の1行分。読めない値は null（画面では —）。有利は shieldAdvantage と同じ */
+  function listFrames(move) {
+    const startup = startupOf(move);
+    const isAir = move.category === "aerial" || !!move.landingVariant;
+    const landing = isAir && move.landingLag != null ? move.landingLag : null;
+    const adv = shieldAdvantage(move);
+    const activeRows = (move.rows || []).filter((r) => r.active);
+    const activeEnd = !activeRows.length || activeRows.some((r) => r.active.open) ? null : Math.max.apply(null, activeRows.map((r) => r.active.end));
+    if (!adv.ok) {
+      const r = firstHitRow(move);
+      return {
+        startup, activeEnd, landing, adv: null,
+        total: r && r.total != null ? r.total : null,
+        damage: r && r.damage && r.damage.length ? maxOf(r.damage) : null,
+        stun: r && r.stun && r.stun.length ? maxOf(r.stun) : null,
+      };
+    }
+    return { startup, activeEnd, total: adv.total, landing, damage: adv.damage, stun: adv.primaryStun, adv: adv.primary };
   }
 
   function isStarter(move) {
@@ -386,9 +415,43 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
     return { adv: { ...adv, primaryEff: adv.primary + bonus, worstEff: adv.worst + bonus }, list };
   }
 
-  const api = { THRESHOLDS, marginTier, shieldAdvantage, punishOptions, evaluate, startupOf, routeCost, isStarter, ROUTE_LABEL, SHIELD_DROP, GRAB_EXTRA, PERFECT_SHIELD_BONUS };
+  const api = { THRESHOLDS, marginTier, shieldAdvantage, listFrames, punishOptions, evaluate, startupOf, routeCost, isStarter, ROUTE_LABEL, SHIELD_DROP, GRAB_EXTRA, PERFECT_SHIELD_BONUS };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.PunishCalc = api;
+})(typeof window !== "undefined" ? window : globalThis);
+</script><script>/* キャラ検索用の正規化と読み。表示名は変えない */
+(function (root) {
+  "use strict";
+const toKata = (s) => s.replace(/[\u3041-\u3096]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 0x60));
+const norm = (s) => toKata(String(s).normalize("NFKC").toLowerCase()).replace(/[\s・&＆.．ー\-'’／/]/g, "");
+const charNo = (c) => (c.sheetTab.match(/^(\d+'?)/) || [])[1] || "";
+const ALIAS = { "Mii": "ミイ ミー mii", "ドンキーコング": "dk", "Mr.ゲーム&ウォッチ": "ゲムヲ ゲーム&ウォッチ", "Wii Fit トレーナー": "ウィーフィット wiifit",
+  "キャプテン・ファルコン": "cf", "ピクミン&オリマー": "オリマー", "ロゼッタ&チコ": "ロゼチコ", "バンジョー&カズーイ": "バンカズ",
+  "ゼロスーツサムス": "ゼロサム", "パックンフラワー": "パックン", "トゥーンリンク": "トゥーン", "こどもリンク": "こどリン", "ガノンドロフ": "ガノン" };
+// 検索用の読み。表示名は変えない
+const READ = { "マリオ": "まりお mario", "ドンキーコング": "どんきーこんぐ donkeykong", "リンク": "りんく link", "サムス": "さむす samus", "ダークサムス": "だーくさむす darksamus",
+  "ヨッシー": "よっしー yoshi", "カービィ": "かーびぃ kirby", "フォックス": "ふぉっくす fox", "ピカチュウ": "ぴかちゅう pikachu", "ルイージ": "るいーじ luigi", "ネス": "ねす ness",
+  "キャプテン・ファルコン": "きゃぷてんふぁるこん captainfalcon falcon", "プリン": "ぷりん jigglypuff purin", "ピーチ": "ぴーち peach", "デイジー": "でいじー daisy", "クッパ": "くっぱ bowser koopa",
+  "アイスクライマー": "あいすくらいまー icies iceclimber", "シーク": "しーく sheik", "ゼルダ": "ぜるだ zelda", "ドクターマリオ": "どくたーまりお drmario doc", "ピチュー": "ぴちゅー pichu",
+  "ファルコ": "ふぁるこ falco", "マルス": "まるす marth", "ルキナ": "るきな lucina", "こどもリンク": "こどもりんく younglink", "ガノンドロフ": "がのんどろふ ganondorf",
+  "ミュウツー": "みゅうつー mewtwo", "ロイ": "ろい roy", "クロム": "くろむ chrom", "Mr.ゲーム&ウォッチ": "みすたーげーむ gamewatch gnw", "メタナイト": "めたないと metaknight",
+  "ピット": "ぴっと pit", "ブラックピット": "ぶらっくぴっと darkpit", "ゼロスーツサムス": "ぜろすーつさむす zerosuit zss", "ワリオ": "わりお wario", "スネーク": "すねーく snake",
+  "アイク": "あいく ike", "ゼニガメ": "ぜにがめ squirtle", "フシギソウ": "ふしぎそう ivysaur", "リザードン": "りざーどん charizard", "ディディーコング": "でぃでぃーこんぐ diddykong diddy",
+  "リュカ": "りゅか lucas", "ソニック": "そにっく sonic", "デデデ": "ででで dedede", "ピクミン&オリマー": "ぴくみんおりまー olimar pikmin", "ルカリオ": "るかリオ lucario",
+  "ロボット": "ろぼっと rob roboto", "トゥーンリンク": "とぅーんりんく toonlink", "ウルフ": "うるふ wolf", "むらびと": "むらびと villager", "ロックマン": "ろっくまん megaman rockman",
+  "Wii Fit トレーナー": "うぃーふぃっと wiifittrainer", "ロゼッタ&チコ": "ろぜったちこ rosalina", "リトル・マック": "りとるまっく littlemac", "ゲッコウガ": "げっこうが greninja",
+  "格闘Mii": "かくとうみい brawler", "剣術Mii": "けんじゅつみい swordfighter", "射撃Mii": "しゃげきみい gunner", "パルテナ": "ぱるてな palutena", "パックマン": "ぱっくまん pacman",
+  "ルフレ": "るふれ robin", "シュルク": "しゅるく shulk", "クッパ Jr.": "くっぱじゅにあ bowserjr", "ダックハント": "だっくはんと duckhunt", "リュウ": "りゅう ryu", "ケン": "けん ken",
+  "クラウド": "くらうど cloud", "カムイ": "かむい corrin", "ベヨネッタ": "べよねった bayonetta bayo", "インクリング": "いんくりんぐ inkling", "リドリー": "りどりー ridley",
+  "シモン": "しもん simon", "リヒター": "りひたー richter", "キングクルール": "きんぐくるーる kingkrool kkr", "しずえ": "しずえ isabelle", "ガオガエン": "がおがえん incineroar",
+  "パックンフラワー": "ぱっくんふらわー piranha plant", "ジョーカー": "じょーかー joker", "勇者": "ゆうしゃ hero", "バンジョー&カズーイ": "ばんじょーかずーい banjo", "テリー": "てりー terry",
+  "ベレト／ベレス": "べれとべれす byleth", "ミェンミェン": "みぇんみぇん minmin", "スティーブ／アレックス": "すてぃーぶあれっくす steve alex", "セフィロス": "せふぃろす sephiroth",
+  "ホムラ": "ほむら pyra homura", "ヒカリ": "ひかり mythra hikari", "カズヤ": "かずや kazuya", "ソラ": "そら sora" };
+const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || "") + " " + Object.keys(ALIAS).filter((k) => c.name.includes(k)).map((k) => ALIAS[k]).join(" "));
+
+  const api = { norm, charNo, haystack };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else root.Names = api;
 })(typeof window !== "undefined" ? window : globalThis);
 </script><script>/* 画面ロジック。データは window.__DATA__（dist の単体HTML）か data.json を読む */
 (function () {
@@ -553,32 +616,9 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
     render();
   }
 
-  const toKata = (s) => s.replace(/[\u3041-\u3096]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 0x60));
-  const norm = (s) => toKata(String(s).normalize("NFKC").toLowerCase()).replace(/[\s・&＆.．ー\-'’／/]/g, "");
-  const charNo = (c) => (c.sheetTab.match(/^(\d+'?)/) || [])[1] || "";
-  const ALIAS = { "Mii": "ミイ ミー mii", "ドンキーコング": "dk", "Mr.ゲーム&ウォッチ": "ゲムヲ ゲーム&ウォッチ", "Wii Fit トレーナー": "ウィーフィット wiifit",
-    "キャプテン・ファルコン": "cf", "ピクミン&オリマー": "オリマー", "ロゼッタ&チコ": "ロゼチコ", "バンジョー&カズーイ": "バンカズ",
-    "ゼロスーツサムス": "ゼロサム", "パックンフラワー": "パックン", "トゥーンリンク": "トゥーン", "こどもリンク": "こどリン", "ガノンドロフ": "ガノン" };
-  // 検索用の読み。表示名は変えない
-  const READ = { "マリオ": "まりお mario", "ドンキーコング": "どんきーこんぐ donkeykong", "リンク": "りんく link", "サムス": "さむす samus", "ダークサムス": "だーくさむす darksamus",
-    "ヨッシー": "よっしー yoshi", "カービィ": "かーびぃ kirby", "フォックス": "ふぉっくす fox", "ピカチュウ": "ぴかちゅう pikachu", "ルイージ": "るいーじ luigi", "ネス": "ねす ness",
-    "キャプテン・ファルコン": "きゃぷてんふぁるこん captainfalcon falcon", "プリン": "ぷりん jigglypuff purin", "ピーチ": "ぴーち peach", "デイジー": "でいじー daisy", "クッパ": "くっぱ bowser koopa",
-    "アイスクライマー": "あいすくらいまー icies iceclimber", "シーク": "しーく sheik", "ゼルダ": "ぜるだ zelda", "ドクターマリオ": "どくたーまりお drmario doc", "ピチュー": "ぴちゅー pichu",
-    "ファルコ": "ふぁるこ falco", "マルス": "まるす marth", "ルキナ": "るきな lucina", "こどもリンク": "こどもりんく younglink", "ガノンドロフ": "がのんどろふ ganondorf",
-    "ミュウツー": "みゅうつー mewtwo", "ロイ": "ろい roy", "クロム": "くろむ chrom", "Mr.ゲーム&ウォッチ": "みすたーげーむ gamewatch gnw", "メタナイト": "めたないと metaknight",
-    "ピット": "ぴっと pit", "ブラックピット": "ぶらっくぴっと darkpit", "ゼロスーツサムス": "ぜろすーつさむす zerosuit zss", "ワリオ": "わりお wario", "スネーク": "すねーく snake",
-    "アイク": "あいく ike", "ゼニガメ": "ぜにがめ squirtle", "フシギソウ": "ふしぎそう ivysaur", "リザードン": "りざーどん charizard", "ディディーコング": "でぃでぃーこんぐ diddykong diddy",
-    "リュカ": "りゅか lucas", "ソニック": "そにっく sonic", "デデデ": "ででで dedede", "ピクミン&オリマー": "ぴくみんおりまー olimar pikmin", "ルカリオ": "るかリオ lucario",
-    "ロボット": "ろぼっと rob roboto", "トゥーンリンク": "とぅーんりんく toonlink", "ウルフ": "うるふ wolf", "むらびと": "むらびと villager", "ロックマン": "ろっくまん megaman rockman",
-    "Wii Fit トレーナー": "うぃーふぃっと wiifittrainer", "ロゼッタ&チコ": "ろぜったちこ rosalina", "リトル・マック": "りとるまっく littlemac", "ゲッコウガ": "げっこうが greninja",
-    "格闘Mii": "かくとうみい brawler", "剣術Mii": "けんじゅつみい swordfighter", "射撃Mii": "しゃげきみい gunner", "パルテナ": "ぱるてな palutena", "パックマン": "ぱっくまん pacman",
-    "ルフレ": "るふれ robin", "シュルク": "しゅるく shulk", "クッパ Jr.": "くっぱじゅにあ bowserjr", "ダックハント": "だっくはんと duckhunt", "リュウ": "りゅう ryu", "ケン": "けん ken",
-    "クラウド": "くらうど cloud", "カムイ": "かむい corrin", "ベヨネッタ": "べよねった bayonetta bayo", "インクリング": "いんくりんぐ inkling", "リドリー": "りどりー ridley",
-    "シモン": "しもん simon", "リヒター": "りひたー richter", "キングクルール": "きんぐくるーる kingkrool kkr", "しずえ": "しずえ isabelle", "ガオガエン": "がおがえん incineroar",
-    "パックンフラワー": "ぱっくんふらわー piranha plant", "ジョーカー": "じょーかー joker", "勇者": "ゆうしゃ hero", "バンジョー&カズーイ": "ばんじょーかずーい banjo", "テリー": "てりー terry",
-    "ベレト／ベレス": "べれとべれす byleth", "ミェンミェン": "みぇんみぇん minmin", "スティーブ／アレックス": "すてぃーぶあれっくす steve alex", "セフィロス": "せふぃろす sephiroth",
-    "ホムラ": "ほむら pyra homura", "ヒカリ": "ひかり mythra hikari", "カズヤ": "かずや kazuya", "ソラ": "そら sora" };
-  const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || "") + " " + Object.keys(ALIAS).filter((k) => c.name.includes(k)).map((k) => ALIAS[k]).join(" "));
+  const norm = window.Names.norm;
+  const charNo = window.Names.charNo;
+  const haystack = window.Names.haystack;
   let pickFor = null;
   const RECENT_KEY = "punish.recent";
   const recent = () => { try { return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]").filter((i) => D.chars[i]); } catch (e) { return []; } };

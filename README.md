@@ -8,9 +8,9 @@
 - 判定は密着前提（リーチ・シールドノックバックは考慮しない）。フレームが間に合えば「確定」。猶予ラベル（シビア/余裕）のしきい値は `src/calc.js` の `THRESHOLDS`。注意バッジは廃止（コマンド入力時間・最速判定前提は「この計算について」に一行で記載）
 - 必殺ワザの備考に条件のない着地隙が一つだけある技は「空中（着地）」（着地隙 − ガード硬直、着地直前）。地上と空中で全体Fが連続ブロックになっている技はそれぞれの数値。判定欄が空の空中版は、行名が一致するときだけ地上版の判定を使う
 - キャラ選択は検索（ひらがな・ローマ字・番号・通称）＋最近使ったキャラ。技は種類のチップで絞り、結果は有利Fを大きく出す。ガードキャンセルを先に、シールド解除は折りたたみ。技を選ぶとヘッダーが1行になり、画面下に「逆 / ジャスト / 内訳」。戻るは URL のハッシュに従う。配色は OS のライト/ダークに合わせる。`dist/` にはオフライン用の service worker も出す。シートが最後の調整より古いキャラは ⚠
-- `src/` … `index.html` / `style.css` / `calc.js`（計算ロジック、Node でもブラウザでも動く）/ `app.js`（画面）
-- `scripts/build_dist.py` … 全部を埋め込んだ単体HTML `dist/index.html` を作る
-- `tests/calc.test.js` / `tests/parse.test.js` … 単体テスト（`npm test`。Node 22 ではディレクトリ指定だと失敗するためファイルを直接指定する）
+- `src/` … `index.html` / `style.css` / `calc.js`（計算ロジック、Node でもブラウザでも動く）/ `names.js`（キャラ検索）/ `app.js`（画面）。全技のランキングは `table.html`（`table.js` / `table-page.js`）。表は `dist/data.json` を読み、反撃チェックの HTML には表の分を足さない
+- `scripts/build_dist.py` … 全部を埋め込んだ単体HTML `dist/index.html` と、表用の `dist/table.html`・`dist/data.json` を作る
+- `tests/calc.test.js` / `tests/parse.test.js` / `tests/table.test.js` … 単体テスト（`npm test`。Node 22 ではディレクトリ指定だと失敗するためファイルを直接指定する）
 - `tests/compare_ufd.py` … Ultimate Frame Data との照合 → `tests/ufd_compare.md`
 - `tests/shots.js` … 390px 幅スクリーンショット → `shots/`（playwright-core + /usr/bin/google-chrome）
 
