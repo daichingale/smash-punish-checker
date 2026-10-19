@@ -32,6 +32,8 @@
     return r ? r.active.starts[0] : null;
   }
   function lastStart(row) {
+    // open（20-*）は終わりFがシートに無い。開始Fを最速として使い、終わり際は作らない
+    if (row.active.open) return row.active.starts[row.active.starts.length - 1];
     return row.active.rehit ? row.active.end : row.active.starts[row.active.starts.length - 1];
   }
 
@@ -41,8 +43,17 @@
     if (move.category === "grab") return { ok: false, reason: "つかみはガードできない" };
     if (move.projectile) return { ok: false, reason: "飛び道具（防御側だけにヒットストップ・距離で変わる）のため計算対象外" };
     if (move.specialShield) return { ok: false, reason: "ガードさせた際の特殊仕様がある（シート備考）ため計算対象外" };
-    const isAir = move.category === "aerial";
-    const rows = move.rows.filter((r) => hasHit(r) && r.stun && (isAir || r.total != null));
+    // 空中（着地）の必殺は、空中攻撃と同じく着地隙で後隙を出す（全体Fは使わない）
+    const isAir = move.category === "aerial" || !!move.landingVariant;
+    const candidates = move.rows.filter((r) => {
+      if (!hasHit(r) || !r.stun) return false;
+      if (isAir) return true;
+      return r.total != null;
+    });
+    // 開始が全体Fより後の窓は、溜め最大など別バージョンが短い全体Fに載っているだけ。
+    // ただし全部がそうなら（召喚の持続など）従来どおりその行を使う。
+    const inWindow = candidates.filter((r) => isAir || r.active.starts[0] <= r.total);
+    const rows = inWindow.length ? inWindow : candidates;
     if (!rows.length) {
       const why = move.rows.some(hasHit)
         ? (isAir ? "ガード硬直が読めない" : "全体フレームかガード硬直がシートに無い／可変")
@@ -51,21 +62,23 @@
     }
     const seq = rows.some((r) => SEQ_RE.test(r.label));
     const pRow = seq ? rows[rows.length - 1] : rows[0];
+    // 終わりが '*' の判定は、終わり際の有利Fを数字にしない
+    const lateUnknown = rows.some((r) => r.active && r.active.open);
     let primary, worst, detail = [];
     if (isAir) {
       const L = move.landingLag;
       if (L == null) return { ok: false, reason: "着地隙がシートに無い" };
-      const f = (r, late) => (r.label.includes("着地") ? L - (late ? r.active.end : r.active.starts[0]) - maxOf(r.stun) : L - maxOf(r.stun));
+      const f = (r, late) => (r.label.includes("着地") ? L - (late && !r.active.open ? r.active.end : r.active.starts[0]) - maxOf(r.stun) : L - maxOf(r.stun));
       primary = f(pRow, false);
-      worst = Math.min.apply(null, rows.map((r) => f(r, true)));
+      worst = lateUnknown ? primary : Math.min.apply(null, rows.map((r) => f(r, true)));
       detail = rows.map((r) => ({ label: r.label || "本体", stun: r.stun, adv: f(r, false) }));
     } else {
       const hit = seq ? lastStart(pRow) : pRow.active.starts[0];
       primary = pRow.total - hit - maxOf(pRow.stun);
-      worst = Math.min.apply(null, rows.map((r) => r.total - r.active.end - maxOf(r.stun)));
+      worst = lateUnknown ? primary : Math.min.apply(null, rows.map((r) => r.total - r.active.end - maxOf(r.stun)));
       detail = rows.map((r) => ({ label: r.label || "本体", stun: r.stun, total: r.total, hitFrame: r.active.starts[0], adv: r.total - r.active.starts[0] - maxOf(r.stun) }));
     }
-    return { ok: true, primary, worst: Math.min(worst, primary), primaryStun: maxOf(pRow.stun), primaryLabel: pRow.label || "", multiHit: seq, aerial: isAir, landingLag: isAir ? move.landingLag : null, detail };
+    return { ok: true, primary, worst: Math.min(worst, primary), lateUnknown, primaryStun: maxOf(pRow.stun), primaryLabel: pRow.label || "", multiHit: seq, aerial: isAir, landingLag: isAir ? move.landingLag : null, detail };
   }
 
   function isStarter(move) {
@@ -81,6 +94,7 @@
     const out = [];
     const js = ch.jumpsquat;
     for (const m of ch.moves) {
+      if (m.landingVariant || m.versionLabel === "空中" || m.derivedAir) continue; // 空中版は攻撃側の見方。反撃手段は地上版を使う
       if (material && m.material && m.material !== material) continue;
       if (!isStarter(m)) continue;
       const st = startupOf(m);

@@ -4,24 +4,24 @@
   const C = window.PunishCalc;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const state = { me: 0, opp: 1, mode: "A", moveId: null, ps: false, mat: {} };
-  let D;
+  const state = { me: 0, opp: 1, mode: "A", moveId: null, ps: false, mat: {}, group: 0 };
+  let D, pushNext = false, overlay = null;
 
   const GROUPS = [
-    ["弱・強攻撃・ダッシュ攻撃", (m) => m.category === "ground" && !/スマッシュ/.test(m.name) && m.input !== "command"],
-    ["スマッシュ攻撃", (m) => m.category === "ground" && /スマッシュ/.test(m.name)],
-    ["空中攻撃", (m) => m.category === "aerial"],
-    ["必殺ワザ", (m) => m.category === "special" && m.input !== "command"],
-    ["コマンド技", (m) => m.category === "command" || m.input === "command"],
+    ["弱・強", "弱・強攻撃・ダッシュ攻撃", (m) => m.category === "ground" && !/スマッシュ/.test(m.name) && m.input !== "command"],
+    ["スマッシュ", "スマッシュ攻撃", (m) => m.category === "ground" && /スマッシュ/.test(m.name)],
+    ["空中", "空中攻撃", (m) => m.category === "aerial"],
+    ["必殺", "必殺ワザ", (m) => m.category === "special" && m.input !== "command"],
+    ["コマンド", "コマンド技", (m) => m.category === "command" || m.input === "command"],
   ];
   const hasHit = (m) => m.rows.some((r) => r.active && (r.damage == null || Math.max.apply(null, r.damage) > 0));
-  // 表示名: 必殺ワザは「上B 昇竜拳（強）」のように技名を添える。ボタン/コマンドは別表示
   const shortName = (m) => {
     if (m.category === "special") {
       const v = m.variant || "";
       const base = v && !/^(地上|空中|地上・空中|通常|地上\s*\(空中\))$/.test(v) ? v : (m.title || "");
       const place = /^(地上|空中)$/.test(v) ? `・${v}` : "";
-      return `${m.group}${base ? " " + base : ""}${place}${m.strength ? `（${m.strength}）` : ""}`;
+      const tag = [m.versionLabel, m.landingVariant].filter(Boolean).join(" ");
+      return `${m.group}${base ? " " + base : ""}${place}${m.strength ? `（${m.strength}）` : ""}${tag ? " " + tag : ""}`;
     }
     return m.name.replace(/［(ボタン|コマンド)］$/, "");
   };
@@ -29,70 +29,230 @@
   function attackerChar() { return D.chars[state.mode === "A" ? state.opp : state.me]; }
   function defenderChar() { return D.chars[state.mode === "A" ? state.me : state.opp]; }
   function matOf(idx) { const c = D.chars[idx]; return c.materials.length ? (state.mat[idx] || c.materials[1] || c.materials[0]) : null; }
+  function visibleMoves() {
+    const att = attackerChar();
+    const mat = matOf(D.chars.indexOf(att));
+    return att.moves.filter((m) => m.category !== "grab" && hasHit(m) && (!mat || !m.material || m.material === mat));
+  }
+
+  let scrollToResult = false;
+  function clampIdx(v, d) { return Number.isInteger(v) && v >= 0 && v < D.chars.length ? v : d; }
+  function groupOf(move) {
+    const i = GROUPS.findIndex((g) => g[2](move));
+    return i < 0 ? 0 : i;
+  }
+  function applyHash() {
+    const q = new URLSearchParams(location.hash.replace(/^#/, ""));
+    if (q.has("me")) state.me = clampIdx(+q.get("me"), state.me);
+    if (q.has("opp")) state.opp = clampIdx(+q.get("opp"), state.opp);
+    state.mode = q.get("mode") === "B" ? "B" : "A";
+    state.ps = q.get("ps") === "1";
+    for (const [idx, key] of [[state.me, "mm"], [state.opp, "mo"]]) {
+      const c = D.chars[idx];
+      const v = q.get(key);
+      if (c && c.materials.length && v && c.materials.includes(v)) state.mat[idx] = v;
+    }
+    const mv = q.get("move");
+    const att = attackerChar();
+    state.moveId = mv && att.moves.some((m) => m.id === mv) ? mv : null;
+    const g = q.get("g");
+    if (g != null && /^\d$/.test(g) && +g < GROUPS.length) state.group = +g;
+    else if (state.moveId) state.group = groupOf(att.moves.find((m) => m.id === state.moveId));
+    scrollToResult = !!state.moveId;
+  }
+  function hashString() {
+    const p = new URLSearchParams();
+    p.set("me", String(state.me));
+    p.set("opp", String(state.opp));
+    p.set("mode", state.mode);
+    p.set("g", String(state.group));
+    if (state.moveId) p.set("move", state.moveId);
+    if (state.ps) p.set("ps", "1");
+    const meC = D.chars[state.me], oppC = D.chars[state.opp];
+    if (meC.materials.length) p.set("mm", matOf(state.me));
+    if (oppC.materials.length) p.set("mo", matOf(state.opp));
+    return p.toString();
+  }
+  function writeHash() {
+    const next = hashString();
+    const cur = new URLSearchParams(location.hash.replace(/^#/, "")).toString();
+    const onOverlay = history.state && history.state.overlay;
+    if (cur === next) {
+      if (onOverlay) history.replaceState(null, "", "#" + next);
+      pushNext = false;
+      return;
+    }
+    const url = "#" + next;
+    if (onOverlay || !pushNext) history.replaceState(null, "", url);
+    else history.pushState(null, "", url);
+    pushNext = false;
+  }
 
   function init(data) {
     D = data;
-    const q = new URLSearchParams(location.hash.slice(1));
-    const clamp = (v, d) => (Number.isInteger(v) && v >= 0 && v < D.chars.length ? v : d);
-    if (q.has("me")) state.me = clamp(+q.get("me"), 0); if (q.has("opp")) state.opp = clamp(+q.get("opp"), 1);
-    $("meBtn").onclick = () => openPicker("me"); $("oppBtn").onclick = () => openPicker("opp");
-    $("swap").onclick = () => { [state.me, state.opp] = [state.opp, state.me]; state.moveId = null; render(); };
+    applyHash();
+    $("meBtn").onclick = () => openPicker("me");
+    $("oppBtn").onclick = () => openPicker("opp");
+    $("swap").onclick = swap;
     initPicker();
-    $("modeA").onclick = () => setMode("A"); $("modeB").onclick = () => setMode("B");
-    $("ps").onchange = (e) => { state.ps = e.target.checked; renderResult(); };
+    $("modeA").onclick = () => setMode("A");
+    $("modeB").onclick = () => setMode("B");
+    $("ps").onchange = (e) => setPs(e.target.checked);
+    $("psDock").onchange = (e) => setPs(e.target.checked);
+    $("flip").onclick = () => setMode(state.mode === "A" ? "B" : "A");
+    $("detailBtn").onclick = openSheet;
+    $("sheetBack").onclick = dismissOverlay;
+    $("sheetClose").onclick = dismissOverlay;
+    const grab = $("sheetGrab");
+    let y0 = 0;
+    grab.addEventListener("touchstart", (e) => { y0 = e.touches[0].clientY; }, { passive: true });
+    grab.addEventListener("touchend", (e) => { if (e.changedTouches[0].clientY - y0 > 48) dismissOverlay(); });
+    window.addEventListener("hashchange", () => { applyHash(); render(); });
+    window.addEventListener("popstate", () => { if (overlay) { overlay = null; hideOverlays(); } });
+    document.addEventListener("keydown", onKey);
+    new ResizeObserver(() => {
+      document.documentElement.style.setProperty("--bar", $("top").offsetHeight + "px");
+    }).observe($("top"));
     $("builtAt").textContent = `データ取得: ${(D.meta.fetchedAt || "").slice(0, 10)} ／ 計算: スマブラSPECIAL 検証wiki の式`;
     render();
+    if (location.protocol.startsWith("http") && "serviceWorker" in navigator) {
+      const link = document.createElement("link");
+      link.rel = "manifest";
+      link.href = "manifest.webmanifest";
+      document.head.appendChild(link);
+      window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });
+    }
   }
-  // ---- キャラ選択（検索＋グリッド）----
+
+  function onKey(e) {
+    const typing = e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA");
+    if (e.key === "Escape") { if (overlay) { e.preventDefault(); dismissOverlay(); } return; }
+    if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === "/") { e.preventDefault(); openPicker("opp"); }
+    else if (e.key === "x") { e.preventDefault(); swap(); }
+    else if (e.key === "r") { e.preventDefault(); setMode(state.mode === "A" ? "B" : "A"); }
+    else if (e.key === "j") { e.preventDefault(); setPs(!state.ps); }
+    else if (e.key >= "1" && e.key <= "5") { e.preventDefault(); setGroup(+e.key - 1); }
+  }
+  function swap() {
+    [state.me, state.opp] = [state.opp, state.me];
+    state.moveId = null;
+    pushNext = true;
+    render();
+  }
+  function setMode(m) {
+    if (state.mode === m) return;
+    state.mode = m;
+    state.moveId = null;
+    pushNext = true;
+    render();
+  }
+  function setPs(on) {
+    on = !!on;
+    if (state.ps === on) return;
+    state.ps = on;
+    pushNext = true;
+    render();
+  }
+  function setGroup(i) {
+    if (!GROUPS[i] || state.group === i) return;
+    state.group = i;
+    pushNext = true;
+    render();
+  }
+
   const toKata = (s) => s.replace(/[\u3041-\u3096]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 0x60));
   const norm = (s) => toKata(String(s).normalize("NFKC").toLowerCase()).replace(/[\s・&＆.．ー\-'’／/]/g, "");
   const charNo = (c) => (c.sheetTab.match(/^(\d+'?)/) || [])[1] || "";
-  // 検索用の別名（通称・読み）。表示名は変えない
   const ALIAS = { "Mii": "ミイ ミー mii", "ドンキーコング": "dk", "Mr.ゲーム&ウォッチ": "ゲムヲ ゲーム&ウォッチ", "Wii Fit トレーナー": "ウィーフィット wiifit",
     "キャプテン・ファルコン": "cf", "ピクミン&オリマー": "オリマー", "ロゼッタ&チコ": "ロゼチコ", "バンジョー&カズーイ": "バンカズ",
     "ゼロスーツサムス": "ゼロサム", "パックンフラワー": "パックン", "トゥーンリンク": "トゥーン", "こどもリンク": "こどリン", "ガノンドロフ": "ガノン" };
-  const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + Object.keys(ALIAS).filter((k) => c.name.includes(k)).map((k) => ALIAS[k]).join(" "));
+  // 検索用の読み。表示名は変えない
+  const READ = { "マリオ": "まりお mario", "ドンキーコング": "どんきーこんぐ donkeykong", "リンク": "りんく link", "サムス": "さむす samus", "ダークサムス": "だーくさむす darksamus",
+    "ヨッシー": "よっしー yoshi", "カービィ": "かーびぃ kirby", "フォックス": "ふぉっくす fox", "ピカチュウ": "ぴかちゅう pikachu", "ルイージ": "るいーじ luigi", "ネス": "ねす ness",
+    "キャプテン・ファルコン": "きゃぷてんふぁるこん captainfalcon falcon", "プリン": "ぷりん jigglypuff purin", "ピーチ": "ぴーち peach", "デイジー": "でいじー daisy", "クッパ": "くっぱ bowser koopa",
+    "アイスクライマー": "あいすくらいまー icies iceclimber", "シーク": "しーく sheik", "ゼルダ": "ぜるだ zelda", "ドクターマリオ": "どくたーまりお drmario doc", "ピチュー": "ぴちゅー pichu",
+    "ファルコ": "ふぁるこ falco", "マルス": "まるす marth", "ルキナ": "るきな lucina", "こどもリンク": "こどもりんく younglink", "ガノンドロフ": "がのんどろふ ganondorf",
+    "ミュウツー": "みゅうつー mewtwo", "ロイ": "ろい roy", "クロム": "くろむ chrom", "Mr.ゲーム&ウォッチ": "みすたーげーむ gamewatch gnw", "メタナイト": "めたないと metaknight",
+    "ピット": "ぴっと pit", "ブラックピット": "ぶらっくぴっと darkpit", "ゼロスーツサムス": "ぜろすーつさむす zerosuit zss", "ワリオ": "わりお wario", "スネーク": "すねーく snake",
+    "アイク": "あいく ike", "ゼニガメ": "ぜにがめ squirtle", "フシギソウ": "ふしぎそう ivysaur", "リザードン": "りざーどん charizard", "ディディーコング": "でぃでぃーこんぐ diddykong diddy",
+    "リュカ": "りゅか lucas", "ソニック": "そにっく sonic", "デデデ": "ででで dedede", "ピクミン&オリマー": "ぴくみんおりまー olimar pikmin", "ルカリオ": "るかリオ lucario",
+    "ロボット": "ろぼっと rob roboto", "トゥーンリンク": "とぅーんりんく toonlink", "ウルフ": "うるふ wolf", "むらびと": "むらびと villager", "ロックマン": "ろっくまん megaman rockman",
+    "Wii Fit トレーナー": "うぃーふぃっと wiifittrainer", "ロゼッタ&チコ": "ろぜったちこ rosalina", "リトル・マック": "りとるまっく littlemac", "ゲッコウガ": "げっこうが greninja",
+    "格闘Mii": "かくとうみい brawler", "剣術Mii": "けんじゅつみい swordfighter", "射撃Mii": "しゃげきみい gunner", "パルテナ": "ぱるてな palutena", "パックマン": "ぱっくまん pacman",
+    "ルフレ": "るふれ robin", "シュルク": "しゅるく shulk", "クッパ Jr.": "くっぱじゅにあ bowserjr", "ダックハント": "だっくはんと duckhunt", "リュウ": "りゅう ryu", "ケン": "けん ken",
+    "クラウド": "くらうど cloud", "カムイ": "かむい corrin", "ベヨネッタ": "べよねった bayonetta bayo", "インクリング": "いんくりんぐ inkling", "リドリー": "りどりー ridley",
+    "シモン": "しもん simon", "リヒター": "りひたー richter", "キングクルール": "きんぐくるーる kingkrool kkr", "しずえ": "しずえ isabelle", "ガオガエン": "がおがえん incineroar",
+    "パックンフラワー": "ぱっくんふらわー piranha plant", "ジョーカー": "じょーかー joker", "勇者": "ゆうしゃ hero", "バンジョー&カズーイ": "ばんじょーかずーい banjo", "テリー": "てりー terry",
+    "ベレト／ベレス": "べれとべれす byleth", "ミェンミェン": "みぇんみぇん minmin", "スティーブ／アレックス": "すてぃーぶあれっくす steve alex", "セフィロス": "せふぃろす sephiroth",
+    "ホムラ": "ほむら pyra homura", "ヒカリ": "ひかり mythra hikari", "カズヤ": "かずや kazuya", "ソラ": "そら sora" };
+  const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || "") + " " + Object.keys(ALIAS).filter((k) => c.name.includes(k)).map((k) => ALIAS[k]).join(" "));
   let pickFor = null;
   const RECENT_KEY = "punish.recent";
   const recent = () => { try { return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]").filter((i) => D.chars[i]); } catch (e) { return []; } };
   function initPicker() {
-    $("pkClose").onclick = closePicker;
+    $("pkClose").onclick = dismissOverlay;
     $("pkQ").oninput = renderPicker;
-    $("pkQ").onkeydown = (e) => { if (e.key === "Enter") { const b = $("pkBody").querySelector(".ch"); if (b) b.click(); } else if (e.key === "Escape") closePicker(); };
+    $("pkQ").onkeydown = (e) => { if (e.key === "Enter") { const b = $("pkBody").querySelector(".ch"); if (b) b.click(); } };
     $("pkBody").onclick = (e) => {
       const b = e.target.closest(".ch"); if (!b) return;
       const i = +b.dataset.i; state[pickFor] = i; state.moveId = null;
       try { localStorage.setItem(RECENT_KEY, JSON.stringify([i].concat(recent().filter((x) => x !== i)).slice(0, 8))); } catch (err) {}
-      closePicker(); render();
+      pushNext = true;
+      render();
+      overlay = null;
+      hideOverlays();
     };
   }
+  function pushOverlay(kind) {
+    const url = location.href;
+    if (history.state && history.state.overlay) history.replaceState({ overlay: kind }, "", url);
+    else history.pushState({ overlay: kind }, "", url);
+    overlay = kind;
+  }
   function openPicker(who) {
+    if (overlay === "picker" && pickFor === who) { $("pkQ").focus(); return; }
     pickFor = who;
-    $("pkTitle").textContent = who === "me" ? "自分のキャラを選ぶ" : "相手のキャラを選ぶ";
+    $("pkTitle").textContent = who === "me" ? "自分のキャラ" : "相手のキャラ";
     $("pkTitle").className = who;
-    $("pkQ").value = ""; $("picker").hidden = false; document.body.classList.add("noscroll");
+    $("pkQ").value = "";
+    $("sheet").hidden = true;
+    $("picker").hidden = false;
+    document.body.classList.add("noscroll");
+    pushOverlay("picker");
     renderPicker();
     setTimeout(() => $("pkQ").focus(), 30);
   }
-  function closePicker() { $("picker").hidden = true; document.body.classList.remove("noscroll"); }
-  function tile(i) {
+  function hideOverlays() {
+    $("picker").hidden = true;
+    $("sheet").hidden = true;
+    document.body.classList.remove("noscroll");
+  }
+  function dismissOverlay() {
+    if (!overlay) return;
+    const kind = overlay;
+    overlay = null;
+    hideOverlays();
+    if (history.state && history.state.overlay === kind) history.back();
+  }
+  function tile(i, recentChip) {
     const c = D.chars[i], cur = state[pickFor] === i;
-    return `<button class="ch${cur ? " on" : ""}${c.stale ? " stale" : ""}" data-i="${i}"><span class="no">${esc(charNo(c))}</span>${esc(c.name)}${c.stale ? `<span class="st" title="データが古い可能性">⚠</span>` : ""}</button>`;
+    return `<button type="button" class="ch${cur ? " on" : ""}" data-i="${i}"><span class="no">${esc(charNo(c))}</span>${esc(recentChip ? c.name : c.name)}${c.stale ? `<span class="st" title="データが古い可能性">⚠</span>` : ""}</button>`;
   }
   function renderPicker() {
-    const qv = norm($("pkQ").value.trim());
+    const raw = $("pkQ").value.trim();
+    const qv = norm(raw);
     const all = D.chars.map((c, i) => i);
     const hit = qv ? all.filter((i) => { const c = D.chars[i]; return haystack(c).includes(qv) || charNo(c).replace("'", "") === qv; }) : all;
     let h = "";
-    if (!qv) { const r = recent(); if (r.length) h += `<h3>最近</h3><div class="grid">${r.map(tile).join("")}</div><h3>全キャラ（${D.chars.length}）</h3>`; }
-    h += hit.length ? `<div class="grid">${hit.map(tile).join("")}</div>` : `<p class="empty">「${esc($("pkQ").value)}」に一致するキャラがいません</p>`;
-    h += `<p class="pkNote">⚠ = シートの最終更新が最後の調整より前（データが古い可能性）</p>`;
+    if (!qv) {
+      const r = recent();
+      if (r.length) h += `<h3>最近使ったキャラ</h3><div class="recents">${r.map((i) => tile(i, true)).join("")}</div>`;
+      h += `<h3>全キャラ（${D.chars.length}）</h3>`;
+    }
+    h += hit.length ? `<div class="grid">${hit.map((i) => tile(i)).join("")}</div>` : `<p class="empty">「${esc(raw)}」に一致するキャラはいません。読み・英語名・ファイター番号でも探せます。</p>`;
+    h += `<p class="pkNote">⚠ はシートの最終更新が最後の調整より前です。</p>`;
     $("pkBody").innerHTML = h;
-  }
-  function setMode(m) {
-    state.mode = m; state.moveId = null;
-    $("modeA").classList.toggle("on", m === "A"); $("modeB").classList.toggle("on", m === "B");
-    render();
   }
 
   function renderMats() {
@@ -101,81 +261,135 @@
       const c = D.chars[idx];
       if (!c.materials.length) continue;
       const cur = matOf(idx);
-      h += `<div class="mats"><span>${who}の${esc(c.name)} 素材:</span>` +
-        c.materials.map((x) => `<button class="chip ${x === cur ? "on" : ""}" data-idx="${idx}" data-mat="${esc(x)}">${esc(x)}</button>`).join("") + "</div>";
+      h += `<div class="mats"><span>${who}</span>` +
+        c.materials.map((x) => `<button type="button" class="chip ${x === cur ? "on" : ""}" data-idx="${idx}" data-mat="${esc(x)}">${esc(x)}</button>`).join("") + "</div>";
     }
     $("mats").innerHTML = h;
-    $("mats").querySelectorAll("button").forEach((b) => (b.onclick = () => { state.mat[+b.dataset.idx] = b.dataset.mat; state.moveId = null; render(); }));
+    $("mats").querySelectorAll("button").forEach((b) => (b.onclick = () => { state.mat[+b.dataset.idx] = b.dataset.mat; state.moveId = null; pushNext = true; render(); }));
   }
 
   function render() {
+    document.body.classList.toggle("has-move", !!state.moveId);
+    $("dock").hidden = !state.moveId;
+    $("modeA").classList.toggle("on", state.mode === "A");
+    $("modeB").classList.toggle("on", state.mode === "B");
+    $("modeA").setAttribute("aria-selected", state.mode === "A" ? "true" : "false");
+    $("modeB").setAttribute("aria-selected", state.mode === "B" ? "true" : "false");
+    $("ps").checked = state.ps;
+    $("psDock").checked = state.ps;
+    $("flip").textContent = state.mode === "A" ? "逆" : "通常";
+    $("flip").setAttribute("aria-pressed", state.mode === "B" ? "true" : "false");
+    $("flip").setAttribute("aria-label", state.mode === "A" ? "逆向きにする" : "通常の向きに戻す");
     for (const [k, id] of [["me", "meBtn"], ["opp", "oppBtn"]]) {
       const c = D.chars[state[k]];
-      $(id).innerHTML = `<span class="nm">${esc(c.name)}</span>${c.stale ? `<span class="st" title="データが古い可能性">⚠</span>` : ""}<span class="dd">▾</span>`;
+      const who = k === "me" ? "自分" : "相手";
+      $(id).innerHTML = `<span class="who ${k}">${who}</span><span class="nm">${esc(c.name)}</span>${c.stale ? `<span class="st" title="データが古い可能性">⚠</span>` : ""}<span class="dd">▾</span>`;
+      $(id).setAttribute("aria-label", who + " " + c.name);
     }
     renderMats();
     const warn = [state.me, state.opp].filter((v, i, a) => a.indexOf(v) === i).map((i) => D.chars[i]).filter((c) => c.stale)
       .map((c) => `⚠ ${esc(c.name)}: ${esc(c.stale)}。数値はシート掲載時点のものです。`);
     $("banner").innerHTML = warn.map((w) => `<div class="banner">${w}</div>`).join("");
-    const att = attackerChar();
-    const attIdx = D.chars.indexOf(att);
-    const mat = matOf(attIdx);
-    const moves = att.moves.filter((m) => m.category !== "grab" && hasHit(m) && (!mat || !m.material || m.material === mat));
+    const moves = visibleMoves();
+    const counts = GROUPS.map((g) => moves.filter(g[2]).length);
+    if (!counts[state.group]) { const i = counts.findIndex((n) => n); if (i >= 0) state.group = i; }
+    $("groups").innerHTML = GROUPS.map((g, i) => counts[i] ? `<button type="button" role="tab" data-g="${i}" aria-selected="${i === state.group ? "true" : "false"}" aria-label="${esc(g[1])}">${esc(g[0])}</button>` : "").join("");
+    $("groups").querySelectorAll("button").forEach((b) => (b.onclick = () => setGroup(+b.dataset.g)));
+    const shown = moves.filter(GROUPS[state.group][2]);
     const who = state.mode === "A" ? "相手" : "自分";
-    let h = `<div class="hint" style="padding:2px 2px 8px">${who}（${esc(att.name)}）の技をタップ → ${state.mode === "A" ? "自分" : "相手"}の反撃が並びます</div>`;
-    for (const [title, f] of GROUPS) {
-      const list = moves.filter(f);
-      if (!list.length) continue;
-      h += `<div class="sec"><h2>${title}</h2><div class="moves">` + list.map((m) => {
-        const a = C.shieldAdvantage(m);
-        const sub = [m.input === "button" ? "ボタン" : m.input === "command" ? (m.command ? "コマンド " + m.command : "コマンド") : m.command || "", m.material || ""].filter(Boolean).join("・");
-        return `<button class="mv ${m.id === state.moveId ? "on" : ""} ${a.ok ? "" : "na"}" data-id="${m.id}">${esc(shortName(m))}${sub ? `<small>${esc(sub)}</small>` : ""}</button>`;
-      }).join("") + "</div></div>";
-    }
-    $("moveArea").innerHTML = h;
-    $("moveArea").querySelectorAll(".mv").forEach((b) => (b.onclick = () => { state.moveId = b.dataset.id; render(); setTimeout(() => { const y = $("result").getBoundingClientRect().top + window.scrollY - document.querySelector("header").offsetHeight - 6; window.scrollTo({ top: y, behavior: "smooth" }); }, 0); }));
+    const att = attackerChar();
+    $("lead").textContent = state.moveId ? "" : `${who}（${att.name}）の技を選ぶと、反撃が下に出ます。`;
+    $("moveArea").innerHTML = shown.length ? `<div class="moves">` + shown.map((m) => {
+      const a = C.shieldAdvantage(m);
+      const sub = [m.input === "button" ? "ボタン" : m.input === "command" ? (m.command ? "コマンド " + m.command : "コマンド") : m.command || "", m.material || ""].filter(Boolean).join("・");
+      return `<button type="button" class="mv ${m.id === state.moveId ? "on" : ""} ${a.ok ? "" : "na"}" data-id="${m.id}">${esc(shortName(m))}${sub ? `<small>${esc(sub)}</small>` : ""}</button>`;
+    }).join("") + `</div>` : `<p class="empty">この種類の技はありません。</p>`;
+    $("moveArea").querySelectorAll(".mv").forEach((b) => (b.onclick = () => {
+      state.moveId = b.dataset.id;
+      pushNext = true;
+      scrollToResult = true;
+      render();
+    }));
     renderResult();
-    history.replaceState(null, "", `#me=${state.me}&opp=${state.opp}`);
+    writeHash();
+    if (scrollToResult && state.moveId) {
+      scrollToResult = false;
+      const y = $("result").getBoundingClientRect().top + window.scrollY - $("top").offsetHeight - $("groups").offsetHeight - 8;
+      const behavior = matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+      window.scrollTo({ top: Math.max(0, y), behavior });
+    }
   }
 
-  function fmtAdv(v) { return v > 0 ? `+${v}F` : `${v}F`; }
+  function fmtAdv(v) { return v > 0 ? `+${v}` : `${v}`; }
+  function fmtM(v) { return `${v >= 0 ? "+" : ""}${v}F`; }
 
   function renderResult() {
     const att = attackerChar(), def = defenderChar();
     const move = att.moves.find((m) => m.id === state.moveId);
-    if (!move) { $("result").innerHTML = ""; return; }
+    if (!move) { $("result").innerHTML = ""; $("sheetBody").innerHTML = ""; return; }
     const defIdx = D.chars.indexOf(def);
     const r = C.evaluate(att, move, def, { perfectShield: state.ps, defenderMaterial: matOf(defIdx) });
     const a = r.adv;
     const attWho = state.mode === "A" ? "相手" : "自分", defWho = state.mode === "A" ? "自分" : "相手";
-    let h = `<div class="sum"><div class="t">${attWho}の ${esc(att.name)}「${esc(shortName(move))}${move.input === "button" ? "［ボタン］" : move.input === "command" && move.category !== "command" ? "［コマンド］" : ""}」${move.material ? "【" + esc(move.material) + "】" : ""}を${defWho}（${esc(def.name)}）がガード${state.ps ? "（ジャストシールド）" : ""}</div>`;
+    const name = `${esc(shortName(move))}${move.input === "button" ? "［ボタン］" : move.input === "command" && move.category !== "command" ? "［コマンド］" : ""}`;
+    let h = `<div class="sum"><div class="t">${attWho}の ${esc(att.name)}「${name}」${move.material ? "【" + esc(move.material) + "】" : ""}を${defWho}（${esc(def.name)}）がガード${state.ps ? "（ジャストシールド）" : ""}</div>`;
     if (move.command) h += `<div class="cmd">入力: ${esc(move.command)}${move.commandDerived ? "（シート備考から作成）" : ""}</div>`;
     if (!a.ok) {
-      h += `<div class="big neg" style="font-size:16px">計算対象外</div><div class="s">${esc(a.reason)}</div></div>`;
-      $("result").innerHTML = h; return;
+      h += `<div class="big neg" style="font-size:28px">対象外</div><div class="late">${esc(a.reason)}</div></div>`;
+      $("result").innerHTML = h;
+      $("sheetBody").innerHTML = `<p>${esc(a.reason)}</p><p>数値は作りません。ページ下部の出典と、計算の前提を見てください。</p>`;
+      return;
     }
-    h += `<div class="big ${a.primaryEff < 0 ? "neg" : ""}">${defWho}が ${fmtAdv(a.primaryEff)} 有利</div>`;
-    h += `<div class="s">${a.aerial ? `空中攻撃: 着地隙${a.landingLag}F − ガード硬直（着地直前に当てた場合の最小値）` : `最速の判定${a.multiHit ? "（多段技は最終段）" : ""}をガードした場合`}${a.worstEff !== a.primaryEff ? ` ／ 判定の終わり際なら ${fmtAdv(a.worstEff)}` : ""}</div>`;
+    const cls = a.primaryEff > 0 ? "pos" : a.primaryEff < 0 ? "neg" : "zero";
+    h += `<div class="big ${cls}">${fmtAdv(a.primaryEff)}<span>F</span></div>`;
+    h += `<div class="late">${a.lateUnknown ? "終わり際はシート上で不定" : a.worstEff === a.primaryEff ? "終わり際をガードしても同じ" : `終わり際をガードすると ${fmtAdv(a.worstEff)}F`}</div>`;
     if (move.guardNote) h += `<div class="note">${esc(move.guardNote)}</div>`;
     h += `</div>`;
     const sure = r.list.filter((x) => x.status === "sure"), no = r.list.filter((x) => x.status === "impossible");
     const T = C.THRESHOLDS;
-    h += `<div class="legend"><span><span class="b sure">確定</span> 密着ならフレームが間に合う</span><span><span class="b impossible">不可</span> フレーム不足</span>` +
-      `<span><span class="t2 severe">シビア</span> 猶予0〜${T.severeMax}F</span><span><span class="t2 easy">余裕</span> 猶予${T.easyMin}F以上</span></div>`;
+    h += `<div class="legend"><span class="b sure">確定</span> 密着なら間に合う　<span class="b impossible">不可</span> フレーム不足　<span class="t2 severe">シビア</span> 0〜${T.severeMax}F　<span class="t2 easy">余裕</span> ${T.easyMin}F以上</div>`;
     const item = (x) => {
       const lbl = x.status === "sure" ? "確定" : "不可";
       const mcls = x.margin > 0 ? "pos" : x.margin === 0 ? "zero" : "neg";
       const routeTxt = x.cost ? `${x.routeLabel}（+${x.cost}F）` : x.routeLabel;
-      const tier = x.tier === "severe" ? `<span class="t2 severe" title="猶予${T.severeMax}F以下: 最速入力が必要">シビア</span>` : x.tier === "easy" ? `<span class="t2 easy" title="猶予${T.easyMin}F以上">余裕</span>` : "";
-      return `<li class="${x.status}"><div class="row1"><span class="b ${x.status}">${lbl}</span><span class="n">${esc(shortName(x.move))}${x.move.material ? `<small style="color:var(--sub);font-weight:400">【${esc(x.move.material)}】</small>` : ""}</span>${tier}<span class="m ${mcls}">猶予 ${x.margin >= 0 ? "+" : ""}${x.margin}F</span></div>` +
-        `<div class="row2">${esc(routeTxt)} ／ 発生${x.startup}F → 必要${x.need}F</div>` +
+      const tier = x.tier === "severe" ? `<span class="t2 severe" title="猶予${T.severeMax}F以下。最速入力が必要">シビア</span>` : x.tier === "easy" ? `<span class="t2 easy" title="猶予${T.easyMin}F以上">余裕</span>` : "";
+      const late = !a.lateUnknown && x.marginWorst !== x.margin ? `<div class="row3">終わり際の猶予 ${fmtM(x.marginWorst)}</div>` : "";
+      return `<li class="${x.status}"><div class="row1"><span class="b ${x.status}">${lbl}</span><span class="n">${esc(shortName(x.move))}${x.move.material ? `【${esc(x.move.material)}】` : ""}</span>${tier}<span class="m ${mcls}">${fmtM(x.margin)}</span></div>` +
+        `<div class="row2">${esc(routeTxt)} ／ 発生${x.startup}F → 必要${x.need}F</div>${late}` +
         (x.move.input === "button" ? `<div class="cmd">ボタン入力</div>` : x.move.command ? `<div class="cmd">${x.move.input === "command" ? "コマンド入力" : "入力"}: ${esc(x.move.command)}</div>` : "") +
         `</li>`;
     };
-    if (!sure.length) h += `<div class="hint">密着でもフレーム上で間に合う反撃はありません。</div>`;
-    h += `<ul class="list">${sure.map(item).join("")}</ul>`;
-    if (no.length) h += `<details><summary>不可（フレーム不足） ${no.length}件</summary><ul class="list">${no.map(item).join("")}</ul></details>`;
+    const buckets = [["oos", "上B・上スマッシュ"], ["jump", "空中"], ["grab", "つかみ"]];
+    h += `<h2 class="block">ガードキャンセル <small>シールドを解かずに出す</small></h2>`;
+    let any = false;
+    for (const [route, label] of buckets) {
+      const list = sure.filter((x) => x.route === route);
+      if (!list.length) continue;
+      any = true;
+      h += `<h3 class="block">${label}</h3><ul class="list">${list.map(item).join("")}</ul>`;
+    }
+    if (!any) h += `<p class="empty">ガーキャンで間に合う反撃はありません。</p>`;
+    const drops = sure.filter((x) => x.route === "drop");
+    if (drops.length) h += `<details class="drop"><summary>シールド解除から ${drops.length}件（+11F）</summary><ul class="list">${drops.map(item).join("")}</ul></details>`;
+    if (no.length) h += `<details><summary>不可 ${no.length}件</summary><ul class="list">${no.map(item).join("")}</ul></details>`;
     $("result").innerHTML = h;
+    const airTxt = move.landingVariant
+      ? `空中必殺の着地。着地隙${a.landingLag}Fからガード硬直を引いた値で、着地直前に当てた場合の最小です。空中にいる時間は含みません。`
+      : `空中攻撃。着地隙${a.landingLag}Fからガード硬直を引いた値で、着地直前に当てた場合の最小です。`;
+    $("sheetTitle").textContent = shortName(move);
+    $("sheetBody").innerHTML = `<p>${a.aerial ? airTxt : `地上の技。最速の判定${a.multiHit ? "（多段の最終段）" : ""}をガードした場合の有利は ${fmtAdv(a.primaryEff)}F。`}</p>` +
+      `<p>${a.lateUnknown ? "判定の終わりがシート上で不定なので、終わり際の数字は出していません。" : `判定の終わり際をガードした場合の有利は ${fmtAdv(a.worstEff)}F。カードの2行目は、そのときの猶予です。`}</p>` +
+      `<p>密着が前提です。リーチと、ガードで押される距離は見ていません。コマンド入力の時間も含めていません。</p>` +
+      (move.guardNote ? `<p>${esc(move.guardNote)}</p>` : "");
+  }
+
+  function openSheet() {
+    if (!$("sheetBody").textContent) return;
+    $("picker").hidden = true;
+    $("sheet").hidden = false;
+    document.body.classList.add("noscroll");
+    pushOverlay("sheet");
+    $("sheetClose").focus();
   }
 
   if (window.__DATA__) init(window.__DATA__);

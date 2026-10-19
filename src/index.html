@@ -3,36 +3,45 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0f1218">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0e1116" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f3f5f7" media="(prefers-color-scheme: light)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="確定反撃">
 <title>スマブラSP 確定反撃チェッカー（試作）</title>
 <!--STYLE--><link rel="stylesheet" href="style.css"><!--/STYLE-->
 </head>
 <body>
-<header>
-  <h1>確定反撃チェッカー<small>スマブラSP・タイマン・試作版</small></h1>
-  <div class="pick">
-    <div><span class="lab me">自分（ガードする側）</span><button id="meBtn" class="cbtn" aria-haspopup="dialog"></button></div>
-    <button id="swap" title="自分と相手を入れ替え" aria-label="入れ替え">⇄</button>
-    <div><span class="lab opp">相手</span><button id="oppBtn" class="cbtn" aria-haspopup="dialog"></button></div>
+<header id="top">
+  <div class="wrap">
+    <h1>確定反撃チェッカー<small>スマブラSP・タイマン・試作版</small></h1>
+    <div class="pick">
+      <div><span class="lab me">自分（ガードする側）</span><button id="meBtn" class="cbtn" type="button" aria-haspopup="dialog"></button></div>
+      <button id="swap" type="button" title="自分と相手を入れ替え" aria-label="入れ替え">⇄</button>
+      <div><span class="lab opp">相手</span><button id="oppBtn" class="cbtn" type="button" aria-haspopup="dialog"></button></div>
+    </div>
+    <div id="mats"></div>
+    <div class="modes" id="modeBar" role="tablist" aria-label="向き">
+      <button id="modeA" class="on" type="button" role="tab">相手の技 → 自分の反撃</button>
+      <button id="modeB" type="button" role="tab">自分の技 → 相手の反撃（逆）</button>
+    </div>
+    <div class="opts" id="optBar"><label><input type="checkbox" id="ps"> ジャストシールドした場合</label></div>
   </div>
-  <div id="mats"></div>
-  <div class="modes" role="tablist">
-    <button id="modeA" class="on" role="tab">相手の技 → 自分の反撃</button>
-    <button id="modeB" role="tab">自分の技 → 相手の反撃（逆）</button>
-  </div>
-  <div class="opts"><label><input type="checkbox" id="ps"> ジャストシールドした場合</label></div>
 </header>
-<main>
+<main class="wrap">
   <div id="banner"></div>
+  <p class="hint" id="lead"></p>
+  <div id="groups" class="segs" role="tablist" aria-label="技の種類"></div>
   <div id="moveArea"></div>
-  <div id="result"></div>
+  <div id="result" aria-live="polite"></div>
   <details id="about">
     <summary>この計算について</summary>
     <ul>
       <li><b>ガード側の有利F</b> ＝ 攻撃側の後隙 − ガード硬直。ヒットストップは双方に同じだけかかるので無視します（スマブラSPECIAL 検証wiki「ガード硬直差の計算方法」の式）。</li>
-      <li>地上技・必殺ワザの後隙 ＝ <code>全体F − 判定が出たF</code>。表示の大きい数字は<b>最速の判定</b>をガードした場合（多段技は最終段）。判定の終わり際をガードした場合の値も併記します。</li>
+      <li>地上技・必殺ワザの後隙 ＝ <code>全体F − 判定が出たF</code>。表示の大きい数字は<b>最速の判定</b>をガードした場合（多段技は最終段）。判定の終わり際をガードした場合の値も併記します。<code>20-*</code> は開始Fだけを使い、終わり際は出しません。<code>79-126 (199-246)</code> のように括弧で溜め最大が併記されているときは、括弧の外（最速）を使います。</li>
       <li>空中攻撃は <code>着地隙 − ガード硬直</code>（着地直前に当てた場合の最小値。実際は着地までの時間ぶん有利が増えます）。</li>
-      <li>ガード硬直はシートの値をそのまま使用（式: <code>INT(ダメージ×0.8×補正)+2</code>）。1つの技に複数の値がある場合は大きい方（ガード側に不利な方）で判定します。ワンパターン相殺がかかっていないと硬直が1F増えることがあります。</li>
+      <li>空中で出した技を着地直前に当てた場合も、空中攻撃と同じ <code>着地隙 − ガード硬直</code> です（着地までの時間は含みません）。備考に条件のない着地隙が一つだけある技は「空中（着地）」を選べます。シートが地上と空中で全体Fや判定を分けて書いている技は、それぞれの数値で計算します（着地隙が無い空中版は <code>全体F − 発生F</code> で、着地直前とはみなしていません）。空中版の判定欄が空で、行の名前が地上版と一致するときは、地上版の判定フレームを使います。着地隙が複数ある、ヒットや状態で条件が変わる、行の一部だけが地上／空中で共有行の属先が決められないものは出しません。</li>
+      <li>ガード硬直はシートの値をそのまま使用（式: <code>INT(ダメージ×0.8×補正)+2</code>）。1つの技に複数の値がある場合は大きい方（ガード側に不利な方）で判定します。<code>10F ~ 24F</code> のような幅も両端を読み、大きい方を使います。<code>10F+</code> のように上限が無い値は作りません。ワンパターン相殺がかかっていないと硬直が1F増えることがあります。</li>
       <li><b>反撃に必要なF</b>（ガード硬直が終わってから）
         <ul>
           <li>ガーキャン上B・上スマッシュ: 発生F</li>
@@ -56,18 +65,36 @@
       <li>収録: 検証窓フレームシートの全ファイタータブ（ダッシュファイター・DLC・Mii 3タイプを含む）。Mii の必殺ワザは「NB1」「横B2」のように番号付きで、カスタマイズ3種がそれぞれ別の技として並びます。</li>
     </ul>
   </details>
+  <p class="keys">キーボード: <kbd>/</kbd> 相手 <kbd>x</kbd> 入れ替え <kbd>r</kbd> 逆 <kbd>j</kbd> ジャスト <kbd>1</kbd>–<kbd>5</kbd> 技種 <kbd>Esc</kbd> 閉じる</p>
 </main>
 <footer>
+  <div class="wrap">
   フレームデータ: <a id="srcLink" href="https://docs.google.com/spreadsheets/d/15SClMwvDIqovtO3DJnf1GGIteH35UX3IM7-mnbdG6eE/edit" target="_blank" rel="noopener">スマブラSP検証窓</a>（<a href="https://w.atwiki.jp/smashsp_kensyou/" target="_blank" rel="noopener">スマブラSPECIAL 検証wiki</a>）のフレームシートをもとに計算しています。<br>
   このページは個人が作った非公式の試作です。検証窓・任天堂とは関係ありません。表示内容の正確さは保証しません。実際の対戦ではトレーニングモードで確認してください。<br>
   <span id="builtAt"></span>
+  </div>
 </footer>
+<nav id="dock" hidden>
+  <div class="wrap dockin">
+    <button id="flip" type="button">逆</button>
+    <label class="dockjs"><input type="checkbox" id="psDock"> ジャスト</label>
+    <button id="detailBtn" type="button">内訳</button>
+  </div>
+</nav>
 <div id="picker" hidden role="dialog" aria-modal="true" aria-labelledby="pkTitle">
   <div class="pkHead">
-    <div class="pkTop"><b id="pkTitle"></b><button id="pkClose" aria-label="閉じる">✕</button></div>
-    <input id="pkQ" type="search" placeholder="キャラ名・番号で検索（ひらがな可）" autocomplete="off" enterkeyhint="done">
+    <div class="pkTop"><b id="pkTitle"></b><button id="pkClose" type="button" aria-label="閉じる">閉じる</button></div>
+    <input id="pkQ" type="search" placeholder="名前・読み・番号（mario / まりお）" autocomplete="off" enterkeyhint="search" aria-label="キャラを検索">
   </div>
   <div id="pkBody"></div>
+</div>
+<div id="sheet" hidden>
+  <button type="button" class="sheetBack" id="sheetBack" aria-label="閉じる"></button>
+  <div class="sheetPanel" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="grab" id="sheetGrab"></div>
+    <div class="sheetTop"><h2 id="sheetTitle">計算の内訳</h2><button type="button" id="sheetClose">閉じる</button></div>
+    <div id="sheetBody"></div>
+  </div>
 </div>
 <!--DATA--><!--/DATA-->
 <!--SCRIPTS--><script src="calc.js"></script><script src="app.js"></script><!--/SCRIPTS-->
