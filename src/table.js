@@ -66,13 +66,16 @@
         const kind = kindOf(m);
         const place = placeOf(m);
         const name = moveLabel(m);
+        const parts = calc.hitboxParts(m);
+        const span = calc.formatParts(parts, false);
         rows.push({
           order: order++, ci, id: m.id, char: ch.name, name, kind, place,
           group: groupIndex(m), material: m.material || "", command: m.command || "",
           slotGroup: m.group || "", sub: subLine(m, place),
           hay: norm(name + " " + (m.command || "") + " " + (m.material || "")),
           startup: f.startup, activeEnd: f.activeEnd, total: f.total, landing: f.landing,
-          damage: f.damage, stun: f.stun, adv: f.adv, sure: null,
+          parts, damageMax: span.max, damageMin: span.min, damage: span.max,
+          stun: f.stun, adv: f.adv, sure: null,
         });
       });
     });
@@ -101,6 +104,12 @@
         row.sure = Math.round((s / n) * 10) / 10;
       } else row.sure = countSure(row.adv, needs[vs] || []);
     }
+    return rows;
+  }
+
+  /** ダメージ列のソートキー。最大が初期。null は sortRows が末尾に置く */
+  function applyDamageKey(rows, agg) {
+    for (const r of rows) r.damage = agg === "min" ? r.damageMin : r.damageMax;
     return rows;
   }
 
@@ -175,7 +184,10 @@
     const place = q.get("place") === "air" || q.get("place") === "ground" ? q.get("place") : "";
     const vsRaw = q.get("vs");
     const vs = vsRaw != null && /^\d+$/.test(vsRaw) ? +vsRaw : null;
-    return { sort, dir, preset, kinds, place, chars, text: q.get("q") || "", vs };
+    const dmg = q.get("dmg") === "min" ? "min" : "max";
+    const ooRaw = q.get("oo");
+    const oo = ooRaw === "1" ? true : ooRaw === "0" ? false : null;
+    return { sort, dir, preset, kinds, place, chars, text: q.get("q") || "", vs, dmg, oo };
   }
   function serialize(s) {
     const p = new URLSearchParams();
@@ -187,12 +199,15 @@
     if (s.chars && s.chars.length) p.set("c", s.chars.join(","));
     if (s.text) p.set("q", s.text);
     if (s.vs != null) p.set("vs", String(s.vs));
+    if (s.dmg === "min") p.set("dmg", "min");
+    if (s.oo === true) p.set("oo", "1");
+    else if (s.oo === false) p.set("oo", "0");
     return p.toString();
   }
 
   const api = {
     KIND_LABEL, KIND_IDS, PLACE_LABEL, SORT_KEYS, FIRST_DIR, PRESETS, PRESET_BY_ID,
-    moveLabel, kindOf, placeOf, buildRows, punishNeeds, fillSure, sortRows, applyView, parseQuery, serialize, norm,
+    moveLabel, kindOf, placeOf, buildRows, punishNeeds, fillSure, sortRows, applyDamageKey, applyView, parseQuery, serialize, norm,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FrameTable = api;

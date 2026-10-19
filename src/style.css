@@ -53,6 +53,11 @@ body.has-move .pick{align-items:center}
 .opts{margin-top:8px;font-size:14px;color:var(--sub)}
 .opts label{display:flex;align-items:center;gap:8px;min-height:44px}
 .opts input,#dock input{width:18px;height:18px}
+.oo{display:flex;align-items:center;gap:6px;min-height:44px}
+.oo span{color:var(--sub);font-size:13px;font-weight:700}
+.oo button{min-height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card)}
+.oo button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:750}
+#dock .oo{margin-top:6px}
 main{padding:10px 12px 24px}
 body.has-move main{padding-bottom:96px}
 body.has-move footer{padding-bottom:calc(88px + env(safe-area-inset-bottom))}
@@ -133,4 +138,6 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
 .sheetTop{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .sheetTop h2{font-size:16px;margin:0}
 #sheetBody p{margin:8px 0;font-size:14px}
+#sheetBody ul.hits{margin:8px 0;padding-left:1.2em}
+#sheetBody ul.hits li{margin:4px 0;font-size:14px}
 @media (prefers-reduced-motion: reduce){*{scroll-behavior:auto !important}}

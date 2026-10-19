@@ -176,7 +176,61 @@
     return { adv: { ...adv, primaryEff: adv.primary + bonus, worstEff: adv.worst + bonus }, list };
   }
 
-  const api = { THRESHOLDS, marginTier, shieldAdvantage, listFrames, punishOptions, evaluate, startupOf, routeCost, isStarter, ROUTE_LABEL, SHIELD_DROP, GRAB_EXTRA, PERFECT_SHIELD_BONUS };
+  /** アイテムなしの1対1で与ダメージに掛かる倍率。ガード硬直の式には入らない（検証wiki「ガード硬直」） */
+  const ONE_ON_ONE = 1.2;
+
+  function scaleDamage(n, oneOnOne) {
+    if (!oneOnOne) return n;
+    return Math.round(n * ONE_ON_ONE * 1000) / 1000;
+  }
+  function fmtDamageNum(n) {
+    return String(Math.round(n * 100) / 100);
+  }
+
+  /** シートの行ラベルと基礎ダメージ。行メモからは名前を作らない。硬直は個数がダメージと一致するときだけ対応づける */
+  function hitboxParts(move) {
+    const parts = [];
+    for (const row of (move && move.rows) || []) {
+      const damages = (row.damage || []).filter((d) => typeof d === "number" && !Number.isNaN(d));
+      if (!damages.length) continue;
+      const stuns = (row.stun || []).filter((s) => typeof s === "number" && !Number.isNaN(s));
+      parts.push({
+        label: String(row.label || "").trim(),
+        damages,
+        stuns: stuns.length === damages.length ? stuns.slice() : null,
+      });
+    }
+    return parts;
+  }
+
+  /** 表示文。ラベルがある行は「14 / 11 (先端)」。名前の無い複数値は hit1 / hit2 */
+  function formatParts(parts, oneOnOne) {
+    parts = parts || [];
+    const unlabeled = parts.reduce((n, p) => n + (p.label ? 0 : p.damages.length), 0);
+    let hit = 0, max = null, min = null;
+    const items = parts.map((p) => {
+      const nums = p.damages.map((d) => scaleDamage(d, !!oneOnOne));
+      for (const n of nums) {
+        if (max == null || n > max) max = n;
+        if (min == null || n < min) min = n;
+      }
+      let body;
+      if (p.label) body = nums.map(fmtDamageNum).join(" / ") + " (" + p.label + ")";
+      else if (unlabeled <= 1) body = fmtDamageNum(nums[0]);
+      else body = nums.map((n) => "hit" + (++hit) + " " + fmtDamageNum(n)).join(" / ");
+      return { label: p.label, damages: nums, base: p.damages.slice(), stuns: p.stuns, text: body };
+    });
+    return { text: items.map((it) => it.text).join(" · "), items, max, min };
+  }
+  function formatHitboxes(move, oneOnOne) {
+    return formatParts(hitboxParts(move), oneOnOne);
+  }
+
+  const api = {
+    THRESHOLDS, marginTier, shieldAdvantage, listFrames, punishOptions, evaluate, startupOf, routeCost, isStarter,
+    ROUTE_LABEL, SHIELD_DROP, GRAB_EXTRA, PERFECT_SHIELD_BONUS,
+    ONE_ON_ONE, scaleDamage, hitboxParts, formatParts, formatHitboxes,
+  };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.PunishCalc = api;
 })(typeof window !== "undefined" ? window : globalThis);

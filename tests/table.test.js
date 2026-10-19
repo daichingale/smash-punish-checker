@@ -81,6 +81,38 @@ test("空のURLは全キャラで、キャラ0は指定したときだけ", () =
   assert.deepEqual(T.parseQuery("#c=0").chars, [0]);
 });
 
+test("ダメージは最大が初期で、最小を選ぶと小さい方で並び、空欄は末尾", () => {
+  const rows = T.buildRows(data, C);
+  const dtilt = rows.find((r) => r.char === "マリオ" && r.name === "下強");
+  assert.equal(dtilt.damageMax, 7);
+  assert.equal(dtilt.damageMin, 5);
+  assert.equal(C.formatParts(dtilt.parts, false).text, "hit1 7 / hit2 5");
+  const sample = [
+    { order: 0, name: "空", damageMax: null, damageMin: null, damage: null },
+    { order: 1, name: "幅", damageMax: 10, damageMin: 4, damage: 10 },
+    { order: 2, name: "単", damageMax: 8, damageMin: 8, damage: 8 },
+  ];
+  T.applyDamageKey(sample, "max");
+  assert.deepEqual(T.sortRows(sample, "damage", "desc").map((r) => r.name), ["幅", "単", "空"]);
+  T.applyDamageKey(sample, "min");
+  assert.deepEqual(T.sortRows(sample, "damage", "desc").map((r) => r.name), ["単", "幅", "空"]);
+  assert.deepEqual(T.sortRows(sample, "damage", "asc").map((r) => r.name), ["幅", "単", "空"]);
+});
+
+test("1on1補正とダメージの並べ方はURLに残り、空のcはキャラ0にならない", () => {
+  assert.equal(T.parseQuery("").oo, null);
+  assert.equal(T.parseQuery("#oo=1").oo, true);
+  assert.equal(T.parseQuery("#oo=0").oo, false);
+  assert.equal(T.parseQuery("").dmg, "max");
+  assert.equal(T.parseQuery("#dmg=min").dmg, "min");
+  const s = { sort: "damage", dir: "desc", preset: "", kinds: [], place: "", chars: [], text: "", vs: null, dmg: "min", oo: true };
+  const back = T.parseQuery("#" + T.serialize(s));
+  assert.equal(back.dmg, "min");
+  assert.equal(back.oo, true);
+  assert.equal(back.sort, "damage");
+  assert.equal(T.parseQuery("#c=").chars.length, 0);
+});
+
 test("URLのソートとプリセットを復元できる", () => {
   const s = { sort: "startup", dir: "asc", preset: "fast", kinds: ["air"], place: "air", chars: [0, 66], text: "上", vs: 1 };
   const back = T.parseQuery("#" + T.serialize(s));
