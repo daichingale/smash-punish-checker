@@ -302,6 +302,32 @@ test("1on1補正は表示ダメージだけ1.2倍し、硬直と有利は変え�
   assert.notEqual(floorStun(5.5 * 1.2, 1), 6);
 });
 
+test("アルセーヌと後ろ側の段は密着の有利に使わない。バウンド行の全体Fは空振りの着地隙より優先する", () => {
+  const joker = ch("ジョーカー");
+  const ft = C.shieldAdvantage(mv(joker, "横強"));
+  assert.equal(ft.primaryLabel, "全シフト, Hit 2");
+  assert.equal(ft.primary, 15);
+  assert.ok(ft.alt.some((x) => x.label.includes("アルセーヌ") && x.adv === 11));
+  const ut = C.shieldAdvantage(mv(joker, "上強"));
+  assert.equal(ut.primaryLabel, "〆");
+  assert.equal(ut.primary, 18);
+  const steve = ch("スティーブ／アレックス");
+  const ds = C.shieldAdvantage(mv(steve, "下スマッシュ"));
+  assert.equal(ds.primaryLabel, "〆1（前）");
+  assert.equal(ds.primary, 29);
+  assert.ok(ds.alt.some((x) => x.label === "〆2（後）"));
+  const gren = C.shieldAdvantage(mv(ch("ゲッコウガ"), "空下"));
+  assert.equal(gren.bounceLag, 20);
+  assert.equal(gren.landingLag, 30);
+  assert.equal(gren.primary, 16);
+  const simon = C.shieldAdvantage(mv(ch("シモン"), "空下"));
+  assert.equal(simon.bounceLag, 26);
+  assert.equal(simon.primary, 21);
+  const marth = C.shieldAdvantage(mv(ch("マルス"), "下スマッシュ"));
+  assert.equal(marth.primaryLabel, "Hit 2");
+  assert.equal(marth.primary, 23);
+});
+
 test("硬直の個数がダメージと合わない行は対応づけない", () => {
   const mv = { name: "x", rows: [{ label: "炎", damage: [3, 1], stun: [2] }] };
   const f = C.formatHitboxes(mv, false);
