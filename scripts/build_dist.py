@@ -10,11 +10,12 @@ css = (src / "style.css").read_text(encoding="utf-8")
 calc = (src / "calc.js").read_text(encoding="utf-8")
 app = (src / "app.js").read_text(encoding="utf-8")
 d = json.loads((data / "data.json").read_text(encoding="utf-8"))
-# 画面で使わない生値・備考を落として軽くする
+# 画面で使わない生値・備考を落として軽くする（data.json 側はデバッグ用に残す）
 for c in d["chars"]:
     for m in c["moves"]:
+        m.pop("inputNote", None)
         for r in m["rows"]:
-            for k in ("rowNote", "inherited", "landingLag"):
+            for k in ("activeRaw", "totalRaw", "damageRaw", "stunRaw", "rowNote", "inherited", "landingLag"):
                 r.pop(k, None)
 blob = json.dumps(d, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
 html = re.sub(r"<!--STYLE-->.*?<!--/STYLE-->", lambda m: f"<style>{css}</style>", html, flags=re.S)

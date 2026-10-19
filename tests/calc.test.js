@@ -114,6 +114,33 @@ test("判定の終わり際（持続の最後）でガードした場合の値 w
   assert.equal(a.worst, 37 - 25 - 11);
 });
 
+test("20-* は開始Fだけ使い、終わり際の有利Fは作らない", () => {
+  const mv = { name: "空下", category: "aerial", landingLag: 18, rows: [
+    row({ active: { starts: [20], end: 20, rehit: false, open: true }, stun: [6], damage: [18] }),
+    row({ label: "着地, 対地のみ", active: act([1], 2), stun: [3], damage: [8] }),
+    row({ label: "失敗", active: act([1], 2), damage: null, stun: null }),
+  ] };
+  assert.equal(C.startupOf(mv), 20);
+  const a = C.shieldAdvantage(mv);
+  assert.equal(a.primary, 12);
+  assert.equal(a.lateUnknown, true);
+  assert.equal(a.worst, 12);
+});
+
+test("開始が全体Fより後の窓は、より早い窓があるときだけ捨てる", () => {
+  const charged = { name: "横スマ", category: "ground", rows: [
+    row({ label: "横スマ1", active: act([17], 18), total: 50, stun: [10] }),
+    row({ label: "最大", active: act([79], 126), total: 50, stun: [9] }),
+  ] };
+  const a = C.shieldAdvantage(charged);
+  assert.equal(a.primary, 23);
+  assert.equal(a.worst, 22);
+  const onlyLate = { name: "下B", category: "special", rows: [row({ active: act([79], 79), total: 41, stun: [3] })] };
+  const b = C.shieldAdvantage(onlyLate);
+  assert.equal(b.ok, true);
+  assert.equal(b.primary, 41 - 79 - 3);
+});
+
 test("飛び道具・ガード時特殊仕様・全体F不明は計算対象外（数値を作らない）", () => {
   assert.equal(C.shieldAdvantage({ name: "NB", category: "special", projectile: true, rows: [] }).ok, false);
   assert.equal(C.shieldAdvantage({ name: "最速風神拳", category: "command", specialShield: true, rows: [] }).ok, false);

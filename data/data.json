@@ -4,7 +4,7 @@
   "sourceUrl": "https://docs.google.com/spreadsheets/d/15SClMwvDIqovtO3DJnf1GGIteH35UX3IM7-mnbdG6eE/edit",
   "wikiUrl": "https://w.atwiki.jp/smashsp_kensyou/",
   "fetchedAt": "2026-10-19T08:37:56+0900",
-  "builtAt": "2026-10-19T08:40:30+09:00",
+  "builtAt": "2026-10-19T08:23:18+00:00",
   "gameVersionNote": "最終バランス調整は Ver.13.0.1 (2021/12/02)。"
  },
  "chars": [
@@ -1875,8 +1875,14 @@
         "rehit": false
        },
        "total": 62,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        10.0,
+        28.0
+       ],
+       "stun": [
+        10,
+        24
+       ],
        "landingLag": null
       },
       {
@@ -1941,8 +1947,14 @@
         "rehit": false
        },
        "total": 62,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        6.0,
+        24.0
+       ],
+       "stun": [
+        6,
+        21
+       ],
        "landingLag": null
       },
       {
@@ -2808,7 +2820,13 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         79
+        ],
+        "end": 126,
+        "rehit": false
+       },
        "total": 50,
        "damage": [
         13.0
@@ -3445,8 +3463,14 @@
         "rehit": false
        },
        "total": 44,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        4.0,
+        12.0
+       ],
+       "stun": [
+        2,
+        4
+       ],
        "landingLag": null
       },
       {
@@ -3465,8 +3489,14 @@
         "rehit": false
        },
        "total": 44,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        3.0,
+        9.0
+       ],
+       "stun": [
+        2,
+        4
+       ],
        "landingLag": null
       },
       {
@@ -3487,8 +3517,14 @@
         "rehit": false
        },
        "total": 44,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        3.0,
+        9.0
+       ],
+       "stun": [
+        2,
+        4
+       ],
        "landingLag": null
       }
      ],
@@ -3517,7 +3553,9 @@
        "rowNote": "",
        "active": null,
        "total": null,
-       "damage": null,
+       "damage": [
+        1.0
+       ],
        "stun": null,
        "landingLag": null
       }
@@ -3571,7 +3609,14 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         37
+        ],
+        "end": 37,
+        "rehit": false,
+        "open": true
+       },
        "total": 45,
        "damage": [
         6.0
@@ -4109,7 +4154,9 @@
        "rowNote": "",
        "active": null,
        "total": null,
-       "damage": null,
+       "damage": [
+        1.0
+       ],
        "stun": null,
        "landingLag": null
       }
@@ -5959,7 +6006,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         15,
+         15
+        ],
+        "end": 22,
+        "rehit": false
+       },
        "total": 59,
        "damage": null,
        "stun": null,
@@ -5973,7 +6027,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         17,
+         17
+        ],
+        "end": 24,
+        "rehit": false
+       },
        "total": 67,
        "damage": null,
        "stun": null,
@@ -5987,7 +6048,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         18,
+         18
+        ],
+        "end": 25,
+        "rehit": false
+       },
        "total": 62,
        "damage": null,
        "stun": null,
@@ -6429,7 +6497,11 @@
         12.0,
         14.0
        ],
-       "stun": null,
+       "stun": [
+        10,
+        10,
+        12
+       ],
        "landingLag": null
       },
       {
@@ -7765,7 +7837,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         15,
+         15
+        ],
+        "end": 22,
+        "rehit": false
+       },
        "total": 59,
        "damage": null,
        "stun": null,
@@ -7779,7 +7858,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         17,
+         17
+        ],
+        "end": 24,
+        "rehit": false
+       },
        "total": 67,
        "damage": null,
        "stun": null,
@@ -7793,7 +7879,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         18,
+         18
+        ],
+        "end": 25,
+        "rehit": false
+       },
        "total": 62,
        "damage": null,
        "stun": null,
@@ -8692,9 +8785,18 @@
        "stunRaw": "10F+",
        "inherited": [],
        "rowNote": "ダメージは速度依存。 最大の全体フレームは239F。",
-       "active": null,
+       "active": {
+        "starts": [
+         31
+        ],
+        "end": 31,
+        "rehit": true,
+        "open": true
+       },
        "total": null,
-       "damage": null,
+       "damage": [
+        10.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -8708,7 +8810,14 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         31
+        ],
+        "end": 31,
+        "rehit": true,
+        "open": true
+       },
        "total": 39,
        "damage": null,
        "stun": null,
@@ -8811,7 +8920,7 @@
         "end": 7,
         "rehit": false
        },
-       "total": null,
+       "total": 77,
        "damage": [
         4.0
        ],
@@ -8830,8 +8939,15 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
-       "total": null,
+       "active": {
+        "starts": [
+         27
+        ],
+        "end": 27,
+        "rehit": false,
+        "open": true
+       },
+       "total": 77,
        "damage": [
         15.0
        ],
@@ -8864,7 +8980,14 @@
        "stunRaw": "11F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         19
+        ],
+        "end": 19,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
        "damage": [
         12.0
@@ -8934,7 +9057,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         14,
+         14
+        ],
+        "end": 21,
+        "rehit": false
+       },
        "total": 48,
        "damage": null,
        "stun": null,
@@ -8948,7 +9078,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         16,
+         16
+        ],
+        "end": 23,
+        "rehit": false
+       },
        "total": 56,
        "damage": null,
        "stun": null,
@@ -8962,7 +9099,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         17,
+         17
+        ],
+        "end": 24,
+        "rehit": false
+       },
        "total": 51,
        "damage": null,
        "stun": null,
@@ -10186,7 +10330,9 @@
         "rehit": false
        },
        "total": 38,
-       "damage": null,
+       "damage": [
+        10.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -10270,7 +10416,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "ダメージはピクミン&オリマーのページ参照（コピーの1.2倍補正は適用されない）。",
-       "active": null,
+       "active": {
+        "starts": [
+         24
+        ],
+        "end": 24,
+        "rehit": false,
+        "open": true
+       },
        "total": 36,
        "damage": null,
        "stun": null,
@@ -10286,7 +10439,14 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         24
+        ],
+        "end": 24,
+        "rehit": false,
+        "open": true
+       },
        "total": 46,
        "damage": null,
        "stun": null,
@@ -10388,7 +10548,9 @@
         "rehit": false
        },
        "total": 69,
-       "damage": null,
+       "damage": [
+        19.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -10470,7 +10632,9 @@
         "rehit": false
        },
        "total": 71,
-       "damage": null,
+       "damage": [
+        16.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -10492,7 +10656,9 @@
         "rehit": false
        },
        "total": 71,
-       "damage": null,
+       "damage": [
+        16.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -10592,7 +10758,14 @@
        "stunRaw": "3F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         50
+        ],
+        "end": 50,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
        "damage": [
         2.0
@@ -10676,8 +10849,15 @@
        "stunRaw": "16F",
        "inherited": [],
        "rowNote": "ヘビーアーマー：19-28F (空中, 25%) ストーンHP：25% HPを超えると攻撃判定 * 0.5のダメージを受ける。 地上からは11F目に着地。 相殺なし。",
-       "active": null,
-       "total": null,
+       "active": {
+        "starts": [
+         29
+        ],
+        "end": 29,
+        "rehit": false,
+        "open": true
+       },
+       "total": 78,
        "damage": [
         18.0
        ],
@@ -12158,7 +12338,7 @@
         "end": 32,
         "rehit": false
        },
-       "total": null,
+       "total": 91,
        "damage": [
         1.8
        ],
@@ -12184,7 +12364,7 @@
         "end": 46,
         "rehit": false
        },
-       "total": null,
+       "total": 91,
        "damage": [
         16.0
        ],
@@ -12210,7 +12390,7 @@
         "end": 72,
         "rehit": false
        },
-       "total": null,
+       "total": 91,
        "damage": [
         10.0
        ],
@@ -13451,8 +13631,14 @@
         "rehit": false
        },
        "total": 74,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        6.2,
+        21.4
+       ],
+       "stun": [
+        6,
+        19
+       ],
        "landingLag": null
       },
       {
@@ -13508,7 +13694,7 @@
         "end": 19,
         "rehit": false
        },
-       "total": null,
+       "total": 43,
        "damage": [
         2.0
        ],
@@ -13532,7 +13718,7 @@
         "end": 33,
         "rehit": false
        },
-       "total": null,
+       "total": 57,
        "damage": [
         3.0
        ],
@@ -14583,7 +14769,13 @@
         "着地隙"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         6
+        ],
+        "end": 61,
+        "rehit": false
+       },
        "total": 20,
        "damage": [
         5.0
@@ -14692,8 +14884,14 @@
         "rehit": false
        },
        "total": 79,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        6.0,
+        21.0
+       ],
+       "stun": [
+        6,
+        18
+       ],
        "landingLag": null
       },
       {
@@ -15045,7 +15243,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "13F目に壁があると衝突して消滅。 14-20Fは壁吸着に移行可能 (移行すると判定消失)。",
-       "active": null,
+       "active": {
+        "starts": [
+         14,
+         14
+        ],
+        "end": 20,
+        "rehit": false
+       },
        "total": 47,
        "damage": null,
        "stun": null,
@@ -15059,7 +15264,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "15F目に壁があると衝突して消滅。 16-22Fは壁吸着に移行可能 (移行すると判定消失)。",
-       "active": null,
+       "active": {
+        "starts": [
+         16,
+         16
+        ],
+        "end": 22,
+        "rehit": false
+       },
        "total": 51,
        "damage": null,
        "stun": null,
@@ -15073,7 +15285,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "16F目に壁があると衝突して消滅。 17-23Fは壁吸着に移行可能 (移行すると判定消失)。",
-       "active": null,
+       "active": {
+        "starts": [
+         17,
+         17
+        ],
+        "end": 23,
+        "rehit": false
+       },
        "total": 49,
        "damage": null,
        "stun": null,
@@ -16349,7 +16568,13 @@
        "stunRaw": "5F",
        "inherited": [],
        "rowNote": "吸収：7-15F（最短） 地上のみ相殺なし。",
-       "active": null,
+       "active": {
+        "starts": [
+         7
+        ],
+        "end": 12,
+        "rehit": false
+       },
        "total": 24,
        "damage": [
         4.0
@@ -18816,9 +19041,15 @@
        "inherited": [],
        "rowNote": "最大溜め：35F 溜め開始：16F目 着地隙：20F ダメージ = INT(速度 * 1.5 * 3.4) 速度2以上で攻撃判定が発生。 ガケつかまり(前後)：1F目以降 (転がり中) ガケつかまり(前)：40F目以降 (ヒット後)",
        "active": null,
-       "total": null,
-       "damage": null,
-       "stun": null,
+       "total": 67,
+       "damage": [
+        10.0,
+        20.0
+       ],
+       "stun": [
+        10,
+        18
+       ],
        "landingLag": null
       }
      ],
@@ -20134,7 +20365,13 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "着地隙：34F 相殺なし。 カッコ内は平坦な地面上から出した際。 ガケつかまり(前)：16F目以降",
-       "active": null,
+       "active": {
+        "starts": [
+         13
+        ],
+        "end": 36,
+        "rehit": false
+       },
        "total": 87,
        "damage": [
         0.0
@@ -20286,7 +20523,14 @@
        "stunRaw": "3F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         8
+        ],
+        "end": 8,
+        "rehit": true,
+        "open": true
+       },
        "total": null,
        "damage": [
         2.0
@@ -20339,7 +20583,9 @@
        "rowNote": "",
        "active": null,
        "total": 39,
-       "damage": null,
+       "damage": [
+        5.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -20356,7 +20602,9 @@
        "rowNote": "",
        "active": null,
        "total": 39,
-       "damage": null,
+       "damage": [
+        5.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -20373,7 +20621,9 @@
        "rowNote": "",
        "active": null,
        "total": 39,
-       "damage": null,
+       "damage": [
+        5.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -20390,7 +20640,9 @@
        "rowNote": "",
        "active": null,
        "total": 39,
-       "damage": null,
+       "damage": [
+        5.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -20407,7 +20659,9 @@
        "rowNote": "",
        "active": null,
        "total": 39,
-       "damage": null,
+       "damage": [
+        5.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -20424,7 +20678,9 @@
        "rowNote": "",
        "active": null,
        "total": 39,
-       "damage": null,
+       "damage": [
+        10.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -20441,7 +20697,9 @@
        "rowNote": "",
        "active": null,
        "total": 39,
-       "damage": null,
+       "damage": [
+        16.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -20458,7 +20716,9 @@
        "rowNote": "",
        "active": null,
        "total": 39,
-       "damage": null,
+       "damage": [
+        24.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -20475,7 +20735,9 @@
        "rowNote": "",
        "active": null,
        "total": 39,
-       "damage": null,
+       "damage": [
+        25.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -20492,7 +20754,9 @@
        "rowNote": "",
        "active": null,
        "total": 39,
-       "damage": null,
+       "damage": [
+        5.0
+       ],
        "stun": null,
        "landingLag": null
       }
@@ -21621,7 +21885,13 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "着地隙：34F 相殺なし。 カッコ内は平坦な地面上から出した際。 ガケつかまり(前)：16F目以降",
-       "active": null,
+       "active": {
+        "starts": [
+         13
+        ],
+        "end": 36,
+        "rehit": false
+       },
        "total": 87,
        "damage": [
         0.0
@@ -21773,7 +22043,14 @@
        "stunRaw": "3F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         8
+        ],
+        "end": 8,
+        "rehit": true,
+        "open": true
+       },
        "total": null,
        "damage": [
         2.0
@@ -21826,7 +22103,9 @@
        "rowNote": "",
        "active": null,
        "total": 39,
-       "damage": null,
+       "damage": [
+        5.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -21843,7 +22122,9 @@
        "rowNote": "",
        "active": null,
        "total": 39,
-       "damage": null,
+       "damage": [
+        5.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -21860,7 +22141,9 @@
        "rowNote": "",
        "active": null,
        "total": 39,
-       "damage": null,
+       "damage": [
+        5.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -21877,7 +22160,9 @@
        "rowNote": "",
        "active": null,
        "total": 39,
-       "damage": null,
+       "damage": [
+        5.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -21894,7 +22179,9 @@
        "rowNote": "",
        "active": null,
        "total": 39,
-       "damage": null,
+       "damage": [
+        5.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -21911,7 +22198,9 @@
        "rowNote": "",
        "active": null,
        "total": 39,
-       "damage": null,
+       "damage": [
+        10.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -21928,7 +22217,9 @@
        "rowNote": "",
        "active": null,
        "total": 39,
-       "damage": null,
+       "damage": [
+        16.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -21945,7 +22236,9 @@
        "rowNote": "",
        "active": null,
        "total": 39,
-       "damage": null,
+       "damage": [
+        24.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -21962,7 +22255,9 @@
        "rowNote": "",
        "active": null,
        "total": 39,
-       "damage": null,
+       "damage": [
+        25.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -21979,7 +22274,9 @@
        "rowNote": "",
        "active": null,
        "total": 39,
-       "damage": null,
+       "damage": [
+        5.0
+       ],
        "stun": null,
        "landingLag": null
       }
@@ -22997,7 +23294,14 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         75
+        ],
+        "end": 75,
+        "rehit": false,
+        "open": true
+       },
        "total": 52,
        "damage": [
         15.0
@@ -23023,7 +23327,9 @@
         "rehit": false
        },
        "total": 49,
-       "damage": null,
+       "damage": [
+        18.0
+       ],
        "stun": null,
        "landingLag": null
       }
@@ -23221,7 +23527,7 @@
         "end": 11,
         "rehit": false
        },
-       "total": null,
+       "total": 96,
        "damage": [
         4.0
        ],
@@ -23240,8 +23546,15 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
-       "total": null,
+       "active": {
+        "starts": [
+         37
+        ],
+        "end": 37,
+        "rehit": false,
+        "open": true
+       },
+       "total": 96,
        "damage": [
         20.0
        ],
@@ -23298,7 +23611,14 @@
        "stunRaw": "18F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         33
+        ],
+        "end": 33,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
        "damage": [
         20.0
@@ -24075,7 +24395,14 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         69
+        ],
+        "end": 69,
+        "rehit": false,
+        "open": true
+       },
        "total": 55,
        "damage": null,
        "stun": null,
@@ -24091,7 +24418,14 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         69
+        ],
+        "end": 69,
+        "rehit": false,
+        "open": true
+       },
        "total": 16,
        "damage": null,
        "stun": null,
@@ -24510,7 +24844,7 @@
         "end": 30,
         "rehit": false
        },
-       "total": null,
+       "total": 55,
        "damage": null,
        "stun": null,
        "landingLag": null
@@ -24830,7 +25164,17 @@
        "stunRaw": "4F",
        "inherited": [],
        "rowNote": "ガード硬直補正倍率：9倍 最小5ヒット。 相殺なし。",
-       "active": null,
+       "active": {
+        "starts": [
+         3,
+         5,
+         7,
+         9,
+         11
+        ],
+        "end": 11,
+        "rehit": false
+       },
        "total": 12,
        "damage": [
         0.3
@@ -25605,7 +25949,18 @@
        "stunRaw": "2F",
        "inherited": [],
        "rowNote": "着地隙：12F 溜め・キャンセル開始：8F目 溜め中からの最速発生は4F。 キャンセルは空中ジャンプのみ全体5F。 回避・シールド・地上ジャンプは全体4F。 針投擲：11, 14, 17, 20, 23, 26F (6針) 相殺なし。",
-       "active": null,
+       "active": {
+        "starts": [
+         11,
+         14,
+         17,
+         20,
+         23,
+         26
+        ],
+        "end": 30,
+        "rehit": false
+       },
        "total": 48,
        "damage": [
         1.5
@@ -25625,7 +25980,18 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         16,
+         19,
+         22,
+         25,
+         28,
+         31
+        ],
+        "end": 34,
+        "rehit": false
+       },
        "total": 48,
        "damage": [
         0.8
@@ -25659,7 +26025,18 @@
        "stunRaw": "2F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         11,
+         14,
+         17,
+         20,
+         23,
+         26
+        ],
+        "end": 30,
+        "rehit": false
+       },
        "total": 42,
        "damage": [
         1.5
@@ -25679,7 +26056,18 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         16,
+         19,
+         22,
+         25,
+         28,
+         31
+        ],
+        "end": 34,
+        "rehit": false
+       },
        "total": 42,
        "damage": [
         0.8
@@ -25713,7 +26101,14 @@
        "stunRaw": "2F",
        "inherited": [],
        "rowNote": "カッコ内は空中での全体フレーム。 地上では最短で39F目に起爆。 空中では最短で38F目に起爆。 炸裂丸は投擲アイテム。生成1F。 相殺なし。 最大保持：70F ガケつかまり(前後)：2F目以降 (起爆後)",
-       "active": null,
+       "active": {
+        "starts": [
+         12
+        ],
+        "end": 12,
+        "rehit": false,
+        "open": true
+       },
        "total": 68,
        "damage": [
         1.0
@@ -25755,7 +26150,10 @@
         "rehit": false
        },
        "total": 30,
-       "damage": null,
+       "damage": [
+        0.0,
+        0.75
+       ],
        "stun": [
         2
        ],
@@ -25841,7 +26239,10 @@
         "rehit": false
        },
        "total": 40,
-       "damage": null,
+       "damage": [
+        0.0,
+        0.75
+       ],
        "stun": [
         2
        ],
@@ -25921,7 +26322,9 @@
        "rowNote": "",
        "active": null,
        "total": null,
-       "damage": null,
+       "damage": [
+        5.0
+       ],
        "stun": null,
        "landingLag": null
       }
@@ -25956,7 +26359,7 @@
         "end": 38,
         "rehit": false
        },
-       "total": null,
+       "total": 95,
        "damage": [
         12.0
        ],
@@ -25982,7 +26385,7 @@
         "end": 57,
         "rehit": false
        },
-       "total": null,
+       "total": 95,
        "damage": [
         5.0,
         0.0
@@ -27232,7 +27635,7 @@
         "end": 7,
         "rehit": false
        },
-       "total": null,
+       "total": 75,
        "damage": [
         6.0
        ],
@@ -27258,7 +27661,7 @@
         "end": 36,
         "rehit": false
        },
-       "total": null,
+       "total": 75,
        "damage": [
         10.0,
         7.0
@@ -29003,7 +29406,17 @@
        "stunRaw": "3F",
        "inherited": [],
        "rowNote": "自傷：1.5% (16F目) 溜め開始：14F目 相殺なし。",
-       "active": null,
+       "active": {
+        "starts": [
+         16,
+         19,
+         22,
+         25,
+         28
+        ],
+        "end": 30,
+        "rehit": false
+       },
        "total": 53,
        "damage": [
         2.0
@@ -31242,7 +31655,7 @@
         "end": 32,
         "rehit": false
        },
-       "total": null,
+       "total": 85,
        "damage": [
         2.0
        ],
@@ -31268,7 +31681,7 @@
         "end": 46,
         "rehit": false
        },
-       "total": null,
+       "total": 85,
        "damage": [
         3.0
        ],
@@ -31300,7 +31713,7 @@
         "end": 59,
         "rehit": false
        },
-       "total": null,
+       "total": 85,
        "damage": [
         2.0
        ],
@@ -31326,7 +31739,7 @@
         "end": 61,
         "rehit": false
        },
-       "total": null,
+       "total": 85,
        "damage": [
         2.0
        ],
@@ -32747,7 +33160,9 @@
         "rehit": false
        },
        "total": 41,
-       "damage": null,
+       "damage": [
+        8.0
+       ],
        "stun": null,
        "landingLag": null
       }
@@ -33996,7 +34411,9 @@
         "rehit": false
        },
        "total": 41,
-       "damage": null,
+       "damage": [
+        8.0
+       ],
        "stun": null,
        "landingLag": null
       }
@@ -35568,7 +35985,9 @@
         "rehit": false
        },
        "total": 39,
-       "damage": null,
+       "damage": [
+        2.0
+       ],
        "stun": null,
        "landingLag": null
       }
@@ -35592,7 +36011,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         12,
+         12
+        ],
+        "end": 18,
+        "rehit": false
+       },
        "total": 52,
        "damage": null,
        "stun": null,
@@ -35606,7 +36032,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         14,
+         14
+        ],
+        "end": 20,
+        "rehit": false
+       },
        "total": 60,
        "damage": null,
        "stun": null,
@@ -35620,7 +36053,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         15,
+         15
+        ],
+        "end": 21,
+        "rehit": false
+       },
        "total": 55,
        "damage": null,
        "stun": null,
@@ -37950,7 +38390,7 @@
        "inherited": [],
        "rowNote": "全身無敵：9-19F 着地隙：20F ガケつかまり(前後)：16F目以降",
        "active": null,
-       "total": null,
+       "total": 44,
        "damage": null,
        "stun": null,
        "landingLag": null
@@ -38833,7 +39273,9 @@
         "rehit": false
        },
        "total": 44,
-       "damage": null,
+       "damage": [
+        8.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -39404,7 +39846,9 @@
         "rehit": false
        },
        "total": 41,
-       "damage": null,
+       "damage": [
+        8.0
+       ],
        "stun": null,
        "landingLag": null
       }
@@ -40184,7 +40628,9 @@
         "rehit": false
        },
        "total": 44,
-       "damage": null,
+       "damage": [
+        8.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -40569,7 +41015,14 @@
        "stunRaw": "6F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         53
+        ],
+        "end": 53,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
        "damage": [
         6.0
@@ -40649,7 +41102,9 @@
         "rehit": false
        },
        "total": 41,
-       "damage": null,
+       "damage": [
+        8.0
+       ],
        "stun": null,
        "landingLag": null
       }
@@ -41678,7 +42133,13 @@
        "stunRaw": "8F",
        "inherited": [],
        "rowNote": "21F目から追加入力受付。 1ループ毎に最小で17F追加。 最大で1度に4ループまで追加。",
-       "active": null,
+       "active": {
+        "starts": [
+         18
+        ],
+        "end": 20,
+        "rehit": false
+       },
        "total": 54,
        "damage": [
         8.0
@@ -41698,7 +42159,13 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         18
+        ],
+        "end": 98,
+        "rehit": false
+       },
        "total": 54,
        "damage": [
         5.0
@@ -42129,8 +42596,14 @@
         "rehit": false
        },
        "total": 49,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        16.0,
+        48.0
+       ],
+       "stun": [
+        14,
+        40
+       ],
        "landingLag": null
       },
       {
@@ -43227,7 +43700,7 @@
         "end": 32,
         "rehit": true
        },
-       "total": null,
+       "total": 98,
        "damage": [
         1.1
        ],
@@ -43253,7 +43726,7 @@
         "end": 69,
         "rehit": true
        },
-       "total": null,
+       "total": 98,
        "damage": [
         1.1
        ],
@@ -43279,7 +43752,7 @@
         "end": 70,
         "rehit": false
        },
-       "total": null,
+       "total": 98,
        "damage": [
         3.0
        ],
@@ -44762,8 +45235,14 @@
         "rehit": false
        },
        "total": 46,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        3.2,
+        8.6
+       ],
+       "stun": [
+        2,
+        3
+       ],
        "landingLag": null
       },
       {
@@ -46170,7 +46649,10 @@
         "rehit": false
        },
        "total": 46,
-       "damage": null,
+       "damage": [
+        5.5,
+        14.002
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -48193,7 +48675,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         15,
+         15
+        ],
+        "end": 25,
+        "rehit": false
+       },
        "total": 58,
        "damage": null,
        "stun": null,
@@ -48207,7 +48696,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         17,
+         17
+        ],
+        "end": 26,
+        "rehit": false
+       },
        "total": 66,
        "damage": null,
        "stun": null,
@@ -48221,7 +48717,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         18,
+         18
+        ],
+        "end": 26,
+        "rehit": false
+       },
        "total": 61,
        "damage": null,
        "stun": null,
@@ -49333,9 +49836,18 @@
        "stunRaw": "2F+",
        "inherited": [],
        "rowNote": "ヘビーアーマー：20KB (乗車中) HP：18.0% (21.6%) 自傷ダメージ：6.0% (7.2%) ・乗車中バイク破壊時 ・OP補正がかかる ウィリー保持：最大40F 本体付随の飛び道具 (乗車時のみ)： ・相殺判定を持つすべての判定と相殺する。 ・ガード時、攻撃側の硬直がガード側の硬直よりも長くなる。 突進とウイリー終了は相殺なし。",
-       "active": null,
+       "active": {
+        "starts": [
+         20
+        ],
+        "end": 20,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
-       "damage": null,
+       "damage": [
+        2.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -49371,7 +49883,14 @@
        "stunRaw": "3F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         13
+        ],
+        "end": 13,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
        "damage": [
         5.0
@@ -49453,7 +49972,14 @@
        "stunRaw": "2F/2F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         21
+        ],
+        "end": 21,
+        "rehit": false,
+        "open": true
+       },
        "total": 28,
        "damage": [
         3.5,
@@ -49475,7 +50001,14 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         21
+        ],
+        "end": 21,
+        "rehit": false,
+        "open": true
+       },
        "total": 39,
        "damage": null,
        "stun": null,
@@ -49491,7 +50024,14 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         21
+        ],
+        "end": 21,
+        "rehit": false,
+        "open": true
+       },
        "total": 25,
        "damage": null,
        "stun": null,
@@ -49521,9 +50061,18 @@
        "stunRaw": "2F+",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         20
+        ],
+        "end": 20,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
-       "damage": null,
+       "damage": [
+        2.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -49537,7 +50086,14 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         20
+        ],
+        "end": 20,
+        "rehit": false,
+        "open": true
+       },
        "total": 28,
        "damage": null,
        "stun": null,
@@ -49553,7 +50109,14 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         20
+        ],
+        "end": 20,
+        "rehit": false,
+        "open": true
+       },
        "total": 25,
        "damage": null,
        "stun": null,
@@ -49629,7 +50192,9 @@
        "rowNote": "",
        "active": null,
        "total": null,
-       "damage": null,
+       "damage": [
+        8.0
+       ],
        "stun": null,
        "landingLag": null
       }
@@ -49785,7 +50350,10 @@
         "rehit": false
        },
        "total": 64,
-       "damage": null,
+       "damage": [
+        12.0,
+        10.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -49805,7 +50373,9 @@
         "rehit": false
        },
        "total": 54,
-       "damage": null,
+       "damage": [
+        20.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -50377,7 +50947,13 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         1
+        ],
+        "end": 5,
+        "rehit": false
+       },
        "total": 54,
        "damage": [
         14.0
@@ -50956,9 +51532,18 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         1
+        ],
+        "end": 1,
+        "rehit": false,
+        "open": true
+       },
        "total": 31,
-       "damage": null,
+       "damage": [
+        0.6
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -50980,7 +51565,9 @@
         "rehit": false
        },
        "total": 31,
-       "damage": null,
+       "damage": [
+        9.0
+       ],
        "stun": null,
        "landingLag": null
       }
@@ -51032,7 +51619,14 @@
        "stunRaw": "5F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         74
+        ],
+        "end": 74,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
        "damage": [
         14.0
@@ -51052,7 +51646,14 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         74
+        ],
+        "end": 74,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
        "damage": [
         7.0
@@ -51072,7 +51673,14 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         74
+        ],
+        "end": 74,
+        "rehit": false,
+        "open": true
+       },
        "total": 27,
        "damage": null,
        "stun": null,
@@ -52216,9 +52824,18 @@
        "stunRaw": "10F+",
        "inherited": [],
        "rowNote": "スーパーアーマー：6-10F (溜め解除後, 溜め中・大) 溜め中：120-179F 溜め大：180F (最大30F保持可能) 溜め開始：20F目 溜め解除からの最速発生は11F。 ダメージ (溜め小) = 10 + 溜めフレーム * 0.133 溜め大は10%(1on1補正無視)の自傷ダメージ。 相殺なし。",
-       "active": null,
+       "active": {
+        "starts": [
+         30,
+         30
+        ],
+        "end": 36,
+        "rehit": false
+       },
        "total": 78,
-       "damage": null,
+       "damage": [
+        10.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -52408,8 +53025,14 @@
        "rowNote": "",
        "active": null,
        "total": 34,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        9.0,
+        16.0
+       ],
+       "stun": [
+        9,
+        14
+       ],
        "landingLag": null
       }
      ],
@@ -52458,8 +53081,14 @@
        "rowNote": "",
        "active": null,
        "total": 44,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        6.0,
+        13.0
+       ],
+       "stun": [
+        6,
+        12
+       ],
        "landingLag": null
       }
      ],
@@ -52582,7 +53211,14 @@
        "stunRaw": "4F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         61
+        ],
+        "end": 61,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
        "damage": [
         3.0
@@ -52602,7 +53238,14 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         61
+        ],
+        "end": 61,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
        "damage": null,
        "stun": null,
@@ -52678,7 +53321,9 @@
         "rehit": false
        },
        "total": 44,
-       "damage": null,
+       "damage": [
+        10.0
+       ],
        "stun": null,
        "landingLag": null
       }
@@ -53705,7 +54350,9 @@
         "rehit": false
        },
        "total": 75,
-       "damage": null,
+       "damage": [
+        8.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -57210,9 +57857,18 @@
        "stunRaw": "2F+",
        "inherited": [],
        "rowNote": "最大溜め：80F 溜め・キャンセル開始：14F目 溜め中からの最速発生は3F。 14-44Fのあいだのみキャンセル可能。 発射・投擲フレームでヒットすると追加攻撃(2%)が発生する。 相殺なし。",
-       "active": null,
+       "active": {
+        "starts": [
+         16
+        ],
+        "end": 16,
+        "rehit": false,
+        "open": true
+       },
        "total": 48,
-       "damage": null,
+       "damage": [
+        3.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -57579,9 +58235,18 @@
        "stunRaw": "2F+",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         1
+        ],
+        "end": 1,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
-       "damage": null,
+       "damage": [
+        1.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -58893,7 +59558,13 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         5
+        ],
+        "end": 8,
+        "rehit": false
+       },
        "total": 31,
        "damage": null,
        "stun": null,
@@ -58909,7 +59580,13 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         5
+        ],
+        "end": 8,
+        "rehit": false
+       },
        "total": 39,
        "damage": null,
        "stun": null,
@@ -59106,7 +59783,7 @@
         "end": 2,
         "rehit": false
        },
-       "total": null,
+       "total": 60,
        "damage": [
         5.0
        ],
@@ -59136,7 +59813,7 @@
         "end": 13,
         "rehit": false
        },
-       "total": null,
+       "total": 60,
        "damage": [
         2.0
        ],
@@ -59166,7 +59843,7 @@
         "end": 27,
         "rehit": false
        },
-       "total": null,
+       "total": 60,
        "damage": [
         1.5
        ],
@@ -59192,7 +59869,7 @@
         "end": 30,
         "rehit": false
        },
-       "total": null,
+       "total": 60,
        "damage": [
         10.0
        ],
@@ -59351,7 +60028,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         12,
+         12
+        ],
+        "end": 17,
+        "rehit": false
+       },
        "total": 46,
        "damage": null,
        "stun": null,
@@ -59365,7 +60049,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         14,
+         14
+        ],
+        "end": 19,
+        "rehit": false
+       },
        "total": 54,
        "damage": null,
        "stun": null,
@@ -59379,7 +60070,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         15,
+         15
+        ],
+        "end": 20,
+        "rehit": false
+       },
        "total": 49,
        "damage": null,
        "stun": null,
@@ -60455,10 +61153,20 @@
        "stunRaw": "7F ~ 10F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         1
+        ],
+        "end": 1,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
        "damage": null,
-       "stun": null,
+       "stun": [
+        7,
+        10
+       ],
        "landingLag": null
       },
       {
@@ -60469,10 +61177,23 @@
        "stunRaw": "7F ~ 10F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         1
+        ],
+        "end": 1,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        7.0,
+        11.2
+       ],
+       "stun": [
+        7,
+        10
+       ],
        "landingLag": null
       },
       {
@@ -60485,7 +61206,14 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         1
+        ],
+        "end": 1,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
        "damage": [
         4.0
@@ -60631,7 +61359,14 @@
        "stunRaw": "2F",
        "inherited": [],
        "rowNote": "全身無敵：5-7F 着地隙：10F ガケつかまり(前)：12F目以降",
-       "active": null,
+       "active": {
+        "starts": [
+         4
+        ],
+        "end": 4,
+        "rehit": false,
+        "open": true
+       },
        "total": 18,
        "damage": [
         4.0
@@ -60665,10 +61400,20 @@
        "stunRaw": "2F ~ 3F",
        "inherited": [],
        "rowNote": "溜め開始：12F目 溜め解除からの最速発生は1F。 溜め最大時間：180F 最大ダッシュ時間：110F ダッシュ, 空中は一定以上の溜めで最初の1Fのみダメージ2.5% ジャンプは攻撃、または11F目から空中ジャンプでキャンセル可能。 ガケつかまり(前後)：41F目以降 (ジャンプのみ)",
-       "active": null,
+       "active": {
+        "starts": [
+         1
+        ],
+        "end": 1,
+        "rehit": true,
+        "open": true
+       },
        "total": null,
        "damage": null,
-       "stun": null,
+       "stun": [
+        2,
+        3
+       ],
        "landingLag": null
       },
       {
@@ -60679,13 +61424,23 @@
        "stunRaw": "3F ~ 4F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         1
+        ],
+        "end": 1,
+        "rehit": true,
+        "open": true
+       },
        "total": null,
        "damage": [
         1.5,
         2.5
        ],
-       "stun": null,
+       "stun": [
+        3,
+        4
+       ],
        "landingLag": null
       },
       {
@@ -60698,7 +61453,14 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         1
+        ],
+        "end": 1,
+        "rehit": true,
+        "open": true
+       },
        "total": null,
        "damage": [
         4.0
@@ -61952,7 +62714,14 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         6
+        ],
+        "end": 6,
+        "rehit": false,
+        "open": true
+       },
        "total": 29,
        "damage": null,
        "stun": null,
@@ -62180,7 +62949,14 @@
        "stunRaw": "14F",
        "inherited": [],
        "rowNote": "アーマー：22-34F, 69-76F 全身無敵：18-21F 両足先無敵：69F～ 28F目からキャンセル可能。 着地隙：60F (通常) 着地隙：30F (尻もち) 着地隙：110F (キャンセルモーション中) 着地は相殺なし。 ガケつかまり(前後)：19F目以降 (ジャンプ) ガケつかまり(前後)：21F目以降 (キャンセル)",
-       "active": null,
+       "active": {
+        "starts": [
+         69
+        ],
+        "end": 69,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
        "damage": [
         15.0
@@ -62272,7 +63048,9 @@
         "rehit": false
        },
        "total": 76,
-       "damage": null,
+       "damage": [
+        12.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -62378,7 +63156,9 @@
         "rehit": false
        },
        "total": 76,
-       "damage": null,
+       "damage": [
+        11.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -64508,7 +65288,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         18
+        ],
+        "end": 18,
+        "rehit": false,
+        "open": true
+       },
        "total": 36,
        "damage": [
         2.0
@@ -64526,7 +65313,14 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         18
+        ],
+        "end": 18,
+        "rehit": false,
+        "open": true
+       },
        "total": 36,
        "damage": [
         4.7
@@ -64708,7 +65502,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "全体フレームはそれぞれピクミン0, 1, 2, 3匹。",
-       "active": null,
+       "active": {
+        "starts": [
+         12,
+         12
+        ],
+        "end": 23,
+        "rehit": false
+       },
        "total": 41,
        "damage": null,
        "stun": null,
@@ -64722,7 +65523,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "全体フレームはそれぞれピクミン0, 1, 2, 3匹。",
-       "active": null,
+       "active": {
+        "starts": [
+         12,
+         12
+        ],
+        "end": 23,
+        "rehit": false
+       },
        "total": 49,
        "damage": null,
        "stun": null,
@@ -64736,7 +65544,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "全体フレームはそれぞれピクミン0, 1, 2, 3匹。",
-       "active": null,
+       "active": {
+        "starts": [
+         12,
+         12
+        ],
+        "end": 23,
+        "rehit": false
+       },
        "total": 44,
        "damage": null,
        "stun": null,
@@ -65644,7 +66459,13 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         9
+        ],
+        "end": 68,
+        "rehit": false
+       },
        "total": 43,
        "damage": null,
        "stun": null,
@@ -65823,7 +66644,7 @@
         "end": 47,
         "rehit": false
        },
-       "total": null,
+       "total": 74,
        "damage": [
         6.0
        ],
@@ -67063,7 +67884,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "最大溜め：90F 溜め開始：7F目 保持状態からの最速発生は3F。",
-       "active": null,
+       "active": {
+        "starts": [
+         9
+        ],
+        "end": 9,
+        "rehit": false,
+        "open": true
+       },
        "total": 42,
        "damage": null,
        "stun": null,
@@ -67079,7 +67907,14 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         9
+        ],
+        "end": 9,
+        "rehit": false,
+        "open": true
+       },
        "total": 36,
        "damage": null,
        "stun": null,
@@ -67095,7 +67930,14 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         9
+        ],
+        "end": 9,
+        "rehit": false,
+        "open": true
+       },
        "total": 60,
        "damage": null,
        "stun": null,
@@ -67127,7 +67969,9 @@
        "rowNote": "",
        "active": null,
        "total": null,
-       "damage": null,
+       "damage": [
+        4.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -68057,8 +68901,14 @@
         "rehit": false
        },
        "total": 39,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        4.0,
+        12.0
+       ],
+       "stun": [
+        2,
+        4
+       ],
        "landingLag": null
       }
      ],
@@ -68535,7 +69385,9 @@
         "rehit": false
        },
        "total": 36,
-       "damage": null,
+       "damage": [
+        4.2
+       ],
        "stun": null,
        "landingLag": null
       }
@@ -68559,7 +69411,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         12,
+         12
+        ],
+        "end": 18,
+        "rehit": false
+       },
        "total": 52,
        "damage": null,
        "stun": null,
@@ -68573,7 +69432,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         14,
+         14
+        ],
+        "end": 20,
+        "rehit": false
+       },
        "total": 60,
        "damage": null,
        "stun": null,
@@ -68587,7 +69453,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         15,
+         15
+        ],
+        "end": 21,
+        "rehit": false
+       },
        "total": 55,
        "damage": null,
        "stun": null,
@@ -69571,7 +70444,7 @@
         "end": 21,
         "rehit": false
        },
-       "total": null,
+       "total": 66,
        "damage": [
         4.0
        ],
@@ -69597,7 +70470,7 @@
         "end": 32,
         "rehit": true
        },
-       "total": null,
+       "total": 66,
        "damage": [
         2.5
        ],
@@ -69623,7 +70496,7 @@
         "end": 38,
         "rehit": false
        },
-       "total": null,
+       "total": 66,
        "damage": [
         5.0
        ],
@@ -69650,7 +70523,7 @@
         "end": 38,
         "rehit": false
        },
-       "total": null,
+       "total": 66,
        "damage": [
         6.0
        ],
@@ -69996,7 +70869,13 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         15
+        ],
+        "end": 68,
+        "rehit": false
+       },
        "total": 44,
        "damage": [
         6.0
@@ -70187,7 +71066,13 @@
        "stunRaw": "10F",
        "inherited": [],
        "rowNote": "生成：20F 飛び道具判定。 ボールが地面などに触れると攻撃判定消失。 カッコ内は平坦な地形で出した場合。 溜め開始：17F目",
-       "active": null,
+       "active": {
+        "starts": [
+         25
+        ],
+        "end": 30,
+        "rehit": false
+       },
        "total": 49,
        "damage": [
         15.0
@@ -71566,7 +72451,14 @@
        "stunRaw": "7F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         14
+        ],
+        "end": 14,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
        "damage": [
         25.0
@@ -71586,7 +72478,14 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         14
+        ],
+        "end": 14,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
        "damage": [
         15.0
@@ -71640,7 +72539,9 @@
        "rowNote": "",
        "active": null,
        "total": null,
-       "damage": null,
+       "damage": [
+        3.0
+       ],
        "stun": null,
        "landingLag": null
       }
@@ -71747,7 +72648,13 @@
        "stunRaw": "3F",
        "inherited": [],
        "rowNote": "弾は飛び道具判定。 1-6Fはふりむき可。 ふりむき14F目に弾発生。 本体の判定は、以下のとき発生しない。 ・歩行中に弾発射。 ・反転して弾発射。 ・ジャンプ踏切中に弾発射。 ・ジャンプ踏切直後に弾発射。 ・着地した瞬間に弾発射。",
-       "active": null,
+       "active": {
+        "starts": [
+         7
+        ],
+        "end": 7,
+        "rehit": false
+       },
        "total": 35,
        "damage": [
         1.0
@@ -71843,7 +72750,13 @@
        "stunRaw": "3F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         19
+        ],
+        "end": 19,
+        "rehit": false
+       },
        "total": 47,
        "damage": [
         1.0
@@ -71939,7 +72852,13 @@
        "stunRaw": "3F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         31
+        ],
+        "end": 31,
+        "rehit": false
+       },
        "total": 59,
        "damage": [
         1.0
@@ -72289,7 +73208,13 @@
        "stunRaw": "4F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         79
+        ],
+        "end": 108,
+        "rehit": false
+       },
        "total": 114,
        "damage": [
         14.95
@@ -73390,7 +74315,14 @@
        "stunRaw": "2F",
        "inherited": [],
        "rowNote": "最長76F目に自動発射。 Ver. 3.0.0で最長81F目 -> 76F目に変更。 Ver. 3.0.0でアイテムが投擲できなくなった。",
-       "active": null,
+       "active": {
+        "starts": [
+         9
+        ],
+        "end": 9,
+        "rehit": true,
+        "open": true
+       },
        "total": 35,
        "damage": [
         1.5
@@ -74352,7 +75284,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "最大溜め：85F 溜め・キャンセル開始：18F目 溜め中からの最速発生は4F。 キャンセルは空中ジャンプのみ全体5F。 回避・シールド・地上ジャンプは全体4F。 最大溜め放出で2%回復。",
-       "active": null,
+       "active": {
+        "starts": [
+         18
+        ],
+        "end": 18,
+        "rehit": true,
+        "open": true
+       },
        "total": null,
        "damage": [
         0.0
@@ -74459,7 +75398,9 @@
        "rowNote": "10F目からキャンセル可能。 ボール生成：1F ボールの存在時間は生成してから180F。 地形にバウンドすると20F、ヒットする・ガードされると30F減少。 ボールは相殺なし。 着地隙：9F (通常) 着地隙：15F (キャンセル) ガケつかまり(前後)：11F目以降 ガケつかまり(前後)：12F目以降 (ヘディング派生後)",
        "active": null,
        "total": null,
-       "damage": null,
+       "damage": [
+        16.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -76588,7 +77529,13 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "引き寄せ：5-39F",
-       "active": null,
+       "active": {
+        "starts": [
+         5
+        ],
+        "end": 39,
+        "rehit": false
+       },
        "total": 39,
        "damage": null,
        "stun": null,
@@ -77523,8 +78470,14 @@
         "rehit": false
        },
        "total": 42,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        12.0,
+        29.0
+       ],
+       "stun": [
+        11,
+        25
+       ],
        "landingLag": null
       },
       {
@@ -77545,8 +78498,14 @@
         "rehit": false
        },
        "total": 42,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        10.0,
+        26.0
+       ],
+       "stun": [
+        10,
+        22
+       ],
        "landingLag": null
       },
       {
@@ -77567,8 +78526,14 @@
         "rehit": false
        },
        "total": 42,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        8.0,
+        24.0
+       ],
+       "stun": [
+        8,
+        21
+       ],
        "landingLag": null
       },
       {
@@ -77587,8 +78552,14 @@
         "rehit": false
        },
        "total": 46,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        10.0,
+        27.0
+       ],
+       "stun": [
+        10,
+        23
+       ],
        "landingLag": null
       },
       {
@@ -77609,8 +78580,14 @@
         "rehit": false
        },
        "total": 46,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        8.0,
+        22.0
+       ],
+       "stun": [
+        8,
+        19
+       ],
        "landingLag": null
       },
       {
@@ -77631,8 +78608,14 @@
         "rehit": false
        },
        "total": 46,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        6.0,
+        18.0
+       ],
+       "stun": [
+        6,
+        16
+       ],
        "landingLag": null
       },
       {
@@ -77715,8 +78698,14 @@
         "rehit": false
        },
        "total": 41,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        10.0,
+        19.0
+       ],
+       "stun": [
+        10,
+        17
+       ],
        "landingLag": null
       },
       {
@@ -77737,8 +78726,14 @@
         "rehit": false
        },
        "total": 41,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        8.0,
+        15.0
+       ],
+       "stun": [
+        8,
+        14
+       ],
        "landingLag": null
       },
       {
@@ -77757,8 +78752,14 @@
         "rehit": false
        },
        "total": 45,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        8.0,
+        17.0
+       ],
+       "stun": [
+        8,
+        15
+       ],
        "landingLag": null
       },
       {
@@ -77779,8 +78780,14 @@
         "rehit": false
        },
        "total": 45,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        6.0,
+        13.0
+       ],
+       "stun": [
+        6,
+        12
+       ],
        "landingLag": null
       },
       {
@@ -77855,7 +78862,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "アーマー：8-9F ガード不可。",
-       "active": null,
+       "active": {
+        "starts": [
+         9,
+         9
+        ],
+        "end": 11,
+        "rehit": false
+       },
        "total": 76,
        "damage": [
         35.0
@@ -78225,7 +79239,9 @@
         "rehit": false
        },
        "total": 49,
-       "damage": null,
+       "damage": [
+        10.0
+       ],
        "stun": null,
        "landingLag": null
       }
@@ -79334,8 +80350,14 @@
         "rehit": false
        },
        "total": 45,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        3.0,
+        10.8
+       ],
+       "stun": [
+        2,
+        4
+       ],
        "landingLag": null
       },
       {
@@ -79420,8 +80442,14 @@
         "rehit": false
        },
        "total": 38,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        3.0,
+        10.8
+       ],
+       "stun": [
+        2,
+        4
+       ],
        "landingLag": null
       },
       {
@@ -80754,7 +81782,14 @@
        "stunRaw": "5F",
        "inherited": [],
        "rowNote": "バウンド毎にダメージ倍率0.75倍。",
-       "active": null,
+       "active": {
+        "starts": [
+         28
+        ],
+        "end": 28,
+        "rehit": false,
+        "open": true
+       },
        "total": 67,
        "damage": [
         15.0
@@ -81168,7 +82203,7 @@
         "end": 30,
         "rehit": false
        },
-       "total": null,
+       "total": 73,
        "damage": [
         2.0
        ],
@@ -81192,7 +82227,7 @@
         "end": 5,
         "rehit": false
        },
-       "total": null,
+       "total": 70,
        "damage": [
         2.0
        ],
@@ -81218,7 +82253,7 @@
         "end": 10,
         "rehit": true
        },
-       "total": null,
+       "total": 70,
        "damage": [
         2.0
        ],
@@ -81245,7 +82280,7 @@
         "end": 10,
         "rehit": true
        },
-       "total": null,
+       "total": 70,
        "damage": [
         2.0
        ],
@@ -81271,7 +82306,7 @@
         "end": 13,
         "rehit": false
        },
-       "total": null,
+       "total": 70,
        "damage": [
         2.0
        ],
@@ -81297,7 +82332,7 @@
         "end": 16,
         "rehit": false
        },
-       "total": null,
+       "total": 70,
        "damage": [
         2.0
        ],
@@ -81323,7 +82358,7 @@
         "end": 19,
         "rehit": false
        },
-       "total": null,
+       "total": 70,
        "damage": [
         1.5
        ],
@@ -81349,7 +82384,7 @@
         "end": 29,
         "rehit": false
        },
-       "total": null,
+       "total": 70,
        "damage": [
         7.0
        ],
@@ -81375,7 +82410,7 @@
         "end": 30,
         "rehit": false
        },
-       "total": null,
+       "total": 70,
        "damage": [
         7.0
        ],
@@ -81590,7 +82625,14 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         47
+        ],
+        "end": 47,
+        "rehit": false,
+        "open": true
+       },
        "total": 51,
        "damage": [
         4.5
@@ -81672,7 +82714,14 @@
        "stunRaw": "6F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         3
+        ],
+        "end": 3,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
        "damage": [
         6.0
@@ -81692,7 +82741,14 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         3
+        ],
+        "end": 3,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
        "damage": [
         3.0
@@ -82007,7 +83063,7 @@
         "end": 8,
         "rehit": false
        },
-       "total": null,
+       "total": 93,
        "damage": [
         6.0
        ],
@@ -82033,7 +83089,7 @@
         "end": 11,
         "rehit": false
        },
-       "total": null,
+       "total": 93,
        "damage": [
         6.0
        ],
@@ -82059,7 +83115,7 @@
         "end": 15,
         "rehit": false
        },
-       "total": null,
+       "total": 93,
        "damage": [
         6.0
        ],
@@ -82078,8 +83134,15 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
-       "total": null,
+       "active": {
+        "starts": [
+         31
+        ],
+        "end": 31,
+        "rehit": false,
+        "open": true
+       },
+       "total": 93,
        "damage": [
         16.0
        ],
@@ -82105,7 +83168,7 @@
         "end": 33,
         "rehit": true
        },
-       "total": null,
+       "total": 93,
        "damage": [
         1.0
        ],
@@ -82129,7 +83192,7 @@
         "end": 34,
         "rehit": true
        },
-       "total": null,
+       "total": 93,
        "damage": [
         1.0
        ],
@@ -82146,8 +83209,15 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
-       "total": null,
+       "active": {
+        "starts": [
+         35
+        ],
+        "end": 35,
+        "rehit": true,
+        "open": true
+       },
+       "total": 93,
        "damage": [
         1.0
        ],
@@ -82178,7 +83248,14 @@
        "stunRaw": "14F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         23
+        ],
+        "end": 23,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
        "damage": [
         16.0
@@ -82244,7 +83321,14 @@
        "stunRaw": "2F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         27
+        ],
+        "end": 27,
+        "rehit": true,
+        "open": true
+       },
        "total": null,
        "damage": [
         1.0
@@ -82498,7 +83582,9 @@
         "rehit": false
        },
        "total": 50,
-       "damage": null,
+       "damage": [
+        14.0
+       ],
        "stun": null,
        "landingLag": null
       }
@@ -83806,8 +84892,14 @@
         "rehit": false
        },
        "total": 34,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        8.0,
+        18.5
+       ],
+       "stun": [
+        8,
+        16
+       ],
        "landingLag": null
       }
      ],
@@ -83866,8 +84958,14 @@
         "rehit": false
        },
        "total": 58,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        8.0,
+        18.5
+       ],
+       "stun": [
+        8,
+        16
+       ],
        "landingLag": null
       }
      ],
@@ -83984,7 +85082,14 @@
        "stunRaw": "4F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         42
+        ],
+        "end": 42,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
        "damage": [
         3.0
@@ -84538,7 +85643,9 @@
         "rehit": false
        },
        "total": 38,
-       "damage": null,
+       "damage": [
+        8.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -85977,7 +87084,13 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         3
+        ],
+        "end": 61,
+        "rehit": false
+       },
        "total": 39,
        "damage": null,
        "stun": null,
@@ -87811,7 +88924,7 @@
        "inherited": [],
        "rowNote": "全身無敵：16-32F 着地隙：22F ガケつかまり(前後)：22F目以降",
        "active": null,
-       "total": null,
+       "total": 67,
        "damage": null,
        "stun": null,
        "landingLag": null
@@ -87862,7 +88975,9 @@
         "rehit": false
        },
        "total": 37,
-       "damage": null,
+       "damage": [
+        10.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -89071,8 +90186,14 @@
         "rehit": false
        },
        "total": 93,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        4.0,
+        5.0
+       ],
+       "stun": [
+        5,
+        6
+       ],
        "landingLag": null
       },
       {
@@ -89119,8 +90240,14 @@
         "rehit": false
        },
        "total": 93,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        6.0,
+        12.0
+       ],
+       "stun": [
+        6,
+        11
+       ],
        "landingLag": null
       },
       {
@@ -89325,7 +90452,14 @@
        "stunRaw": "4F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         9
+        ],
+        "end": 9,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
        "damage": [
         9.0
@@ -89359,7 +90493,14 @@
        "stunRaw": "5F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         1
+        ],
+        "end": 1,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
        "damage": [
         13.0
@@ -89377,7 +90518,14 @@
        "stunRaw": "4F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         1
+        ],
+        "end": 1,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
        "damage": [
         10.0
@@ -89451,7 +90599,15 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         12,
+         19,
+         27
+        ],
+        "end": 33,
+        "rehit": false
+       },
        "total": 58,
        "damage": null,
        "stun": null,
@@ -89465,7 +90621,15 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         14,
+         22,
+         30
+        ],
+        "end": 35,
+        "rehit": false
+       },
        "total": 66,
        "damage": null,
        "stun": null,
@@ -89479,7 +90643,15 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         15,
+         23,
+         30
+        ],
+        "end": 36,
+        "rehit": false
+       },
        "total": 61,
        "damage": null,
        "stun": null,
@@ -91294,7 +92466,14 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         25
+        ],
+        "end": 25,
+        "rehit": true,
+        "open": true
+       },
        "total": 49,
        "damage": [
         2.0
@@ -91312,7 +92491,14 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         25
+        ],
+        "end": 25,
+        "rehit": true,
+        "open": true
+       },
        "total": 31,
        "damage": null,
        "stun": null,
@@ -91344,7 +92530,9 @@
        "rowNote": "",
        "active": null,
        "total": null,
-       "damage": null,
+       "damage": [
+        3.0
+       ],
        "stun": null,
        "landingLag": null
       }
@@ -91374,7 +92562,9 @@
        "rowNote": "",
        "active": null,
        "total": null,
-       "damage": null,
+       "damage": [
+        5.0
+       ],
        "stun": null,
        "landingLag": null
       }
@@ -91738,7 +92928,12 @@
         9.0,
         9.0
        ],
-       "stun": null,
+       "stun": [
+        10,
+        10,
+        9,
+        9
+       ],
        "landingLag": null
       }
      ],
@@ -91803,7 +92998,13 @@
        "stunRaw": "5F",
        "inherited": [],
        "rowNote": "Hit 1の持続は無シフトのみ14-15F。 溜め開始：9F目",
-       "active": null,
+       "active": {
+        "starts": [
+         14
+        ],
+        "end": 16,
+        "rehit": false
+       },
        "total": 67,
        "damage": [
         5.5
@@ -92546,7 +93747,14 @@
        "stunRaw": "10F/10F/10F/9F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         24
+        ],
+        "end": 24,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
        "damage": [
         10.0,
@@ -92572,7 +93780,14 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         24
+        ],
+        "end": 24,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
        "damage": [
         16.0,
@@ -92795,7 +94010,10 @@
         "rehit": false
        },
        "total": 87,
-       "damage": null,
+       "damage": [
+        10.0,
+        9.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -92815,7 +94033,10 @@
         "rehit": false
        },
        "total": 64,
-       "damage": null,
+       "damage": [
+        13.0,
+        10.0
+       ],
        "stun": null,
        "landingLag": null
       }
@@ -92865,7 +94086,10 @@
         "rehit": false
        },
        "total": 82,
-       "damage": null,
+       "damage": [
+        10.0,
+        9.0
+       ],
        "stun": null,
        "landingLag": null
       }
@@ -94189,9 +95413,18 @@
        "stunRaw": "5F+",
        "inherited": [],
        "rowNote": "ヘビーアーマー：約10.23% (ダッシュ中, クラウンのみ) 26Fからジャンプキャンセル可能。 ダッシュのダメージは速度依存。 ダッシュは相殺なし。 スピンは相殺モーションなし。",
-       "active": null,
+       "active": {
+        "starts": [
+         20
+        ],
+        "end": 20,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
-       "damage": null,
+       "damage": [
+        4.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -94211,7 +95444,9 @@
         "rehit": false
        },
        "total": 58,
-       "damage": null,
+       "damage": [
+        10.0
+       ],
        "stun": null,
        "landingLag": null
       }
@@ -94239,9 +95474,18 @@
        "stunRaw": "3F+",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         17
+        ],
+        "end": 17,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
-       "damage": null,
+       "damage": [
+        2.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -94261,7 +95505,9 @@
         "rehit": false
        },
        "total": 58,
-       "damage": null,
+       "damage": [
+        8.0
+       ],
        "stun": null,
        "landingLag": null
       }
@@ -94511,7 +95757,14 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         43
+        ],
+        "end": 43,
+        "rehit": false,
+        "open": true
+       },
        "total": 67,
        "damage": [
         2.0
@@ -95667,9 +96920,18 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "生成：1F レチクル以外は相殺なし。 怯えモーション：31F ガケつかまり(前後)：41F目以降",
-       "active": null,
+       "active": {
+        "starts": [
+         16
+        ],
+        "end": 16,
+        "rehit": false,
+        "open": true
+       },
        "total": 41,
-       "damage": null,
+       "damage": [
+        2.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -95749,7 +97011,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "生成：1F クレーがヒットした後または?F経過後にボタン入力のよる射撃で炸裂。 32F目からボタン入力で射撃可能。 ボタン入力から27F経過で再度射撃可能。 炸裂は相殺なし。 怯えモーション：31F ガケつかまり(前後)：49F目以降",
-       "active": null,
+       "active": {
+        "starts": [
+         17
+        ],
+        "end": 17,
+        "rehit": false,
+        "open": true
+       },
        "total": 64,
        "damage": [
         2.0
@@ -96491,7 +97760,13 @@
        "stunRaw": "6F",
        "inherited": [],
        "rowNote": "必殺ワザキャンセル：24F目 (25F目)まで 強モーションを最低でも1Fはさむ必要あり。",
-       "active": null,
+       "active": {
+        "starts": [
+         3
+        ],
+        "end": 4,
+        "rehit": false
+       },
        "total": 29,
        "damage": [
         6.0
@@ -100315,7 +101590,13 @@
        "stunRaw": "6F",
        "inherited": [],
        "rowNote": "必殺ワザキャンセル：8-24F 強モーションを最低でも1Fはさむ必要あり。",
-       "active": null,
+       "active": {
+        "starts": [
+         3
+        ],
+        "end": 4,
+        "rehit": false
+       },
        "total": 29,
        "damage": [
         6.0
@@ -104653,7 +105934,14 @@
        "stunRaw": "5F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         12
+        ],
+        "end": 12,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
        "damage": [
         4.5
@@ -104807,7 +106095,14 @@
        "stunRaw": "5F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         12
+        ],
+        "end": 12,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
        "damage": [
         4.5
@@ -105561,7 +106856,14 @@
        "stunRaw": "2F",
        "inherited": [],
        "rowNote": "ガード硬直補正倍率：1.6倍 溜め部分は相殺なし。 本体付随の飛び道具 (溜め以外)： ・相殺判定を持つすべての判定と相殺する。 ・ガード時、攻撃側の硬直がガード側の硬直よりも長くなる。 溜め開始：9F目",
-       "active": null,
+       "active": {
+        "starts": [
+         12
+        ],
+        "end": 12,
+        "rehit": true,
+        "open": true
+       },
        "total": null,
        "damage": [
         0.5
@@ -105979,8 +107281,14 @@
         "rehit": false
        },
        "total": 61,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        4.0,
+        9.0
+       ],
+       "stun": [
+        2,
+        4
+       ],
        "landingLag": null
       },
       {
@@ -106001,8 +107309,14 @@
         "rehit": false
        },
        "total": 61,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        10.0,
+        18.0
+       ],
+       "stun": [
+        10,
+        16
+       ],
        "landingLag": null
       },
       {
@@ -106499,7 +107813,9 @@
         "rehit": false
        },
        "total": 67,
-       "damage": null,
+       "damage": [
+        10.0
+       ],
        "stun": null,
        "landingLag": null
       }
@@ -110021,9 +111337,18 @@
        "stunRaw": "5F+",
        "inherited": [],
        "rowNote": "キャンセル：31F目以降 本体付随の飛び道具： ・相殺判定を持つすべての判定と相殺する（対地のみ）。 ・ガード時、攻撃側の硬直がガード側の硬直よりも長くなる。 インク切れ後は一定速度に達するまで(?)、しばらく判定が続く。 ペイント量： 60 (歩行) 100 (走行) 120 (ダッシュ) インク消費：4Fごとに3 相殺なし（対空のみ）。 相殺モーションなし。",
-       "active": null,
+       "active": {
+        "starts": [
+         16
+        ],
+        "end": 16,
+        "rehit": true,
+        "open": true
+       },
        "total": null,
-       "damage": null,
+       "damage": [
+        4.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -110037,9 +111362,18 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         16
+        ],
+        "end": 16,
+        "rehit": true,
+        "open": true
+       },
        "total": null,
-       "damage": null,
+       "damage": [
+        2.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -110053,7 +111387,14 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         16
+        ],
+        "end": 16,
+        "rehit": true,
+        "open": true
+       },
        "total": null,
        "damage": [
         11.0
@@ -110073,7 +111414,14 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         16
+        ],
+        "end": 16,
+        "rehit": true,
+        "open": true
+       },
        "total": null,
        "damage": [
         8.0
@@ -110093,7 +111441,14 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         16
+        ],
+        "end": 16,
+        "rehit": true,
+        "open": true
+       },
        "total": null,
        "damage": [
         8.0
@@ -110113,7 +111468,14 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         16
+        ],
+        "end": 16,
+        "rehit": true,
+        "open": true
+       },
        "total": null,
        "damage": [
         5.0
@@ -110149,7 +111511,9 @@
        "rowNote": "",
        "active": null,
        "total": null,
-       "damage": null,
+       "damage": [
+        4.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -110471,8 +111835,14 @@
         "rehit": false
        },
        "total": 65,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        9.0,
+        15.0
+       ],
+       "stun": [
+        4,
+        5
+       ],
        "landingLag": null
       },
       {
@@ -110601,8 +111971,14 @@
         "rehit": false
        },
        "total": 68,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        9.0,
+        15.0
+       ],
+       "stun": [
+        4,
+        5
+       ],
        "landingLag": null
       },
       {
@@ -111779,7 +113155,14 @@
        "stunRaw": "3F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         17
+        ],
+        "end": 17,
+        "rehit": true,
+        "open": true
+       },
        "total": null,
        "damage": [
         2.0
@@ -112444,7 +113827,17 @@
        "stunRaw": "3F",
        "inherited": [],
        "rowNote": "相殺モーションなし。",
-       "active": null,
+       "active": {
+        "starts": [
+         10,
+         13,
+         16,
+         19,
+         22
+        ],
+        "end": 23,
+        "rehit": false
+       },
        "total": 54,
        "damage": [
         2.0
@@ -113343,7 +114736,9 @@
        "rowNote": "平坦な地形で地上から出すと、32Fから炎の攻撃判定発生。 炎は相殺なし。",
        "active": null,
        "total": 45,
-       "damage": null,
+       "damage": [
+        2.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -113714,7 +115109,17 @@
        "stunRaw": "3F",
        "inherited": [],
        "rowNote": "相殺モーションなし。",
-       "active": null,
+       "active": {
+        "starts": [
+         10,
+         13,
+         16,
+         19,
+         22
+        ],
+        "end": 23,
+        "rehit": false
+       },
        "total": 54,
        "damage": [
         2.0
@@ -116143,7 +117548,14 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         65
+        ],
+        "end": 65,
+        "rehit": true,
+        "open": true
+       },
        "total": 63,
        "damage": [
         7.0
@@ -116163,7 +117575,14 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         65
+        ],
+        "end": 65,
+        "rehit": true,
+        "open": true
+       },
        "total": 17,
        "damage": null,
        "stun": null,
@@ -116255,7 +117674,10 @@
         "rehit": false
        },
        "total": 39,
-       "damage": null,
+       "damage": [
+        12.0,
+        8.4
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -116275,7 +117697,10 @@
         "rehit": false
        },
        "total": 45,
-       "damage": null,
+       "damage": [
+        12.0,
+        8.4
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -116295,7 +117720,10 @@
         "rehit": false
        },
        "total": 39,
-       "damage": null,
+       "damage": [
+        12.0,
+        8.4
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -116315,7 +117743,10 @@
         "rehit": false
        },
        "total": 45,
-       "damage": null,
+       "damage": [
+        12.0,
+        8.4
+       ],
        "stun": null,
        "landingLag": null
       }
@@ -116485,7 +117916,13 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         13
+        ],
+        "end": 66,
+        "rehit": false
+       },
        "total": 39,
        "damage": [
         6.0
@@ -117329,7 +118766,14 @@
        "stunRaw": "",
        "inherited": [],
        "rowNote": "ワイヤーガケつかまり：18-19F 240F目に自動でリール戻しに移行。 投げのダメージは速度依存。最大で10%増加。 特殊つかみ判定はガード可能。硬直はなし。 ファイター引き寄せ前に12F硬直。 アイテム引き寄せ前に6F硬直。",
-       "active": null,
+       "active": {
+        "starts": [
+         21
+        ],
+        "end": 21,
+        "rehit": false,
+        "open": true
+       },
        "total": 45,
        "damage": null,
        "stun": null,
@@ -117381,7 +118825,9 @@
         "rehit": false
        },
        "total": 45,
-       "damage": null,
+       "damage": [
+        14.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -117401,7 +118847,9 @@
         "rehit": false
        },
        "total": 35,
-       "damage": null,
+       "damage": [
+        11.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -117421,7 +118869,9 @@
         "rehit": false
        },
        "total": 43,
-       "damage": null,
+       "damage": [
+        12.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -117441,7 +118891,9 @@
         "rehit": false
        },
        "total": 39,
-       "damage": null,
+       "damage": [
+        1.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -117463,7 +118915,9 @@
         "rehit": false
        },
        "total": 39,
-       "damage": null,
+       "damage": [
+        8.5
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -119354,7 +120808,7 @@
         "end": 4,
         "rehit": false
        },
-       "total": null,
+       "total": 61,
        "damage": [
         10.8,
         5.5
@@ -120368,7 +121822,14 @@
        "stunRaw": "5F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         22
+        ],
+        "end": 22,
+        "rehit": false,
+        "open": true
+       },
        "total": null,
        "damage": [
         14.0
@@ -120412,7 +121873,14 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         15
+        ],
+        "end": 15,
+        "rehit": false,
+        "open": true
+       },
        "total": 41,
        "damage": [
         18.0
@@ -120456,7 +121924,14 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         15
+        ],
+        "end": 15,
+        "rehit": false,
+        "open": true
+       },
        "total": 47,
        "damage": [
         18.0
@@ -120476,7 +121951,14 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         15
+        ],
+        "end": 15,
+        "rehit": false,
+        "open": true
+       },
        "total": 70,
        "damage": null,
        "stun": null,
@@ -120492,7 +121974,14 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         15
+        ],
+        "end": 15,
+        "rehit": false,
+        "open": true
+       },
        "total": 20,
        "damage": null,
        "stun": null,
@@ -120508,7 +121997,14 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         15
+        ],
+        "end": 15,
+        "rehit": false,
+        "open": true
+       },
        "total": 19,
        "damage": null,
        "stun": null,
@@ -122479,7 +123975,15 @@
        "stunRaw": "5F/2F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         7,
+         21,
+         35
+        ],
+        "end": 35,
+        "rehit": false
+       },
        "total": 48,
        "damage": [
         4.0,
@@ -122856,7 +124360,15 @@
        "stunRaw": "5F/2F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         7,
+         21,
+         35
+        ],
+        "end": 35,
+        "rehit": false
+       },
        "total": 48,
        "damage": [
         4.0,
@@ -122878,7 +124390,14 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         14,
+         28
+        ],
+        "end": 28,
+        "rehit": false
+       },
        "total": 48,
        "damage": [
         1.6,
@@ -122900,7 +124419,13 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         44
+        ],
+        "end": 44,
+        "rehit": false
+       },
        "total": 48,
        "damage": [
         4.0,
@@ -123320,7 +124845,9 @@
         "rehit": false
        },
        "total": 39,
-       "damage": null,
+       "damage": [
+        12.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -126218,7 +127745,16 @@
        "stunRaw": "2F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         4,
+         7,
+         10,
+         16
+        ],
+        "end": 18,
+        "rehit": false
+       },
        "total": 25,
        "damage": [
         2.4
@@ -126239,7 +127775,16 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         4,
+         7,
+         10,
+         16
+        ],
+        "end": 18,
+        "rehit": false
+       },
        "total": 25,
        "damage": [
         1.6
@@ -126260,7 +127805,16 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         4,
+         7,
+         10,
+         16
+        ],
+        "end": 18,
+        "rehit": false
+       },
        "total": 25,
        "damage": [
         0.8
@@ -126280,7 +127834,16 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         4,
+         7,
+         10,
+         16
+        ],
+        "end": 18,
+        "rehit": false
+       },
        "total": 6,
        "damage": null,
        "stun": null,
@@ -126296,7 +127859,16 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         4,
+         7,
+         10,
+         16
+        ],
+        "end": 18,
+        "rehit": false
+       },
        "total": 11,
        "damage": null,
        "stun": null,
@@ -126500,7 +128072,9 @@
         "rehit": false
        },
        "total": 44,
-       "damage": null,
+       "damage": [
+        0.1
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -126522,7 +128096,9 @@
         "rehit": false
        },
        "total": 44,
-       "damage": null,
+       "damage": [
+        8.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -128104,7 +129680,10 @@
         "rehit": false
        },
        "total": 45,
-       "damage": null,
+       "damage": [
+        4.0,
+        3.0
+       ],
        "stun": [
         5,
         4
@@ -128129,7 +129708,10 @@
         "rehit": false
        },
        "total": 45,
-       "damage": null,
+       "damage": [
+        8.0,
+        6.0
+       ],
        "stun": [
         8,
         6
@@ -128246,7 +129828,10 @@
         "rehit": false
        },
        "total": 45,
-       "damage": null,
+       "damage": [
+        4.0,
+        3.0
+       ],
        "stun": [
         5,
         4
@@ -128271,7 +129856,10 @@
         "rehit": false
        },
        "total": 45,
-       "damage": null,
+       "damage": [
+        8.0,
+        6.0
+       ],
        "stun": [
         9,
         7
@@ -128388,7 +129976,10 @@
         "rehit": false
        },
        "total": 45,
-       "damage": null,
+       "damage": [
+        5.0,
+        3.0
+       ],
        "stun": [
         6,
         4
@@ -128413,7 +130004,10 @@
         "rehit": false
        },
        "total": 45,
-       "damage": null,
+       "damage": [
+        10.0,
+        6.0
+       ],
        "stun": [
         10,
         6
@@ -128530,7 +130124,10 @@
         "rehit": false
        },
        "total": 45,
-       "damage": null,
+       "damage": [
+        5.0,
+        3.0
+       ],
        "stun": [
         6,
         4
@@ -128555,7 +130152,10 @@
         "rehit": false
        },
        "total": 45,
-       "damage": null,
+       "damage": [
+        10.0,
+        6.0
+       ],
        "stun": [
         11,
         7
@@ -131111,7 +132711,10 @@
         "rehit": false
        },
        "total": 12,
-       "damage": null,
+       "damage": [
+        8.0,
+        12.0
+       ],
        "stun": null,
        "landingLag": null
       }
@@ -131187,7 +132790,13 @@
        "stunRaw": "8F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         1
+        ],
+        "end": 5,
+        "rehit": false
+       },
        "total": 66,
        "damage": [
         8.0
@@ -131269,7 +132878,13 @@
        "stunRaw": "6F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         1
+        ],
+        "end": 5,
+        "rehit": false
+       },
        "total": 66,
        "damage": [
         6.0
@@ -131845,7 +133460,11 @@
         8.0,
         8.0
        ],
-       "stun": null,
+       "stun": [
+        6,
+        8,
+        8
+       ],
        "landingLag": null
       }
      ],
@@ -132116,7 +133735,13 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         25
+        ],
+        "end": 30,
+        "rehit": false
+       },
        "total": 65,
        "damage": [
         13.0
@@ -132143,7 +133768,11 @@
        "damage": [
         7.0
        ],
-       "stun": null,
+       "stun": [
+        3,
+        4,
+        4
+       ],
        "landingLag": null
       },
       {
@@ -132366,7 +133995,13 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         25
+        ],
+        "end": 30,
+        "rehit": false
+       },
        "total": 65,
        "damage": [
         13.0
@@ -132393,7 +134028,11 @@
        "damage": [
         7.0
        ],
-       "stun": null,
+       "stun": [
+        3,
+        4,
+        4
+       ],
        "landingLag": null
       },
       {
@@ -137249,7 +138888,14 @@
        "stunRaw": "6F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         20
+        ],
+        "end": 20,
+        "rehit": false,
+        "open": true
+       },
        "total": 59,
        "damage": [
         18.0
@@ -137270,7 +138916,14 @@
         "着地隙"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         28
+        ],
+        "end": 28,
+        "rehit": false,
+        "open": true
+       },
        "total": 59,
        "damage": [
         10.0
@@ -138227,9 +139880,18 @@
        "stunRaw": "4F+",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         18
+        ],
+        "end": 18,
+        "rehit": true,
+        "open": true
+       },
        "total": null,
-       "damage": null,
+       "damage": [
+        9.5
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -138243,9 +139905,18 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         18
+        ],
+        "end": 18,
+        "rehit": true,
+        "open": true
+       },
        "total": null,
-       "damage": null,
+       "damage": [
+        7.0
+       ],
        "stun": null,
        "landingLag": null
       },
@@ -138259,7 +139930,14 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         18
+        ],
+        "end": 18,
+        "rehit": true,
+        "open": true
+       },
        "total": 5,
        "damage": null,
        "stun": null,
@@ -138275,7 +139953,14 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         6
+        ],
+        "end": 6,
+        "rehit": false,
+        "open": true
+       },
        "total": 5,
        "damage": [
         0.0
@@ -138293,7 +139978,14 @@
         "判定持続"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         6
+        ],
+        "end": 6,
+        "rehit": false,
+        "open": true
+       },
        "total": 15,
        "damage": null,
        "stun": null,
@@ -139947,7 +141639,14 @@
         "全体フレーム"
        ],
        "rowNote": "ヒットから240F経過で発動。 2ヒット目以降は、溜め時間によって発動までの時間が35~180F加算される。 経過時間の上限は450F。 既に球が5つある場合は加算されない。 1つ毎に8Fずつ遅れて発動する。 球は付着中の相手にはヒットしない。",
-       "active": null,
+       "active": {
+        "starts": [
+         7
+        ],
+        "end": 7,
+        "rehit": false,
+        "open": true
+       },
        "total": 64,
        "damage": [
         7.0
@@ -140247,7 +141946,10 @@
         "rehit": true
        },
        "total": 50,
-       "damage": null,
+       "damage": [
+        2.0,
+        4.0
+       ],
        "stun": [
         2
        ],
@@ -140271,8 +141973,14 @@
         "rehit": false
        },
        "total": 50,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        6.5,
+        18.0
+       ],
+       "stun": [
+        3,
+        6
+       ],
        "landingLag": null
       },
       {
@@ -142207,7 +143915,7 @@
         "end": 15,
         "rehit": false
        },
-       "total": null,
+       "total": 98,
        "damage": [
         4.0
        ],
@@ -142226,8 +143934,15 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
-       "total": null,
+       "active": {
+        "starts": [
+         41
+        ],
+        "end": 41,
+        "rehit": false,
+        "open": true
+       },
+       "total": 98,
        "damage": [
         5.0
        ],
@@ -143851,7 +145566,17 @@
        "stunRaw": "2F",
        "inherited": [],
        "rowNote": "着地隙：20F ガケつかまり(前)：14-29F ガケつかまり(前後)：64F目以降",
-       "active": null,
+       "active": {
+        "starts": [
+         41,
+         42,
+         43,
+         44,
+         45
+        ],
+        "end": 60,
+        "rehit": false
+       },
        "total": null,
        "damage": [
         2.5
@@ -145996,7 +147721,10 @@
        "damage": [
         12.0
        ],
-       "stun": null,
+       "stun": [
+        12,
+        4
+       ],
        "landingLag": null
       },
       {
@@ -146021,7 +147749,10 @@
        "damage": [
         11.0
        ],
-       "stun": null,
+       "stun": [
+        11,
+        4
+       ],
        "landingLag": null
       },
       {
@@ -146046,7 +147777,10 @@
        "damage": [
         10.0
        ],
-       "stun": null,
+       "stun": [
+        10,
+        4
+       ],
        "landingLag": null
       }
      ],
@@ -146078,7 +147812,10 @@
        "damage": [
         11.0
        ],
-       "stun": null,
+       "stun": [
+        11,
+        4
+       ],
        "landingLag": null
       },
       {
@@ -146096,7 +147833,10 @@
        "damage": [
         10.0
        ],
-       "stun": null,
+       "stun": [
+        10,
+        4
+       ],
        "landingLag": null
       },
       {
@@ -146114,7 +147854,10 @@
        "damage": [
         9.0
        ],
-       "stun": null,
+       "stun": [
+        9,
+        4
+       ],
        "landingLag": null
       }
      ],
@@ -146449,7 +148192,14 @@
         "全体フレーム"
        ],
        "rowNote": "着地時に2F目から10F硬直。 打撃部分は投げ中の相手にはヒットしない。 相殺なし。",
-       "active": null,
+       "active": {
+        "starts": [
+         53
+        ],
+        "end": 53,
+        "rehit": false,
+        "open": true
+       },
        "total": 49,
        "damage": [
         10.0
@@ -146553,7 +148303,14 @@
         "全体フレーム"
        ],
        "rowNote": "つかみ成立から投げまで当たりあり全身無敵。 31F目からつかまれたファイターも当たりあり全身無敵。 相殺なし。",
-       "active": null,
+       "active": {
+        "starts": [
+         52
+        ],
+        "end": 52,
+        "rehit": false,
+        "open": true
+       },
        "total": 57,
        "damage": [
         15.0
@@ -146652,7 +148409,14 @@
         "全体フレーム"
        ],
        "rowNote": "つかみ成立から投げまで当たりあり全身無敵。 31F目からつかまれたファイターも当たりあり全身無敵。 相殺なし。",
-       "active": null,
+       "active": {
+        "starts": [
+         52
+        ],
+        "end": 52,
+        "rehit": false,
+        "open": true
+       },
        "total": 54,
        "damage": [
         18.0
@@ -148135,7 +149899,7 @@
         "end": 24,
         "rehit": false
        },
-       "total": null,
+       "total": 48,
        "damage": [
         5.2
        ],
@@ -148159,7 +149923,7 @@
         "end": 52,
         "rehit": false
        },
-       "total": null,
+       "total": 88,
        "damage": [
         3.0
        ],
@@ -148183,7 +149947,7 @@
         "end": 80,
         "rehit": false
        },
-       "total": null,
+       "total": 120,
        "damage": [
         3.0
        ],
@@ -148223,7 +149987,7 @@
         "end": 24,
         "rehit": false
        },
-       "total": null,
+       "total": 48,
        "damage": [
         5.2
        ],
@@ -148247,7 +150011,7 @@
         "end": 52,
         "rehit": false
        },
-       "total": null,
+       "total": 88,
        "damage": [
         3.0
        ],
@@ -148271,7 +150035,7 @@
         "end": 80,
         "rehit": false
        },
-       "total": null,
+       "total": 120,
        "damage": [
         3.0
        ],
@@ -148510,8 +150274,14 @@
         "rehit": false
        },
        "total": 49,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        9.0,
+        30.0
+       ],
+       "stun": [
+        9,
+        26
+       ],
        "landingLag": null
       },
       {
@@ -148530,8 +150300,14 @@
         "rehit": false
        },
        "total": 31,
-       "damage": null,
-       "stun": null,
+       "damage": [
+        9.0,
+        30.0
+       ],
+       "stun": [
+        9,
+        26
+       ],
        "landingLag": null
       }
      ],

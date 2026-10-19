@@ -9,16 +9,15 @@
 - キャラ選択は検索（ひらがな・番号・通称）＋3列グリッド。シートが最後の調整より古いキャラは ⚠
 - `src/` … `index.html` / `style.css` / `calc.js`（計算ロジック、Node でもブラウザでも動く）/ `app.js`（画面）
 - `scripts/build_dist.py` … 全部を埋め込んだ単体HTML `dist/index.html` を作る
-- `tests/calc.test.js` … 単体テスト（`node --test tests/`）
+- `tests/calc.test.js` / `tests/parse.test.js` … 単体テスト（`npm test`。Node 22 ではディレクトリ指定だと失敗するためファイルを直接指定する）
 - `tests/compare_ufd.py` … Ultimate Frame Data との照合 → `tests/ufd_compare.md`
 - `tests/shots.js` … 390px 幅スクリーンショット → `shots/`（playwright-core + /usr/bin/google-chrome）
 
 ## 再生成
 ```
 python3 scripts/fetch.py --all && python3 scripts/build_data.py && python3 scripts/build_dist.py
-node --test tests/ && python3 tests/compare_ufd.py && node tests/shots.js
+node --test tests/calc.test.js tests/parse.test.js && python3 -m unittest tests/test_parse.py && python3 tests/compare_ufd.py && node tests/shots.js
 ```
 
 ## 公開
-`dist/` をそのまま静的ホスティング（Vercel なら Output Directory = `dist`、ビルドコマンド不要）。`dist/index.html` は単体で動くのでスマホでファイルを開くだけでも使える。
-（このリポジトリはまだどこにも公開・プッシュしていない）
+https://smash-punish-checker.vercel.app で公開している。`main` への push で Vercel が `dist/` を自動デプロイする（Output Directory = `dist`、ビルドコマンド不要）。`dist/index.html` は単体で動くので、スマホにファイルを渡して開くだけでも使える。

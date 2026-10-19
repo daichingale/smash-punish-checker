@@ -30,16 +30,46 @@
   function defenderChar() { return D.chars[state.mode === "A" ? state.me : state.opp]; }
   function matOf(idx) { const c = D.chars[idx]; return c.materials.length ? (state.mat[idx] || c.materials[1] || c.materials[0]) : null; }
 
+  let scrollToResult = false;
+  function clampIdx(v, d) { return Number.isInteger(v) && v >= 0 && v < D.chars.length ? v : d; }
+  function applyHash() {
+    const q = new URLSearchParams(location.hash.replace(/^#/, ""));
+    if (q.has("me")) state.me = clampIdx(+q.get("me"), state.me);
+    if (q.has("opp")) state.opp = clampIdx(+q.get("opp"), state.opp);
+    state.mode = q.get("mode") === "B" ? "B" : "A";
+    state.ps = q.get("ps") === "1";
+    for (const [idx, key] of [[state.me, "mm"], [state.opp, "mo"]]) {
+      const c = D.chars[idx];
+      const v = q.get(key);
+      if (c && c.materials.length && v && c.materials.includes(v)) state.mat[idx] = v;
+    }
+    const mv = q.get("move");
+    const att = attackerChar();
+    state.moveId = mv && att.moves.some((m) => m.id === mv) ? mv : null;
+    scrollToResult = !!state.moveId;
+  }
+  function writeHash() {
+    const p = new URLSearchParams();
+    p.set("me", String(state.me));
+    p.set("opp", String(state.opp));
+    p.set("mode", state.mode);
+    if (state.moveId) p.set("move", state.moveId);
+    if (state.ps) p.set("ps", "1");
+    const meC = D.chars[state.me], oppC = D.chars[state.opp];
+    if (meC.materials.length) p.set("mm", matOf(state.me));
+    if (oppC.materials.length) p.set("mo", matOf(state.opp));
+    const next = "#" + p.toString();
+    if (location.hash !== next) history.replaceState(null, "", next);
+  }
   function init(data) {
     D = data;
-    const q = new URLSearchParams(location.hash.slice(1));
-    const clamp = (v, d) => (Number.isInteger(v) && v >= 0 && v < D.chars.length ? v : d);
-    if (q.has("me")) state.me = clamp(+q.get("me"), 0); if (q.has("opp")) state.opp = clamp(+q.get("opp"), 1);
+    applyHash();
     $("meBtn").onclick = () => openPicker("me"); $("oppBtn").onclick = () => openPicker("opp");
     $("swap").onclick = () => { [state.me, state.opp] = [state.opp, state.me]; state.moveId = null; render(); };
     initPicker();
     $("modeA").onclick = () => setMode("A"); $("modeB").onclick = () => setMode("B");
-    $("ps").onchange = (e) => { state.ps = e.target.checked; renderResult(); };
+    $("ps").onchange = (e) => { state.ps = e.target.checked; writeHash(); renderResult(); };
+    window.addEventListener("hashchange", () => { applyHash(); render(); });
     $("builtAt").textContent = `データ取得: ${(D.meta.fetchedAt || "").slice(0, 10)} ／ 計算: スマブラSPECIAL 検証wiki の式`;
     render();
   }
@@ -109,6 +139,9 @@
   }
 
   function render() {
+    $("modeA").classList.toggle("on", state.mode === "A");
+    $("modeB").classList.toggle("on", state.mode === "B");
+    $("ps").checked = state.ps;
     for (const [k, id] of [["me", "meBtn"], ["opp", "oppBtn"]]) {
       const c = D.chars[state[k]];
       $(id).innerHTML = `<span class="nm">${esc(c.name)}</span>${c.stale ? `<span class="st" title="データが古い可能性">⚠</span>` : ""}<span class="dd">▾</span>`;
@@ -135,7 +168,14 @@
     $("moveArea").innerHTML = h;
     $("moveArea").querySelectorAll(".mv").forEach((b) => (b.onclick = () => { state.moveId = b.dataset.id; render(); setTimeout(() => { const y = $("result").getBoundingClientRect().top + window.scrollY - document.querySelector("header").offsetHeight - 6; window.scrollTo({ top: y, behavior: "smooth" }); }, 0); }));
     renderResult();
-    history.replaceState(null, "", `#me=${state.me}&opp=${state.opp}`);
+    writeHash();
+    if (scrollToResult && state.moveId) {
+      scrollToResult = false;
+      setTimeout(() => {
+        const y = $("result").getBoundingClientRect().top + window.scrollY - document.querySelector("header").offsetHeight - 6;
+        window.scrollTo({ top: y, behavior: "smooth" });
+      }, 0);
+    }
   }
 
   function fmtAdv(v) { return v > 0 ? `+${v}F` : `${v}F`; }
@@ -155,7 +195,7 @@
       $("result").innerHTML = h; return;
     }
     h += `<div class="big ${a.primaryEff < 0 ? "neg" : ""}">${defWho}が ${fmtAdv(a.primaryEff)} 有利</div>`;
-    h += `<div class="s">${a.aerial ? `空中攻撃: 着地隙${a.landingLag}F − ガード硬直（着地直前に当てた場合の最小値）` : `最速の判定${a.multiHit ? "（多段技は最終段）" : ""}をガードした場合`}${a.worstEff !== a.primaryEff ? ` ／ 判定の終わり際なら ${fmtAdv(a.worstEff)}` : ""}</div>`;
+    h += `<div class="s">${a.aerial ? `空中攻撃: 着地隙${a.landingLag}F − ガード硬直（着地直前に当てた場合の最小値）` : `最速の判定${a.multiHit ? "（多段技は最終段）" : ""}をガードした場合`}${!a.lateUnknown && a.worstEff !== a.primaryEff ? ` ／ 判定の終わり際なら ${fmtAdv(a.worstEff)}` : ""}${a.lateUnknown ? " ／ 判定の終わりはシート上で不定" : ""}</div>`;
     if (move.guardNote) h += `<div class="note">${esc(move.guardNote)}</div>`;
     h += `</div>`;
     const sure = r.list.filter((x) => x.status === "sure"), no = r.list.filter((x) => x.status === "impossible");

@@ -45,26 +45,76 @@ SPECIAL_KEY = re.compile(r"^(NB|横B|上B|下B)\s*\((.*?)\)?$")
 SEQ_KEY = re.compile(r"^(弱\d|横強\d|空N\d|空前\d|百裂)")
 RYU_JAB = re.compile(r"^(弱\d)\s*\((強|弱)\)")
 
-def parse_active(raw):
-    s = one_line(raw)
-    if not s:
+def _frame_windows(s):
+    """'15-22 15-17' や '4-6, 7-9' を (start, end, open) の列にする。1トークンでも読めなければ None。"""
+    parts = [p for p in re.split(r"[\s,]+", s.strip()) if p]
+    if not parts:
         return None
-    rehit = "Rehit" in s
-    s2 = re.sub(r"/?\s*\((Rehit|反射)[^)]*\)", "", s)
-    s2 = s2.replace("/", " ").strip().rstrip(",")
-    if not re.fullmatch(r"[\d\s,\-]+", s2):
-        return None
-    starts, end = [], None
-    for p in [p.strip() for p in s2.split(",") if p.strip()]:
-        m = re.fullmatch(r"(\d+)(?:\s*-\s*(\d+))?", p)
+    out = []
+    for p in parts:
+        m = re.fullmatch(r"(\d+)(?:-(\d+|\*))?", p)
         if not m:
             return None
-        a = int(m.group(1)); b = int(m.group(2)) if m.group(2) else a
-        starts.append(a); end = b
-    return {"starts": starts, "end": end, "rehit": rehit}
+        a = int(m.group(1))
+        b = m.group(2)
+        if b is None:
+            out.append((a, a, False))
+        elif b == "*":
+            out.append((a, a, True))
+        else:
+            end = int(b)
+            if end < a:
+                return None
+            out.append((a, end, False))
+    return out
+
+def parse_active(raw):
+    """判定フレーム。自信を持って読める形だけ返す。
+    - '2-3' / '7' / '15-22 15-17' … そのまま（複数窓は全部。終わりはいちばん遅い既知のF）
+    - '20-*' / '(28-*)' … 開始Fは確定。終わりは不明（open）
+    - '79-126 (199-246)' … 括弧の外（溜めなし＝最速）だけ使う
+    - '16-* (Rehit: 40)' … Rehit 注記を外してから同じ
+    - '7 (-)' … 単独F
+    生成タイミング・'+'・'?'・'~'・文章が混ざるセルは None（計算対象外のまま）。"""
+    s = one_line(raw)
+    if not s or s in ("-", "?", "*", "＊"):
+        return None
+    rehit = "Rehit" in s
+    s = re.sub(r"\s*\((?:Rehit|反射)[^)]*\)", "", s)
+    s = s.replace(",.", ",").replace("/", " ")
+    s = re.sub(r"\s*\(-\)", "", s).strip().strip(",").strip()
+    if not s or any(x in s for x in ("?", "+", "~", "...", "…", "：", ":")):
+        return None
+    if re.search(r"[\u3040-\u30ff\u4e00-\u9fff]", s):
+        return None
+    if re.fullmatch(r"\([^()]+\)", s):
+        s = s[1:-1].strip()
+    while True:
+        m = re.search(r"\(([^()]*)\)", s)
+        if not m:
+            break
+        # 外に窓があるときの括弧は溜め最大など別バージョン。最速側（括弧の外）だけ残す
+        if s[:m.start()].strip() and _frame_windows(m.group(1).strip()) is not None:
+            s = (s[:m.start()] + " " + s[m.end():]).strip()
+            continue
+        return None
+    wins = _frame_windows(s)
+    if not wins:
+        return None
+    out = {"starts": [w[0] for w in wins], "end": max(w[1] for w in wins), "rehit": rehit}
+    if any(w[2] for w in wins):
+        out["open"] = True
+    return out
 
 def parse_total(raw):
-    m = re.match(r"^(\d+)", one_line(raw))
+    s = one_line(raw)
+    if not s or s == "-":
+        return None
+    m = re.match(r"^(\d+)", s)
+    if m:
+        return int(m.group(1))
+    # セル全体が '(77)' だけのとき、その数字が全体F。加算の '(+20)' や地上/空中の併記は読まない
+    m = re.fullmatch(r"\((\d+)\)", s)
     return int(m.group(1)) if m else None
 
 def parse_frames_list(s):
@@ -82,12 +132,20 @@ def parse_frames_list(s):
 def parse_stun(raw):
     """戻り値 (button, command, note)。
     '7F' / '7F/6F' → ([7,6], None)。'10F/(12F)' → ([10],[12])（ボタン/コマンド）。
-    '(16F)' → (None,[16])（コマンド専用技）。溜め依存 '~'、'+' 付き、その他は解釈しない。"""
+    '(16F)' → (None,[16])（コマンド専用技）。
+    '10F ~ 24F' / '5 ~ 6F' → 両端（画面は大きい方＝ガード側に不利な方を使う）。
+    '10F+' や '~ 5F' は上限または起点が無いので解釈しない（最小値を確定扱いしない）。"""
     s = one_line(raw)
     if not s or s == "-":
         return None, None, None
+    s = re.sub(r"F(?=\d)", "F/", s)  # '10F10F/12F' のような区切り落ち
+    m = re.fullmatch(r"(\d+)F?\s*~\s*(\d+)F", s)
+    if m:
+        a, b = int(m.group(1)), int(m.group(2))
+        lo, hi = (a, b) if a <= b else (b, a)
+        return [lo, hi], None, None
     if "~" in s or "+" in s:
-        return None, None, "溜め・状況依存"
+        return None, None, "上限がない、または片側だけの幅"
     m = re.fullmatch(r"(\d+F(?:/\d+F)*)[\s/]*\((\d+F(?:/\d+F)*)\)", s)
     if m:
         return parse_frames_list(m.group(1)), parse_frames_list(m.group(2)), "cmd"
@@ -95,21 +153,37 @@ def parse_stun(raw):
     if m:
         return None, parse_frames_list(m.group(1)), "cmdonly"
     if "(" in s:
+        if re.fullmatch(r"(?:\(?\d+F\)?\s*)+", s):
+            return [int(n) for n in re.findall(r"(\d+)F", s)], None, None
         return None, None, "括弧付きの値"
     v = parse_frames_list(s)
     return v, None, (None if v else "解釈不能")
 
 def parse_damage(raw):
     s = one_line(raw)
+    if not s or s == "-":
+        return None
+    if "*" in s:
+        return None
+    # '+' は下限。0+ はヒットするか分からないので数値にしない（1+ は少なくとも1なのでヒット扱い）
+    plus = "+" in s
+    s = re.sub(r"\([^)]*\)", "", s)
+    s = s.replace("~", "/").replace("+", "").strip(" /")
     if not s:
         return None
-    s = re.sub(r"\(([\d.]+)\)", "", s).strip(" /")
     vals = []
     for p in s.split("/"):
+        p = p.strip()
+        if not p:
+            continue
         try:
-            vals.append(float(p.strip()))
+            vals.append(float(p))
         except ValueError:
             return None
+    if not vals:
+        return None
+    if plus and max(vals) <= 0:
+        return None
     return vals
 
 def label_tokens(label):
