@@ -94,6 +94,30 @@ class ParseStun(unittest.TestCase):
             self.assertIsNone(c, raw)
 
 
+class VersionSplit(unittest.TestCase):
+    def test_duplicate_block_only(self):
+        rows = [
+            {"label": "地上", "total": 53},
+            {"label": "地上, 持続", "total": 53},
+            {"label": "空中", "total": 60},
+            {"label": "空中, 持続", "total": 60},
+        ]
+        g, a = bd.split_version_rows({"rows": rows})
+        self.assertEqual([r["label"] for r in g], ["地上", "地上, 持続"])
+        self.assertEqual([r["label"] for r in a], ["空中", "空中, 持続"])
+
+    def test_partial_tags_are_not_split(self):
+        rows = [
+            {"label": "行き", "total": 45},
+            {"label": "空振り, 地上", "total": 59},
+            {"label": "空振り, 空中", "total": 45},
+        ]
+        self.assertIsNone(bd.split_version_rows({"rows": rows}))
+        self.assertIsNone(bd.split_version_rows({"rows": [
+            {"label": "通常射撃 (地上)"}, {"label": "通常射撃 (空中)"}, {"label": "前回避射撃"},
+        ]}))
+
+
 class LandingNote(unittest.TestCase):
     def test_single_plain(self):
         self.assertEqual(

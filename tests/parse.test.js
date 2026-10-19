@@ -58,14 +58,15 @@ test("全体Fが '(98)' だけのセルも読み、開始が全体Fより後し�
   assert.equal(villager.ok, true);
 });
 
-test("計算できる技は 1722 から 1755 に増え、以前計算できた技は落ちていない", () => {
+test("着地版と空中ブロックを除くと、計算できる技は 1754（マックKOアッパーの地上版を除く）", () => {
   let ok = 0;
   for (const c of data.chars) for (const m of c.moves) {
-    if (m.category === "grab" || m.landingVariant) continue;
+    if (m.category === "grab" || m.landingVariant || m.versionLabel === "空中" || m.derivedAir) continue;
     if (!m.rows.some((r) => r.active && (r.damage == null || Math.max.apply(null, r.damage) > 0))) continue;
     if (C.shieldAdvantage(m).ok) ok++;
   }
-  assert.equal(ok, 1755);
+  // リトル・マックのKOアッパーは、硬直が空中行にしか無く、地上版は計算対象外になった
+  assert.equal(ok, 1754);
 });
 
 test("ネス PKファイヤーの空中（着地）は備考の着地隙12F。条件付きの着地隙は作らない", () => {
@@ -90,4 +91,34 @@ test("ネス PKファイヤーの空中（着地）は備考の着地隙12F。�
   assert.ok(rev.list.some((x) => x.status === "sure"));
   const n = data.chars.reduce((s, c) => s + c.moves.filter((m) => m.landingVariant).length, 0);
   assert.equal(n, 97);
+});
+
+test("カズヤ NB デビルブラスター: 空中版は全体67F・地上版の判定27F。着地隙は使わない", () => {
+  const k = ch("カズヤ");
+  const g = mv(k, "NB（地上）");
+  const a = mv(k, "NB（空中）");
+  assert.equal(a.activeFromGround, true);
+  assert.equal(a.landingVariant, undefined);
+  assert.equal(a.rows[0].active.starts[0], 27);
+  assert.equal(a.rows[0].total, 67);
+  assert.equal(C.shieldAdvantage(g).primary, 43); // 82 − 27 − 12
+  assert.equal(C.shieldAdvantage(a).primary, 29); // 67 − 27 − 11
+  assert.equal(C.startupOf(a), 27);
+  assert.ok(!C.punishOptions(k).some((o) => o.move.derivedAir));
+});
+
+test("クラウド NB は地上ブロックと空中ブロックで有利が違う。行の一部タグだけの技は分けない", () => {
+  const c = ch("クラウド");
+  const g = c.moves.find((m) => m.name === "NB（通常）" && m.versionLabel === "地上");
+  const a = c.moves.find((m) => m.name === "NB（通常）" && m.versionLabel === "空中");
+  assert.equal(C.shieldAdvantage(g).primary, 32);
+  assert.equal(C.shieldAdvantage(a).primary, 39);
+  assert.equal(C.startupOf(a), 18);
+  const joker = ch("ジョーカー");
+  assert.ok(!joker.moves.some((m) => m.name.includes("ガンスペシャル") && m.versionLabel));
+  const mac = ch("リトル・マック");
+  const mg = mac.moves.find((m) => m.name.includes("K.O.") && m.versionLabel === "地上");
+  const ma = mac.moves.find((m) => m.name.includes("K.O.") && m.versionLabel === "空中");
+  assert.equal(C.shieldAdvantage(mg).ok, false);
+  assert.equal(C.shieldAdvantage(ma).primary, 54);
 });

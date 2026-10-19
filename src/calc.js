@@ -94,7 +94,7 @@
     const out = [];
     const js = ch.jumpsquat;
     for (const m of ch.moves) {
-      if (m.landingVariant) continue; // 着地版は攻撃側の見方。反撃手段としては元の必殺を使う
+      if (m.landingVariant || m.versionLabel === "空中" || m.derivedAir) continue; // 空中版は攻撃側の見方。反撃手段は地上版を使う
       if (material && m.material && m.material !== material) continue;
       if (!isStarter(m)) continue;
       const st = startupOf(m);

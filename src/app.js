@@ -21,7 +21,8 @@
       const v = m.variant || "";
       const base = v && !/^(地上|空中|地上・空中|通常|地上\s*\(空中\))$/.test(v) ? v : (m.title || "");
       const place = /^(地上|空中)$/.test(v) ? `・${v}` : "";
-      return `${m.group}${base ? " " + base : ""}${place}${m.strength ? `（${m.strength}）` : ""}${m.landingVariant ? " " + m.landingVariant : ""}`;
+      const tag = [m.versionLabel, m.landingVariant].filter(Boolean).join(" ");
+      return `${m.group}${base ? " " + base : ""}${place}${m.strength ? `（${m.strength}）` : ""}${tag ? " " + tag : ""}`;
     }
     return m.name.replace(/［(ボタン|コマンド)］$/, "");
   };

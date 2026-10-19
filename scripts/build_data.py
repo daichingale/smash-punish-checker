@@ -217,23 +217,165 @@ def landing_variant_specs(text):
         return [{"lag": uniq[0][0], "label": "空中（着地）"}]
     return []
 
+def _row_side(label):
+    """行ラベルが地上版・空中版のどちらを指すか。トークンか括弧が『地上』『空中』そのもののときだけ。"""
+    if not label or not str(label).strip():
+        return "empty"
+    marks = set()
+    for p in re.findall(r"[（(]\s*([^）)]+?)\s*[）)]", label):
+        if p in ("地上", "空中"):
+            marks.add(p)
+    for t in re.split(r"[,、]", label):
+        if t.strip() in ("地上", "空中"):
+            marks.add(t.strip())
+    if marks == {"地上", "空中"}:
+        return "both"
+    if marks == {"地上"}:
+        return "ground"
+    if marks == {"空中"}:
+        return "air"
+    return "shared"
+
+def _norm_version_label(label):
+    return re.sub(r"地上|空中", "※", label or "")
+
+def _duplicate_halves(rows):
+    """同じ技が地上ブロック・空中ブロックとして連続で二度書かれているとき、その二つを返す。"""
+    n = len(rows)
+    if n < 2 or n % 2:
+        return None
+    h = n // 2
+    a, b = rows[:h], rows[h:]
+    if [_norm_version_label(r.get("label")) for r in a] != [_norm_version_label(r.get("label")) for r in b]:
+        return None
+    def kinds(rs):
+        return {_row_side(r.get("label") or "") for r in rs} - {"shared", "empty"}
+    ka, kb = kinds(a), kinds(b)
+    if "both" in ka or "both" in kb or ("ground" in ka and "air" in ka) or ("ground" in kb and "air" in kb):
+        return None
+    if "ground" in ka and "air" in kb:
+        return a, b
+    if "air" in ka and "ground" in kb:
+        return b, a
+    return None
+
+def split_version_rows(move):
+    """地上ブロックと空中ブロックが同じ順で連続しているときだけ分ける。
+    空振りや別ワザが混ざる行の一部タグは、どちらに属するか決められないので分けない。"""
+    rows = move.get("rows") or []
+    raw_sides = [_row_side(r.get("label") or "") for r in rows]
+    if "both" in raw_sides or "ground" not in raw_sides or "air" not in raw_sides:
+        return None
+    return _duplicate_halves(rows)
+
+def inherit_air_active(moves):
+    """空中版の判定持続が全部空で、行ラベルが地上版と一致するとき、地上版の判定を写す。
+    全体Fとガード硬直は空中版の数値のまま。"""
+    groups = {}
+    for m in moves:
+        if m.get("landingVariant") or m.get("category") != "special":
+            continue
+        v = m.get("variant") or ""
+        if v in ("地上・空中",) or ("地上" in v and "空中" in v):
+            continue
+        kind = "ground" if v == "地上" or v.startswith("地上") else "air" if v == "空中" or (v.startswith("空中") and "地上" not in v) else None
+        if not kind:
+            continue
+        groups.setdefault((m.get("group"), m.get("title"), m.get("input"), m.get("strength"), m.get("material")), {})[kind] = m
+    inherited = []
+    for pair in groups.values():
+        g, a = pair.get("ground"), pair.get("air")
+        if not g or not a:
+            continue
+        if any(r.get("active") or (r.get("activeRaw") or "").strip() for r in a["rows"]):
+            continue
+        if not any(r.get("active") for r in g["rows"]):
+            continue
+        pool = {}
+        for r in g["rows"]:
+            pool.setdefault(r.get("label") or "", []).append(r.get("active"))
+        used, copied = {}, []
+        ok = True
+        for r in a["rows"]:
+            lab = r.get("label") or ""
+            i = used.get(lab, 0)
+            opts = pool.get(lab) or []
+            if i >= len(opts) or not opts[i]:
+                ok = False
+                break
+            copied.append(opts[i])
+            used[lab] = i + 1
+        if not ok:
+            continue
+        # 全体Fとガード硬直が揃わない空中版は、判定だけ写しても計算できないので写さない
+        if not any(r.get("stun") and r.get("total") is not None for r in a["rows"]):
+            continue
+        for r, act in zip(a["rows"], copied):
+            r["active"] = json.loads(json.dumps(act))
+            r["activeFromGround"] = True
+        a["activeFromGround"] = True
+        a["derivedAir"] = True
+        inherited.append(a)
+    return inherited
+
+def add_version_splits(moves):
+    """地上行と空中行が分かれている技を、選べる2技にする。元の id は地上版。"""
+    out = []
+    for m in moves:
+        if m.get("landingVariant") or m.get("category") not in ("special", "command"):
+            out.append(m)
+            continue
+        parts = split_version_rows(m)
+        if not parts:
+            out.append(m)
+            continue
+        g_rows, a_rows = parts
+        ground = json.loads(json.dumps(m))
+        air = json.loads(json.dumps(m))
+        ground["rows"] = json.loads(json.dumps(g_rows))
+        air["rows"] = json.loads(json.dumps(a_rows))
+        ground["versionLabel"] = "地上"
+        air["versionLabel"] = "空中"
+        air["derivedAir"] = True
+        air["id"] = f"{m['id']}~air"
+        out.append(ground)
+        out.append(air)
+    return out
+
 def add_landing_variants(moves):
     """必殺ワザの備考に着地隙が一つだけあるとき、着地計算用の別技を直後に足す。
-    反撃手段には入れない（landingVariant）。id は元技の後ろに ~air を付ける。"""
+    すでに地上/空中で行が分かれている技には重ねない。反撃手段には入れない。"""
+    split_ids = {m["id"][:-4] for m in moves if str(m.get("id", "")).endswith("~air") and m.get("versionLabel") == "空中"}
     out = []
     for m in moves:
         out.append(m)
-        if m.get("category") != "special" or m.get("landingVariant"):
+        if m.get("category") != "special" or m.get("landingVariant") or m.get("versionLabel"):
             continue
+        if m.get("id") in split_ids:
+            continue
+        v = m.get("variant") or ""
+        air_only = v == "空中" or (v.startswith("空中") and "地上" not in v)
         text = "\n".join((r.get("rowNote") or "") for r in m.get("rows") or [])
         specs = landing_variant_specs(text)
+        if not specs:
+            continue
+        if not air_only:
+            m["versionLabel"] = "地上"
         for i, spec in enumerate(specs):
-            v = json.loads(json.dumps(m))
-            v["landingLag"] = spec["lag"]
-            v["landingVariant"] = spec["label"]
-            v["id"] = f"{m['id']}~air" if len(specs) == 1 else f"{m['id']}~air{i}"
-            out.append(v)
+            clone = json.loads(json.dumps(m))
+            clone.pop("versionLabel", None)
+            clone["landingLag"] = spec["lag"]
+            clone["landingVariant"] = spec["label"]
+            clone["derivedAir"] = True
+            clone["id"] = f"{m['id']}~air" if len(specs) == 1 else f"{m['id']}~air{i}"
+            out.append(clone)
     return out
+
+def apply_air_versions(moves):
+    inherit_air_active(moves)
+    moves = add_version_splits(moves)
+    moves = add_landing_variants(moves)
+    return moves
 
 def label_tokens(label):
     return [t.strip() for t in one_line(label).replace("/", ",").split(",") if t.strip()]
@@ -535,7 +677,7 @@ def parse_char(name, gid):
             m["command"], m["inputNote"], m["commandDerived"] = "下B（ボタン）", None, False
     for k, m in enumerate(final):
         m["id"] = f"{ch['gid']}-{k}"
-    ch["moves"] = add_landing_variants([m for m in final if m["rows"]])
+    ch["moves"] = apply_air_versions([m for m in final if m["rows"]])
     ch["materials"] = [x for x in MATERIALS if any(m.get("material") == x for m in ch["moves"])]
     return ch
 

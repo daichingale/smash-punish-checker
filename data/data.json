@@ -4,7 +4,7 @@
   "sourceUrl": "https://docs.google.com/spreadsheets/d/15SClMwvDIqovtO3DJnf1GGIteH35UX3IM7-mnbdG6eE/edit",
   "wikiUrl": "https://w.atwiki.jp/smashsp_kensyou/",
   "fetchedAt": "2026-10-19T08:37:56+0900",
-  "builtAt": "2026-10-19T08:59:41+00:00",
+  "builtAt": "2026-10-19T09:08:06+00:00",
   "gameVersionNote": "最終バランス調整は Ver.13.0.1 (2021/12/02)。"
  },
  "chars": [
@@ -1004,7 +1004,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1377404903-17"
+     "id": "1377404903-17",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -1094,7 +1095,8 @@
      "input": null,
      "id": "1377404903-17~air",
      "landingLag": 30,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -2540,7 +2542,8 @@
      "input": null,
      "id": "957117162-20~air",
      "landingLag": 10,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "つかみ",
@@ -4456,7 +4459,8 @@
      "input": null,
      "id": "1115104162-19~air",
      "landingLag": 30,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B（地上）",
@@ -6186,7 +6190,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "677626636-19"
+     "id": "677626636-19",
+     "versionLabel": "地上"
     },
     {
      "name": "上B（地上）",
@@ -6316,7 +6321,8 @@
      "input": null,
      "id": "677626636-19~air",
      "landingLag": 24,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B（空中）",
@@ -8145,7 +8151,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1520927316-19"
+     "id": "1520927316-19",
+     "versionLabel": "地上"
     },
     {
      "name": "上B（地上）",
@@ -8275,7 +8282,8 @@
      "input": null,
      "id": "1520927316-19~air",
      "landingLag": 24,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B（空中）",
@@ -11483,7 +11491,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1790974172-20"
+     "id": "1790974172-20",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -11624,7 +11633,8 @@
      "input": null,
      "id": "1790974172-20~air",
      "landingLag": 30,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B（空中）",
@@ -13060,7 +13070,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "144709605-17"
+     "id": "144709605-17",
+     "versionLabel": "地上"
     },
     {
      "name": "横B（地上）",
@@ -13102,7 +13113,8 @@
      "input": null,
      "id": "144709605-17~air",
      "landingLag": 16,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "横B（空中）",
@@ -13240,7 +13252,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "144709605-19"
+     "id": "144709605-19",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -13340,7 +13353,8 @@
      "input": null,
      "id": "144709605-19~air",
      "landingLag": 20,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -14668,7 +14682,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1921906257-16"
+     "id": "1921906257-16",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -14734,7 +14749,8 @@
      "input": null,
      "id": "1921906257-16~air",
      "landingLag": 24,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -16035,7 +16051,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1488662229-17"
+     "id": "1488662229-17",
+     "versionLabel": "地上"
     },
     {
      "name": "横B",
@@ -16213,7 +16230,8 @@
      "input": null,
      "id": "1488662229-17~air",
      "landingLag": 39,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B（地上）",
@@ -16277,7 +16295,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1488662229-18"
+     "id": "1488662229-18",
+     "versionLabel": "地上"
     },
     {
      "name": "上B（地上）",
@@ -16343,7 +16362,8 @@
      "input": null,
      "id": "1488662229-18~air",
      "landingLag": 45,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B（空中）",
@@ -17635,7 +17655,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "2040178579-16"
+     "id": "2040178579-16",
+     "versionLabel": "地上"
     },
     {
      "name": "横B",
@@ -17703,7 +17724,8 @@
      "input": null,
      "id": "2040178579-16~air",
      "landingLag": 12,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B",
@@ -17863,7 +17885,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "2040178579-17"
+     "id": "2040178579-17",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -18025,7 +18048,8 @@
      "input": null,
      "id": "2040178579-17~air",
      "landingLag": 24,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -19511,7 +19535,8 @@
      "input": null,
      "id": "1400841103-19~air",
      "landingLag": 22,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B",
@@ -19593,7 +19618,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1400841103-20"
+     "id": "1400841103-20",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -19677,7 +19703,8 @@
      "input": null,
      "id": "1400841103-20~air",
      "landingLag": 24,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B（地上）",
@@ -20003,7 +20030,8 @@
      "input": null,
      "id": "1400841103-22~air",
      "landingLag": 35,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "つかみ",
@@ -20799,7 +20827,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1414686507-14"
+     "id": "1414686507-14",
+     "versionLabel": "地上"
     },
     {
      "name": "NB",
@@ -20837,7 +20866,8 @@
      "input": null,
      "id": "1414686507-14~air",
      "landingLag": 20,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "横B",
@@ -22188,7 +22218,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1876906435-15"
+     "id": "1876906435-15",
+     "versionLabel": "地上"
     },
     {
      "name": "横B",
@@ -22252,7 +22283,8 @@
      "input": null,
      "id": "1876906435-15~air",
      "landingLag": 34,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B",
@@ -23772,7 +23804,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "442435242-15"
+     "id": "442435242-15",
+     "versionLabel": "地上"
     },
     {
      "name": "横B",
@@ -23836,7 +23869,8 @@
      "input": null,
      "id": "442435242-15~air",
      "landingLag": 34,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B",
@@ -25312,7 +25346,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1167136914-16"
+     "id": "1167136914-16",
+     "versionLabel": "地上"
     },
     {
      "name": "上B（地上）",
@@ -25380,7 +25415,8 @@
      "input": null,
      "id": "1167136914-16~air",
      "landingLag": 36,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B（空中）",
@@ -26768,7 +26804,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "412747464-15"
+     "id": "412747464-15",
+     "versionLabel": "地上"
     },
     {
      "name": "横B",
@@ -27126,7 +27163,8 @@
      "input": null,
      "id": "412747464-15~air",
      "landingLag": 29,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B",
@@ -27188,7 +27226,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "412747464-16"
+     "id": "412747464-16",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -27252,7 +27291,8 @@
      "input": null,
      "id": "412747464-16~air",
      "landingLag": 30,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -28404,7 +28444,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1204670300-15"
+     "id": "1204670300-15",
+     "versionLabel": "地上"
     },
     {
      "name": "NB（地上）",
@@ -28482,7 +28523,8 @@
      "input": null,
      "id": "1204670300-15~air",
      "landingLag": 12,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "NB（空中）",
@@ -28877,7 +28919,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1204670300-21"
+     "id": "1204670300-21",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -28947,7 +28990,8 @@
      "input": null,
      "id": "1204670300-21~air",
      "landingLag": 20,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -30223,7 +30267,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "346281106-16"
+     "id": "346281106-16",
+     "versionLabel": "地上"
     },
     {
      "name": "上B（地上）",
@@ -30293,7 +30338,8 @@
      "input": null,
      "id": "346281106-16~air",
      "landingLag": 30,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B（空中）",
@@ -31624,7 +31670,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1813438843-17"
+     "id": "1813438843-17",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -31690,7 +31737,8 @@
      "input": null,
      "id": "1813438843-17~air",
      "landingLag": 30,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -32831,7 +32879,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1945569164-16"
+     "id": "1945569164-16",
+     "versionLabel": "地上"
     },
     {
      "name": "上B（地上→地上）",
@@ -32877,7 +32926,8 @@
      "input": null,
      "id": "1945569164-16~air",
      "landingLag": 24,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B（空中→地上）",
@@ -34284,7 +34334,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "609586896-17"
+     "id": "609586896-17",
+     "versionLabel": "地上"
     },
     {
      "name": "横B（地上）",
@@ -34352,7 +34403,8 @@
      "input": null,
      "id": "609586896-17~air",
      "landingLag": 16,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "横B（空中）",
@@ -34549,7 +34601,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "609586896-19"
+     "id": "609586896-19",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -34681,7 +34734,8 @@
      "input": null,
      "id": "609586896-19~air",
      "landingLag": 18,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -36047,7 +36101,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "737237029-16"
+     "id": "737237029-16",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -36146,7 +36201,8 @@
      "input": null,
      "id": "737237029-16~air",
      "landingLag": 24,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -37397,7 +37453,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "2143227886-16"
+     "id": "2143227886-16",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -37495,7 +37552,8 @@
      "input": null,
      "id": "2143227886-16~air",
      "landingLag": 24,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -39298,7 +39356,8 @@
      "input": null,
      "id": "1017830432-20~air",
      "landingLag": 24,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B（地上）",
@@ -40478,7 +40537,8 @@
      "input": null,
      "id": "1596717207-16~air",
      "landingLag": 20,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B",
@@ -40585,7 +40645,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1596717207-17"
+     "id": "1596717207-17",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -40694,7 +40755,8 @@
      "input": null,
      "id": "1596717207-17~air",
      "landingLag": 30,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B（地上）",
@@ -41928,7 +41990,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "733690524-16"
+     "id": "733690524-16",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -41960,7 +42023,8 @@
      "input": null,
      "id": "733690524-16~air",
      "landingLag": 20,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -43277,7 +43341,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1182433269-15"
+     "id": "1182433269-15",
+     "versionLabel": "地上"
     },
     {
      "name": "上B（地上）",
@@ -43367,7 +43432,8 @@
      "input": null,
      "id": "1182433269-15~air",
      "landingLag": 30,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B（空中）",
@@ -47324,7 +47390,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1685609029-15"
+     "id": "1685609029-15",
+     "versionLabel": "地上"
     },
     {
      "name": "NB",
@@ -47396,7 +47463,8 @@
      "input": null,
      "id": "1685609029-15~air",
      "landingLag": 29,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "横B",
@@ -47488,7 +47556,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1685609029-16"
+     "id": "1685609029-16",
+     "versionLabel": "地上"
     },
     {
      "name": "横B",
@@ -47582,7 +47651,8 @@
      "input": null,
      "id": "1685609029-16~air",
      "landingLag": 26,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B（地上）",
@@ -49204,7 +49274,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1768703882-18"
+     "id": "1768703882-18",
+     "versionLabel": "地上"
     },
     {
      "name": "横B（地上）",
@@ -49268,7 +49339,8 @@
      "input": null,
      "id": "1768703882-18~air",
      "landingLag": 30,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "横B（空中）",
@@ -49360,7 +49432,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1768703882-20"
+     "id": "1768703882-20",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -49392,7 +49465,8 @@
      "input": null,
      "id": "1768703882-20~air",
      "landingLag": 40,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -50711,7 +50785,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1906718872-18"
+     "id": "1906718872-18",
+     "versionLabel": "地上"
     },
     {
      "name": "横B（地上）",
@@ -50775,7 +50850,8 @@
      "input": null,
      "id": "1906718872-18~air",
      "landingLag": 30,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "横B（空中）",
@@ -50867,7 +50943,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1906718872-20"
+     "id": "1906718872-20",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -50899,7 +50976,8 @@
      "input": null,
      "id": "1906718872-20~air",
      "landingLag": 40,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -52073,7 +52151,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1381351225-16"
+     "id": "1381351225-16",
+     "versionLabel": "地上"
     },
     {
      "name": "NB",
@@ -52161,7 +52240,8 @@
      "input": null,
      "id": "1381351225-16~air",
      "landingLag": 20,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "横B",
@@ -52655,7 +52735,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1381351225-18"
+     "id": "1381351225-18",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -52793,7 +52874,8 @@
      "input": null,
      "id": "1381351225-18~air",
      "landingLag": 30,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -54535,7 +54617,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "771929163-21"
+     "id": "771929163-21",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -54635,7 +54718,8 @@
      "input": null,
      "id": "771929163-21~air",
      "landingLag": 20,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -57614,7 +57698,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1482326531-18"
+     "id": "1482326531-18",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -57800,7 +57885,8 @@
      "input": null,
      "id": "1482326531-18~air",
      "landingLag": 36,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -59011,7 +59097,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1501545541-17"
+     "id": "1501545541-17",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -59077,7 +59164,8 @@
      "input": null,
      "id": "1501545541-17~air",
      "landingLag": 30,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -61419,7 +61507,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1962827986-17"
+     "id": "1962827986-17",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -61509,7 +61598,8 @@
      "input": null,
      "id": "1962827986-17~air",
      "landingLag": 30,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -62977,7 +63067,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "824127703-18"
+     "id": "824127703-18",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -63136,7 +63227,8 @@
      "input": null,
      "id": "824127703-18~air",
      "landingLag": 30,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -64500,7 +64592,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1132871462-17"
+     "id": "1132871462-17",
+     "versionLabel": "地上"
     },
     {
      "name": "横B",
@@ -64570,7 +64663,8 @@
      "input": null,
      "id": "1132871462-17~air",
      "landingLag": 19,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B",
@@ -64812,7 +64906,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1132871462-18"
+     "id": "1132871462-18",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -65056,7 +65151,8 @@
      "input": null,
      "id": "1132871462-18~air",
      "landingLag": 30,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -66530,7 +66626,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1181364191-17"
+     "id": "1181364191-17",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -66573,7 +66670,8 @@
      "input": null,
      "id": "1181364191-17~air",
      "landingLag": 10,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -71874,7 +71972,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "2130457973-19"
+     "id": "2130457973-19",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -71940,7 +72039,8 @@
      "input": null,
      "id": "2130457973-19~air",
      "landingLag": 35,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -74834,7 +74934,8 @@
      "input": null,
      "id": "1660315279-19~air",
      "landingLag": 30,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -75910,7 +76011,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1509906936-16"
+     "id": "1509906936-16",
+     "versionLabel": "地上"
     },
     {
      "name": "横B",
@@ -76001,7 +76103,8 @@
      "input": null,
      "id": "1509906936-16~air",
      "landingLag": 29,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B",
@@ -76120,7 +76223,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1509906936-17"
+     "id": "1509906936-17",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -76241,7 +76345,8 @@
      "input": null,
      "id": "1509906936-17~air",
      "landingLag": 36,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -81335,7 +81440,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1113651673-19"
+     "id": "1113651673-19",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -81377,7 +81483,8 @@
      "input": null,
      "id": "1113651673-19~air",
      "landingLag": 30,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B（地上）",
@@ -83256,7 +83363,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "467722914-20"
+     "id": "467722914-20",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -83288,7 +83396,8 @@
      "input": null,
      "id": "467722914-20~air",
      "landingLag": 30,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -84653,7 +84762,24 @@
        ],
        "stun": null,
        "landingLag": null
-      },
+      }
+     ],
+     "command": null,
+     "inputNote": null,
+     "specialShield": false,
+     "guardNote": "シールド（ガード）不可の判定を含む",
+     "input": null,
+     "id": "1283182547-18",
+     "versionLabel": "地上"
+    },
+    {
+     "name": "NB（K.O. ｱｯﾊﾟｰｶｯﾄ）",
+     "category": "special",
+     "group": "NB",
+     "variant": "K.O. ｱｯﾊﾟｰｶｯﾄ",
+     "title": "気合いストレート / K.O.アッパーカット",
+     "projectile": false,
+     "rows": [
       {
        "label": "空中",
        "activeRaw": "9-11",
@@ -84684,7 +84810,9 @@
      "specialShield": false,
      "guardNote": "シールド（ガード）不可の判定を含む",
      "input": null,
-     "id": "1283182547-18"
+     "id": "1283182547-18~air",
+     "versionLabel": "空中",
+     "derivedAir": true
     },
     {
      "name": "横B（地上）",
@@ -84888,7 +85016,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1283182547-21"
+     "id": "1283182547-21",
+     "versionLabel": "地上"
     },
     {
      "name": "上B（地上）",
@@ -84978,7 +85107,8 @@
      "input": null,
      "id": "1283182547-21~air",
      "landingLag": 30,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B（空中）",
@@ -86565,7 +86695,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1057937273-19"
+     "id": "1057937273-19",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -86679,7 +86810,8 @@
      "input": null,
      "id": "1057937273-19~air",
      "landingLag": 32,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -88951,7 +89083,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "286122033-26"
+     "id": "286122033-26",
+     "versionLabel": "地上"
     },
     {
      "name": "上B2 (昇天スピンキック)",
@@ -89137,7 +89270,8 @@
      "input": null,
      "id": "286122033-26~air",
      "landingLag": 26,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B3 (突き上げアッパーカット)",
@@ -89205,7 +89339,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "286122033-27"
+     "id": "286122033-27",
+     "versionLabel": "地上"
     },
     {
      "name": "上B3 (突き上げアッパーカット)",
@@ -89275,7 +89410,8 @@
      "input": null,
      "id": "286122033-27~air",
      "landingLag": 30,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B1 (くい打ちヘッドバット)（地上）",
@@ -91366,7 +91502,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1854106079-23"
+     "id": "1854106079-23",
+     "versionLabel": "地上"
     },
     {
      "name": "上B1 (ロケット下突き)",
@@ -91457,7 +91594,8 @@
      "input": null,
      "id": "1854106079-23~air",
      "landingLag": 44,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B2 (ソードダッシュ)",
@@ -91549,7 +91687,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1854106079-24"
+     "id": "1854106079-24",
+     "versionLabel": "地上"
     },
     {
      "name": "上B2 (ソードダッシュ)",
@@ -91643,7 +91782,8 @@
      "input": null,
      "id": "1854106079-24~air",
      "landingLag": 20,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B3 (回転斬り)（地上）",
@@ -92243,7 +92383,8 @@
      "input": null,
      "id": "1854106079-26~air",
      "landingLag": 30,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B1 (カウンター)",
@@ -94148,7 +94289,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1559343370-21"
+     "id": "1559343370-21",
+     "versionLabel": "地上"
     },
     {
      "name": "上B1 (ボトムシュート)",
@@ -94190,7 +94332,8 @@
      "input": null,
      "id": "1559343370-21~air",
      "landingLag": 18,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B2 (キャノンジャンプキック)",
@@ -94278,7 +94421,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1559343370-22"
+     "id": "1559343370-22",
+     "versionLabel": "地上"
     },
     {
      "name": "上B2 (キャノンジャンプキック)",
@@ -94368,7 +94512,8 @@
      "input": null,
      "id": "1559343370-22~air",
      "landingLag": 28,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B3 (アームロケット)",
@@ -94398,7 +94543,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1559343370-23"
+     "id": "1559343370-23",
+     "versionLabel": "地上"
     },
     {
      "name": "上B3 (アームロケット)",
@@ -94430,7 +94576,8 @@
      "input": null,
      "id": "1559343370-23~air",
      "landingLag": 14,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B1 (リフレクター)",
@@ -95755,7 +95902,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "61159039-16"
+     "id": "61159039-16",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -95787,7 +95935,8 @@
      "input": null,
      "id": "61159039-16~air",
      "landingLag": 22,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -97240,7 +97389,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "819100594-17"
+     "id": "819100594-17",
+     "versionLabel": "地上"
     },
     {
      "name": "上B（ジャンプ）",
@@ -97330,7 +97480,8 @@
      "input": null,
      "id": "819100594-17~air",
      "landingLag": 30,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -99368,7 +99519,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1833269740-21"
+     "id": "1833269740-21",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -99540,7 +99692,8 @@
      "input": null,
      "id": "1833269740-21~air",
      "landingLag": 25,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -101084,7 +101237,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "897378932-17"
+     "id": "897378932-17",
+     "versionLabel": "地上"
     },
     {
      "name": "上B（地上）",
@@ -101192,7 +101346,8 @@
      "input": null,
      "id": "897378932-17~air",
      "landingLag": 30,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B（地上）",
@@ -104388,7 +104543,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1313594481-18"
+     "id": "1313594481-18",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -104420,7 +104576,8 @@
      "input": null,
      "id": "1313594481-18~air",
      "landingLag": 30,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -112541,7 +112698,24 @@
         3
        ],
        "landingLag": null
-      },
+      }
+     ],
+     "command": null,
+     "inputNote": null,
+     "specialShield": false,
+     "guardNote": null,
+     "input": null,
+     "id": "1320994884-15",
+     "versionLabel": "地上"
+    },
+    {
+     "name": "NB（通常）",
+     "category": "special",
+     "group": "NB",
+     "variant": "通常",
+     "title": "破晄撃",
+     "projectile": false,
+     "rows": [
       {
        "label": "風, 対地のみ",
        "activeRaw": "16-17",
@@ -112622,7 +112796,9 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1320994884-15"
+     "id": "1320994884-15~air",
+     "versionLabel": "空中",
+     "derivedAir": true
     },
     {
      "name": "NB（リミット）",
@@ -112707,7 +112883,24 @@
         2
        ],
        "landingLag": null
-      },
+      }
+     ],
+     "command": null,
+     "inputNote": null,
+     "specialShield": false,
+     "guardNote": null,
+     "input": null,
+     "id": "1320994884-16",
+     "versionLabel": "地上"
+    },
+    {
+     "name": "NB（リミット）",
+     "category": "special",
+     "group": "NB",
+     "variant": "リミット",
+     "title": "破晄撃",
+     "projectile": false,
+     "rows": [
       {
        "label": "空中",
        "activeRaw": "16-63",
@@ -112790,7 +112983,9 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1320994884-16"
+     "id": "1320994884-16~air",
+     "versionLabel": "空中",
+     "derivedAir": true
     },
     {
      "name": "横B（通常）",
@@ -113523,7 +113718,24 @@
        ],
        "stun": null,
        "landingLag": null
-      },
+      }
+     ],
+     "command": null,
+     "inputNote": null,
+     "specialShield": false,
+     "guardNote": null,
+     "input": null,
+     "id": "1320994884-22",
+     "versionLabel": "地上"
+    },
+    {
+     "name": "下B（画竜点睛）",
+     "category": "special",
+     "group": "下B",
+     "variant": "画竜点睛",
+     "title": "リミットチャージ / 画竜点睛",
+     "projectile": false,
+     "rows": [
       {
        "label": "空中",
        "activeRaw": "14-15",
@@ -113604,7 +113816,9 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1320994884-22"
+     "id": "1320994884-22~air",
+     "versionLabel": "空中",
+     "derivedAir": true
     },
     {
      "name": "つかみ",
@@ -114765,7 +114979,8 @@
      "input": null,
      "id": "1707296164-18~air",
      "landingLag": 22,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "横B",
@@ -114981,7 +115196,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1707296164-20"
+     "id": "1707296164-20",
+     "versionLabel": "地上"
     },
     {
      "name": "横B（突き刺し後）",
@@ -115169,7 +115385,8 @@
      "input": null,
      "id": "1707296164-20~air",
      "landingLag": 31,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B",
@@ -115259,7 +115476,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1707296164-21"
+     "id": "1707296164-21",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -115351,7 +115569,8 @@
      "input": null,
      "id": "1707296164-21~air",
      "landingLag": 30,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -119309,7 +119528,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "363870363-22"
+     "id": "363870363-22",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -119425,7 +119645,8 @@
      "input": null,
      "id": "363870363-22~air",
      "landingLag": 40,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B（地上）",
@@ -122410,7 +122631,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "222712258-18"
+     "id": "222712258-18",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -122500,7 +122722,8 @@
      "input": null,
      "id": "222712258-18~air",
      "landingLag": 26,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -123804,7 +124027,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "450468611-18"
+     "id": "450468611-18",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -123894,7 +124118,8 @@
      "input": null,
      "id": "450468611-18~air",
      "landingLag": 26,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -125508,7 +125733,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "830948810-18"
+     "id": "830948810-18",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -125550,7 +125776,8 @@
      "input": null,
      "id": "830948810-18~air",
      "landingLag": 30,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -128741,7 +128968,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "2053567775-17"
+     "id": "2053567775-17",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -129113,7 +129341,8 @@
      "input": null,
      "id": "2053567775-17~air",
      "landingLag": 35,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -133023,7 +133252,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "512914968-20"
+     "id": "512914968-20",
+     "versionLabel": "地上"
     },
     {
      "name": "上B（反逆の翼）",
@@ -133055,7 +133285,8 @@
      "input": null,
      "id": "512914968-20~air",
      "landingLag": 30,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B（反逆ガード）",
@@ -134759,7 +134990,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "526253437-22"
+     "id": "526253437-22",
+     "versionLabel": "地上"
     },
     {
      "name": "上B（バギ）",
@@ -134795,7 +135027,8 @@
      "input": null,
      "id": "526253437-22~air",
      "landingLag": 12,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B（バギマ）",
@@ -134853,7 +135086,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "526253437-23"
+     "id": "526253437-23",
+     "versionLabel": "地上"
     },
     {
      "name": "上B（バギマ）",
@@ -134913,7 +135147,8 @@
      "input": null,
      "id": "526253437-23~air",
      "landingLag": 23,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B（バギクロス）",
@@ -134977,7 +135212,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "526253437-24"
+     "id": "526253437-24",
+     "versionLabel": "地上"
     },
     {
      "name": "上B（バギクロス）",
@@ -135043,7 +135279,8 @@
      "input": null,
      "id": "526253437-24~air",
      "landingLag": 29,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B（失敗）",
@@ -135073,7 +135310,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "526253437-25"
+     "id": "526253437-25",
+     "versionLabel": "地上"
     },
     {
      "name": "上B（失敗）",
@@ -135105,7 +135343,8 @@
      "input": null,
      "id": "526253437-25~air",
      "landingLag": 12,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "つかみ",
@@ -138290,7 +138529,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": "button",
-     "id": "556992441-27"
+     "id": "556992441-27",
+     "versionLabel": "地上"
     },
     {
      "name": "後B(クラックシュート)（弱）［ボタン］",
@@ -138440,7 +138680,8 @@
      "input": "button",
      "id": "556992441-27~air",
      "landingLag": 19,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "後B(クラックシュート)（弱）［コマンド］",
@@ -138588,7 +138829,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": "command",
-     "id": "556992441-28"
+     "id": "556992441-28",
+     "versionLabel": "地上"
     },
     {
      "name": "後B(クラックシュート)（弱）［コマンド］",
@@ -138738,7 +138980,8 @@
      "input": "command",
      "id": "556992441-28~air",
      "landingLag": 19,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "後B(クラックシュート)（強）［ボタン］",
@@ -150568,7 +150811,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1080283867-19"
+     "id": "1080283867-19",
+     "versionLabel": "地上"
     },
     {
      "name": "上B（一閃）",
@@ -150610,7 +150854,8 @@
      "input": null,
      "id": "1080283867-19~air",
      "landingLag": 27,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B（八刀一閃）",
@@ -150710,7 +150955,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1080283867-20"
+     "id": "1080283867-20",
+     "versionLabel": "地上"
     },
     {
      "name": "上B（八刀一閃）",
@@ -150812,7 +151058,8 @@
      "input": null,
      "id": "1080283867-20~air",
      "landingLag": 56,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -154400,7 +154647,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "446651924-17"
+     "id": "446651924-17",
+     "versionLabel": "地上"
     },
     {
      "name": "横B",
@@ -154497,7 +154745,8 @@
      "input": null,
      "id": "446651924-17~air",
      "landingLag": 18,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B",
@@ -154603,7 +154852,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "446651924-19"
+     "id": "446651924-19",
+     "versionLabel": "地上"
     },
     {
      "name": "上B（パニッシュメント レイ）",
@@ -154671,7 +154921,8 @@
      "input": null,
      "id": "446651924-19~air",
      "landingLag": 15,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B（レインボー ダスト）",
@@ -154715,7 +154966,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "446651924-20"
+     "id": "446651924-20",
+     "versionLabel": "地上"
     },
     {
      "name": "上B（レインボー ダスト）",
@@ -154761,7 +155013,8 @@
      "input": null,
      "id": "446651924-20~air",
      "landingLag": 20,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
@@ -156976,7 +157229,13 @@
        "stunRaw": "(11F) 4F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         27
+        ],
+        "end": 43,
+        "rehit": false
+       },
        "total": 67,
        "damage": [
         11.0
@@ -156985,7 +157244,8 @@
         11,
         4
        ],
-       "landingLag": null
+       "landingLag": null,
+       "activeFromGround": true
       },
       {
        "label": "無シフト",
@@ -156997,7 +157257,13 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         27
+        ],
+        "end": 43,
+        "rehit": false
+       },
        "total": 67,
        "damage": [
         10.0
@@ -157006,7 +157272,8 @@
         10,
         4
        ],
-       "landingLag": null
+       "landingLag": null,
+       "activeFromGround": true
       },
       {
        "label": "下シフト",
@@ -157018,7 +157285,13 @@
         "全体フレーム"
        ],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         27
+        ],
+        "end": 43,
+        "rehit": false
+       },
        "total": 67,
        "damage": [
         9.0
@@ -157027,7 +157300,8 @@
         9,
         4
        ],
-       "landingLag": null
+       "landingLag": null,
+       "activeFromGround": true
       }
      ],
      "command": null,
@@ -157035,7 +157309,9 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1640202476-33"
+     "id": "1640202476-33",
+     "activeFromGround": true,
+     "derivedAir": true
     },
     {
      "name": "横B（地上）",
@@ -157101,7 +157377,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1640202476-34"
+     "id": "1640202476-34",
+     "versionLabel": "地上"
     },
     {
      "name": "横B（地上）",
@@ -157169,7 +157446,8 @@
      "input": null,
      "id": "1640202476-34~air",
      "landingLag": 29,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B",
@@ -159199,7 +159477,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": "button",
-     "id": "2081025754-24"
+     "id": "2081025754-24",
+     "versionLabel": "地上"
     },
     {
      "name": "横B［ボタン］",
@@ -159289,7 +159568,8 @@
      "input": "button",
      "id": "2081025754-24~air",
      "landingLag": 20,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "横B［コマンド］",
@@ -159377,7 +159657,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": "command",
-     "id": "2081025754-25"
+     "id": "2081025754-25",
+     "versionLabel": "地上"
     },
     {
      "name": "横B［コマンド］",
@@ -159467,7 +159748,8 @@
      "input": "command",
      "id": "2081025754-25~air",
      "landingLag": 20,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "上B",
@@ -159651,7 +159933,8 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "2081025754-26"
+     "id": "2081025754-26",
+     "versionLabel": "地上"
     },
     {
      "name": "上B",
@@ -159837,7 +160120,8 @@
      "input": null,
      "id": "2081025754-26~air",
      "landingLag": 21,
-     "landingVariant": "空中（着地）"
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B",
