@@ -10,7 +10,7 @@
 <style>:root{
   --bg:#0e1116;--card:#171c24;--line:#313846;--text:#f2f5f8;--sub:#c5ced8;
   --accent:#6cb4ff;--on-accent:#04121f;--sure:#3ddc84;--bad:#ff9b9b;
-  --cols:36px 168px 76px 52px 80px 64px 64px 72px 80px 76px 64px;
+  --cols:36px 168px 76px 52px 80px 64px 64px 168px 80px 76px 64px;
   color-scheme:dark
 }
 @media (prefers-color-scheme: light){
@@ -21,7 +21,7 @@
   }
 }
 @media (min-width:900px){
-  :root{--cols:44px 220px 96px 64px 96px 72px 72px 84px 96px 96px 72px}
+  :root{--cols:44px 220px 96px 64px 96px 72px 72px 210px 96px 96px 72px}
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;font-size:15px;line-height:1.35}
@@ -37,6 +37,8 @@ a{color:var(--accent)}
 .filters{padding:6px 12px 0;display:flex;flex-direction:column;gap:6px}
 .frow{display:flex;gap:6px;align-items:center}
 .frow input,.frow select,.frow .cbtn{min-height:44px;border-radius:12px;border:1px solid var(--line);background:var(--card);padding:0 10px}
+.frow.oo{flex-wrap:wrap}
+.oolab{align-self:center;color:var(--sub);font-size:13px;font-weight:700;white-space:nowrap}
 #q{flex:1;min-width:0;font-size:16px}
 #vs{max-width:42%}
 .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
@@ -60,8 +62,9 @@ a{color:var(--accent)}
 .c-name{left:36px}
 .head .c-rank,.head .c-name{z-index:4;background:var(--card)}
 @media (min-width:900px){.c-name{left:44px}}
-.row{color:inherit;text-decoration:none;border-bottom:1px solid var(--line);height:56px}
+.row{color:inherit;text-decoration:none;border-bottom:1px solid var(--line);height:68px}
 .row span{display:flex;align-items:center;justify-content:flex-end;padding:0 6px;font-variant-numeric:tabular-nums}
+.row span.c-dmg{display:block;align-self:center;text-align:right;white-space:normal;font-size:12px;line-height:1.25;overflow:hidden}
 .row .c-rank,.row .c-name,.row .c-kind{justify-content:flex-start}
 a.row > .c-name{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:0;min-width:0;overflow:hidden}
 a.row > .c-name b,a.row > .c-name span{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0;font-weight:650}
@@ -104,6 +107,14 @@ body.noscroll{overflow:hidden}
   <div id="presets" class="chips" role="toolbar" aria-label="ランキング"></div>
   <div id="kinds" class="chips" role="toolbar" aria-label="技の種類"></div>
   <div id="places" class="chips" role="toolbar" aria-label="地上か空中か"></div>
+  <div class="frow oo">
+    <div id="dmgAgg" class="chips" role="toolbar" aria-label="ダメージの並べ方"></div>
+    <div id="oo" class="chips" role="group" aria-label="1on1補正">
+      <span class="oolab">1on1補正</span>
+      <button type="button" id="ooOff" data-oo="0">なし</button>
+      <button type="button" id="ooOn" data-oo="1">あり</button>
+    </div>
+  </div>
   <div id="picked" class="picked"></div>
 </div>
 <p class="meta" id="meta">読み込み中</p>
@@ -117,7 +128,7 @@ body.noscroll{overflow:hidden}
   <a href="index.html">反撃チェックに戻る</a><br>
   フレームデータ: <a href="https://docs.google.com/spreadsheets/d/15SClMwvDIqovtO3DJnf1GGIteH35UX3IM7-mnbdG6eE/edit" target="_blank" rel="noopener">スマブラSP検証窓</a>（<a href="https://w.atwiki.jp/smashsp_kensyou/" target="_blank" rel="noopener">スマブラSPECIAL 検証wiki</a>）のフレームシートをもとに計算しています。<br>
   このページは個人が作った非公式の試作です。検証窓・任天堂とは関係ありません。表示内容の正確さは保証しません。実際の対戦ではトレーニングモードで確認してください。<br>
-  ガード有利は反撃チェックと同じ式（ガード側の有利。＋ならガードした側が有利）。確定数は、密着でフレームが間に合う反撃の数です。
+  ガード有利は反撃チェックと同じ式（ガード側の有利。＋ならガードした側が有利）。確定数は、密着でフレームが間に合う反撃の数です。ダメージは判定ごとで、行の名前がシートにあるときだけ括弧で付けます。1on1補正ありは表示ダメージだけ基礎ダメージの1.2倍で、ガード硬直とガード有利は変わりません。
 </footer>
 <div id="picker" hidden role="dialog" aria-modal="true" aria-labelledby="pkTitle">
   <div class="pkHead">
@@ -305,7 +316,61 @@ body.noscroll{overflow:hidden}
     return { adv: { ...adv, primaryEff: adv.primary + bonus, worstEff: adv.worst + bonus }, list };
   }
 
-  const api = { THRESHOLDS, marginTier, shieldAdvantage, listFrames, punishOptions, evaluate, startupOf, routeCost, isStarter, ROUTE_LABEL, SHIELD_DROP, GRAB_EXTRA, PERFECT_SHIELD_BONUS };
+  /** アイテムなしの1対1で与ダメージに掛かる倍率。ガード硬直の式には入らない（検証wiki「ガード硬直」） */
+  const ONE_ON_ONE = 1.2;
+
+  function scaleDamage(n, oneOnOne) {
+    if (!oneOnOne) return n;
+    return Math.round(n * ONE_ON_ONE * 1000) / 1000;
+  }
+  function fmtDamageNum(n) {
+    return String(Math.round(n * 100) / 100);
+  }
+
+  /** シートの行ラベルと基礎ダメージ。行メモからは名前を作らない。硬直は個数がダメージと一致するときだけ対応づける */
+  function hitboxParts(move) {
+    const parts = [];
+    for (const row of (move && move.rows) || []) {
+      const damages = (row.damage || []).filter((d) => typeof d === "number" && !Number.isNaN(d));
+      if (!damages.length) continue;
+      const stuns = (row.stun || []).filter((s) => typeof s === "number" && !Number.isNaN(s));
+      parts.push({
+        label: String(row.label || "").trim(),
+        damages,
+        stuns: stuns.length === damages.length ? stuns.slice() : null,
+      });
+    }
+    return parts;
+  }
+
+  /** 表示文。ラベルがある行は「14 / 11 (先端)」。名前の無い複数値は hit1 / hit2 */
+  function formatParts(parts, oneOnOne) {
+    parts = parts || [];
+    const unlabeled = parts.reduce((n, p) => n + (p.label ? 0 : p.damages.length), 0);
+    let hit = 0, max = null, min = null;
+    const items = parts.map((p) => {
+      const nums = p.damages.map((d) => scaleDamage(d, !!oneOnOne));
+      for (const n of nums) {
+        if (max == null || n > max) max = n;
+        if (min == null || n < min) min = n;
+      }
+      let body;
+      if (p.label) body = nums.map(fmtDamageNum).join(" / ") + " (" + p.label + ")";
+      else if (unlabeled <= 1) body = fmtDamageNum(nums[0]);
+      else body = nums.map((n) => "hit" + (++hit) + " " + fmtDamageNum(n)).join(" / ");
+      return { label: p.label, damages: nums, base: p.damages.slice(), stuns: p.stuns, text: body };
+    });
+    return { text: items.map((it) => it.text).join(" · "), items, max, min };
+  }
+  function formatHitboxes(move, oneOnOne) {
+    return formatParts(hitboxParts(move), oneOnOne);
+  }
+
+  const api = {
+    THRESHOLDS, marginTier, shieldAdvantage, listFrames, punishOptions, evaluate, startupOf, routeCost, isStarter,
+    ROUTE_LABEL, SHIELD_DROP, GRAB_EXTRA, PERFECT_SHIELD_BONUS,
+    ONE_ON_ONE, scaleDamage, hitboxParts, formatParts, formatHitboxes,
+  };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.PunishCalc = api;
 })(typeof window !== "undefined" ? window : globalThis);
@@ -411,13 +476,16 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
         const kind = kindOf(m);
         const place = placeOf(m);
         const name = moveLabel(m);
+        const parts = calc.hitboxParts(m);
+        const span = calc.formatParts(parts, false);
         rows.push({
           order: order++, ci, id: m.id, char: ch.name, name, kind, place,
           group: groupIndex(m), material: m.material || "", command: m.command || "",
           slotGroup: m.group || "", sub: subLine(m, place),
           hay: norm(name + " " + (m.command || "") + " " + (m.material || "")),
           startup: f.startup, activeEnd: f.activeEnd, total: f.total, landing: f.landing,
-          damage: f.damage, stun: f.stun, adv: f.adv, sure: null,
+          parts, damageMax: span.max, damageMin: span.min, damage: span.max,
+          stun: f.stun, adv: f.adv, sure: null,
         });
       });
     });
@@ -446,6 +514,12 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
         row.sure = Math.round((s / n) * 10) / 10;
       } else row.sure = countSure(row.adv, needs[vs] || []);
     }
+    return rows;
+  }
+
+  /** ダメージ列のソートキー。最大が初期。null は sortRows が末尾に置く */
+  function applyDamageKey(rows, agg) {
+    for (const r of rows) r.damage = agg === "min" ? r.damageMin : r.damageMax;
     return rows;
   }
 
@@ -520,7 +594,10 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     const place = q.get("place") === "air" || q.get("place") === "ground" ? q.get("place") : "";
     const vsRaw = q.get("vs");
     const vs = vsRaw != null && /^\d+$/.test(vsRaw) ? +vsRaw : null;
-    return { sort, dir, preset, kinds, place, chars, text: q.get("q") || "", vs };
+    const dmg = q.get("dmg") === "min" ? "min" : "max";
+    const ooRaw = q.get("oo");
+    const oo = ooRaw === "1" ? true : ooRaw === "0" ? false : null;
+    return { sort, dir, preset, kinds, place, chars, text: q.get("q") || "", vs, dmg, oo };
   }
   function serialize(s) {
     const p = new URLSearchParams();
@@ -532,12 +609,15 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     if (s.chars && s.chars.length) p.set("c", s.chars.join(","));
     if (s.text) p.set("q", s.text);
     if (s.vs != null) p.set("vs", String(s.vs));
+    if (s.dmg === "min") p.set("dmg", "min");
+    if (s.oo === true) p.set("oo", "1");
+    else if (s.oo === false) p.set("oo", "0");
     return p.toString();
   }
 
   const api = {
     KIND_LABEL, KIND_IDS, PLACE_LABEL, SORT_KEYS, FIRST_DIR, PRESETS, PRESET_BY_ID,
-    moveLabel, kindOf, placeOf, buildRows, punishNeeds, fillSure, sortRows, applyView, parseQuery, serialize, norm,
+    moveLabel, kindOf, placeOf, buildRows, punishNeeds, fillSure, sortRows, applyDamageKey, applyView, parseQuery, serialize, norm,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FrameTable = api;
@@ -562,9 +642,19 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     ["adv", "ガード有利", ""],
     ["sure", "確定数", ""],
   ];
-  const ROW = 56;
-  const state = T.parseQuery(location.hash);
+  const ROW = 68;
+  const OO_KEY = "punish.oo";
+  const parsed = T.parseQuery(location.hash);
+  const state = parsed;
+  state.oo = parsed.oo == null ? storedOo() : parsed.oo;
   let rows = [], needs = [], chars = [], view = [], headH = 44, start = -1, end = -1, pushNext = false, sureMode, draft = [];
+
+  function storedOo() {
+    try { return localStorage.getItem(OO_KEY) === "1"; } catch (e) { return false; }
+  }
+  function rememberOo(on) {
+    try { localStorage.setItem(OO_KEY, on ? "1" : "0"); } catch (e) {}
+  }
 
   function fmt(key, v) {
     if (v == null || Number.isNaN(v)) return "—";
@@ -572,6 +662,10 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     if (key === "sure") return Number.isInteger(v) ? String(v) : v.toFixed(1);
     if (key === "damage") return String(Math.round(v * 10) / 10);
     return String(v);
+  }
+  function damageText(r) {
+    const f = C.formatParts(r.parts, state.oo);
+    return f.text || "—";
   }
   function writeHash() {
     const next = T.serialize(state);
@@ -593,7 +687,12 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     const preset = T.PRESET_BY_ID[state.preset];
     if (preset) bits.push(preset.label);
     bits.push(state.vs == null ? "確定数は全キャラ平均" : "確定数は対 " + (chars[state.vs] ? chars[state.vs].name : ""));
+    bits.push(state.oo ? "1on1補正あり（ダメージ×1.2）" : "1on1補正なし（基礎ダメージ）");
     $("meta").textContent = bits.join(" · ");
+    $("dmgAgg").innerHTML = [["max", "ダメージ最大"], ["min", "ダメージ最小"]].map(([id, label]) => `<button type="button" data-dmg="${id}" aria-pressed="${state.dmg === id}">${label}</button>`).join("");
+    $("ooOff").setAttribute("aria-pressed", state.oo ? "false" : "true");
+    $("ooOn").setAttribute("aria-pressed", state.oo ? "true" : "false");
+    document.querySelectorAll('a[href^="index.html"]').forEach((a) => { a.hash = "oo=" + (state.oo ? "1" : "0"); });
     $("head").innerHTML = `<span class="c-rank"></span>` + COLS.map(([key, label, side]) => {
       const on = state.sort === key;
       const aria = on ? (state.dir === "asc" ? "ascending" : "descending") : "none";
@@ -621,7 +720,10 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
       const advCls = r.adv == null ? "" : r.adv > 0 ? "pos" : r.adv < 0 ? "neg" : "zero";
       const href = rowHref(r);
       h += `<a class="gridline row" style="height:${ROW}px" href="${esc(href)}"><span class="c-rank">${i + 1}</span><span class="c-name"><b>${esc(r.char)}</b><span>${esc(r.name)}</span>${r.sub ? `<small>${esc(r.sub)}</small>` : ""}</span><span class="c-kind">${esc(T.KIND_LABEL[r.kind])}</span>`;
-      for (const key of ["startup", "activeEnd", "total", "landing", "damage", "stun"]) h += `<span>${fmt(key, r[key])}</span>`;
+      for (const key of ["startup", "activeEnd", "total", "landing"]) h += `<span>${fmt(key, r[key])}</span>`;
+      const dmg = damageText(r);
+      h += `<span class="c-dmg" title="${esc(dmg)}">${esc(dmg)}</span>`;
+      h += `<span>${fmt("stun", r.stun)}</span>`;
       h += `<span class="${advCls}">${fmt("adv", r.adv)}</span><span>${fmt("sure", r.sure)}</span></a>`;
     }
     $("win").innerHTML = h;
@@ -635,12 +737,15 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     p.set("g", String(r.group));
     p.set("move", r.id);
     if (r.material) p.set("mo", r.material);
+    p.set("oo", state.oo ? "1" : "0");
     return "index.html#" + p.toString();
   }
   function apply(scrollTop) {
     if (state.vs != null && (state.vs < 0 || state.vs >= chars.length)) state.vs = null;
     state.chars = state.chars.filter((i) => chars[i]);
+    rememberOo(state.oo);
     if (sureMode !== state.vs) { T.fillSure(rows, needs, state.vs); sureMode = state.vs; }
+    T.applyDamageKey(rows, state.dmg);
     view = T.applyView(rows, state);
     start = end = -1;
     renderChrome();
@@ -667,6 +772,22 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     $("places").onclick = (e) => {
       const b = e.target.closest("[data-place]"); if (!b) return;
       state.place = b.dataset.place; pushNext = true; apply(true);
+    };
+    $("dmgAgg").onclick = (e) => {
+      const b = e.target.closest("[data-dmg]"); if (!b) return;
+      state.dmg = b.dataset.dmg === "min" ? "min" : "max";
+      state.sort = "damage";
+      state.dir = "desc";
+      state.preset = "";
+      pushNext = true; apply(true);
+    };
+    $("oo").onclick = (e) => {
+      const b = e.target.closest("[data-oo]"); if (!b) return;
+      const on = b.dataset.oo === "1";
+      if (state.oo === on) return;
+      state.oo = on;
+      rememberOo(on);
+      pushNext = true; apply(false);
     };
     $("picked").onclick = (e) => {
       const b = e.target.closest("[data-drop]"); if (!b) return;
@@ -695,7 +816,10 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     $("scroll").addEventListener("scroll", () => { paint(false); }, { passive: true });
     window.addEventListener("hashchange", () => {
       const n = T.parseQuery(location.hash);
+      const prevOo = state.oo;
       Object.assign(state, n);
+      if (n.oo == null) state.oo = prevOo;
+      else rememberOo(state.oo);
       $("q").value = state.text;
       apply(true);
     });

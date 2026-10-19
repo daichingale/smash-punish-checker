@@ -145,6 +145,11 @@ class ParseDamage(unittest.TestCase):
         self.assertEqual(bd.parse_damage("10 ~ 28"), [10.0, 28.0])
         self.assertEqual(bd.parse_damage("1+"), [1.0])
 
+    def test_slash_hitboxes(self):
+        self.assertEqual(bd.parse_damage("7/4"), [7.0, 4.0])
+        self.assertEqual(bd.parse_damage("7/5"), [7.0, 5.0])
+        self.assertEqual(bd.parse_damage("14.7/17.8"), [14.7, 17.8])
+
     def test_zero_plus_unknown(self):
         self.assertIsNone(bd.parse_damage("0+"))
         self.assertIsNone(bd.parse_damage("*"))

@@ -258,3 +258,53 @@ test("実データ: テリーのコマンド版の反撃も一覧に出る（注
 test("実データ: 全キャラ×全技で evaluate が例外を出さない", () => {
   for (const a of data.chars) for (const m of a.moves) { if (m.category === "grab") continue; for (const d of [data.chars[0], ch("カズヤ"), ch("スティーブ／アレックス")]) C.evaluate(a, m, d, {}); }
 });
+
+test("基礎ダメージの複数値は行ラベルがあるときだけ括弧にし、メモの先端は付けない", () => {
+  const dtilt = mv(ch("マリオ"), "下強");
+  const off = C.formatHitboxes(dtilt, false);
+  assert.equal(off.text, "hit1 7 / hit2 5");
+  assert.equal(off.text.includes("先端"), false);
+  assert.deepEqual(off.items[0].stuns, [7, 6]);
+  const fsmash = mv(ch("マリオ"), "横スマッシュ");
+  assert.equal(C.formatHitboxes(fsmash, false).text, "14.7 / 17.8 (全シフト)");
+  assert.equal(C.formatHitboxes(fsmash, false).text.includes("先端"), false);
+  const nair = mv(ch("マリオ"), "空N");
+  assert.equal(C.formatHitboxes(nair, false).text, "8 · 5 (持続)");
+  const luc = ch("リュカ").moves.find((m) => (m.rows || []).some((r) => r.label === "火柱" && r.damage && r.damage.length === 2));
+  const side = C.formatHitboxes(luc, false).text;
+  assert.ok(side.includes("3 (炎)"));
+  assert.ok(side.includes("7 / 4 (火柱)"));
+  const samus = ch("サムス").moves.find((m) => m.name === "横強");
+  const ft = C.formatHitboxes(samus, false).text;
+  assert.ok(ft.includes("9 / 10 / 11 (上シフト)"));
+  assert.ok(ft.includes("8 / 9 / 10 (無シフト)"));
+  assert.ok(ft.includes("9 / 10 / 11 (下シフト)"));
+});
+
+test("1on1補正は表示ダメージだけ1.2倍し、硬直と有利は変えない", () => {
+  const utilt = mv(ch("マリオ"), "上強");
+  assert.equal(C.formatHitboxes(utilt, false).text, "5.5");
+  assert.equal(C.formatHitboxes(utilt, true).text, "6.6");
+  const adv = C.shieldAdvantage(utilt);
+  assert.equal(adv.primary, 18);
+  assert.equal(adv.primaryStun, 6);
+  const dtilt = C.formatHitboxes(mv(ch("マリオ"), "下強"), true);
+  assert.equal(dtilt.text, "hit1 8.4 / hit2 6");
+  assert.deepEqual(dtilt.items[0].stuns, [7, 6]);
+  assert.deepEqual(dtilt.items[0].base, [7, 5]);
+  const floorStun = (d, mult) => Math.floor(d * 0.8 * mult) + 2;
+  assert.equal(floorStun(5.5, 1), 6);
+  assert.equal(floorStun(7, 1), 7);
+  assert.equal(floorStun(5, 1), 6);
+  assert.equal(floorStun(14.7, 0.725), 10);
+  assert.equal(floorStun(17.8, 0.725), 12);
+  assert.equal(floorStun(8, 0.33), 4);
+  assert.notEqual(floorStun(5.5 * 1.2, 1), 6);
+});
+
+test("硬直の個数がダメージと合わない行は対応づけない", () => {
+  const mv = { name: "x", rows: [{ label: "炎", damage: [3, 1], stun: [2] }] };
+  const f = C.formatHitboxes(mv, false);
+  assert.equal(f.text, "3 / 1 (炎)");
+  assert.equal(f.items[0].stuns, null);
+});

@@ -4,7 +4,8 @@
   const C = window.PunishCalc;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const state = { me: 0, opp: 1, mode: "A", moveId: null, ps: false, mat: {}, group: 0 };
+  const state = { me: 0, opp: 1, mode: "A", moveId: null, ps: false, oo: false, mat: {}, group: 0 };
+  const OO_KEY = "punish.oo";
   let D, pushNext = false, overlay = null;
 
   const GROUPS = [
@@ -47,6 +48,9 @@
     if (q.has("opp")) state.opp = clampIdx(+q.get("opp"), state.opp);
     state.mode = q.get("mode") === "B" ? "B" : "A";
     state.ps = q.get("ps") === "1";
+    if (q.has("oo")) state.oo = q.get("oo") === "1";
+    else { try { state.oo = localStorage.getItem(OO_KEY) === "1"; } catch (e) { state.oo = false; } }
+    try { localStorage.setItem(OO_KEY, state.oo ? "1" : "0"); } catch (e) {}
     for (const [idx, key] of [[state.me, "mm"], [state.opp, "mo"]]) {
       const c = D.chars[idx];
       const v = q.get(key);
@@ -68,6 +72,7 @@
     p.set("g", String(state.group));
     if (state.moveId) p.set("move", state.moveId);
     if (state.ps) p.set("ps", "1");
+    p.set("oo", state.oo ? "1" : "0");
     const meC = D.chars[state.me], oppC = D.chars[state.opp];
     if (meC.materials.length) p.set("mm", matOf(state.me));
     if (oppC.materials.length) p.set("mo", matOf(state.opp));
@@ -99,6 +104,8 @@
     $("modeB").onclick = () => setMode("B");
     $("ps").onchange = (e) => setPs(e.target.checked);
     $("psDock").onchange = (e) => setPs(e.target.checked);
+    $("oo").onclick = (e) => { const b = e.target.closest("[data-oo]"); if (b) setOo(b.dataset.oo === "1"); };
+    $("ooDock").onclick = (e) => { const b = e.target.closest("[data-oo]"); if (b) setOo(b.dataset.oo === "1"); };
     $("flip").onclick = () => setMode(state.mode === "A" ? "B" : "A");
     $("detailBtn").onclick = openSheet;
     $("sheetBack").onclick = dismissOverlay;
@@ -151,6 +158,14 @@
     on = !!on;
     if (state.ps === on) return;
     state.ps = on;
+    pushNext = true;
+    render();
+  }
+  function setOo(on) {
+    on = !!on;
+    if (state.oo === on) return;
+    state.oo = on;
+    try { localStorage.setItem(OO_KEY, on ? "1" : "0"); } catch (e) {}
     pushNext = true;
     render();
   }
@@ -248,6 +263,11 @@
   function render() {
     document.body.classList.toggle("has-move", !!state.moveId);
     $("dock").hidden = !state.moveId;
+    for (const id of ["ooOff", "ooOn", "ooOffDock", "ooOnDock"]) {
+      const el = $(id);
+      if (el) el.setAttribute("aria-pressed", (id.indexOf("On") >= 0) === state.oo ? "true" : "false");
+    }
+    document.querySelectorAll('a[href^="table.html"]').forEach((a) => { a.hash = "oo=" + (state.oo ? "1" : "0"); });
     $("modeA").classList.toggle("on", state.mode === "A");
     $("modeB").classList.toggle("on", state.mode === "B");
     $("modeA").setAttribute("aria-selected", state.mode === "A" ? "true" : "false");
@@ -311,10 +331,19 @@
     const name = `${esc(shortName(move))}${move.input === "button" ? "［ボタン］" : move.input === "command" && move.category !== "command" ? "［コマンド］" : ""}`;
     let h = `<div class="sum"><div class="t">${attWho}の ${esc(att.name)}「${name}」${move.material ? "【" + esc(move.material) + "】" : ""}を${defWho}（${esc(def.name)}）がガード${state.ps ? "（ジャストシールド）" : ""}</div>`;
     if (move.command) h += `<div class="cmd">入力: ${esc(move.command)}${move.commandDerived ? "（シート備考から作成）" : ""}</div>`;
+    const hits = C.formatHitboxes(move, state.oo);
+    if (hits.text) h += `<div class="cmd">ダメージ ${esc(hits.text)}${state.oo ? "（1on1・基礎×1.2）" : ""}</div>`;
+    const hitList = hits.items.map((it) => {
+      const stunTxt = it.stuns ? it.stuns.map((s) => s + "F").join(" / ") : "—";
+      const base = state.oo ? `（基礎 ${it.base.map((n) => String(Math.round(n * 100) / 100)).join(" / ")}）` : "";
+      return `<li>${esc(it.text)}${base}　ガード硬直 ${stunTxt}</li>`;
+    }).join("");
     if (!a.ok) {
       h += `<div class="big neg" style="font-size:28px">対象外</div><div class="late">${esc(a.reason)}</div></div>`;
       $("result").innerHTML = h;
-      $("sheetBody").innerHTML = `<p>${esc(a.reason)}</p><p>数値は作りません。ページ下部の出典と、計算の前提を見てください。</p>`;
+      $("sheetBody").innerHTML = `<p>${esc(a.reason)}</p>` +
+        (hitList ? `<ul class="hits">${hitList}</ul>` : "") +
+        `<p>有利と確定の数値は作りません。ページ下部の出典と、計算の前提を見てください。</p>`;
       return;
     }
     const cls = a.primaryEff > 0 ? "pos" : a.primaryEff < 0 ? "neg" : "zero";
@@ -355,6 +384,8 @@
       : `空中攻撃。着地隙${a.landingLag}Fからガード硬直を引いた値で、着地直前に当てた場合の最小です。`;
     $("sheetTitle").textContent = shortName(move);
     $("sheetBody").innerHTML = `<p>${a.aerial ? airTxt : `地上の技。最速の判定${a.multiHit ? "（多段の最終段）" : ""}をガードした場合の有利は ${fmtAdv(a.primaryEff)}F。`}</p>` +
+      `<p>${state.oo ? "ダメージはシートの基礎ダメージ×1.2（1on1補正）です。ガード硬直はシートの値のままなので、有利と確定は変わりません。" : "ダメージはシートの基礎ダメージです。1on1補正は掛けていません。"}</p>` +
+      (hitList ? `<ul class="hits">${hitList}</ul>` : `<p>基礎ダメージはシートにありません。</p>`) +
       `<p>${a.lateUnknown ? "判定の終わりがシート上で不定なので、終わり際の数字は出していません。" : `判定の終わり際をガードした場合の有利は ${fmtAdv(a.worstEff)}F。カードの2行目は、そのときの猶予です。`}</p>` +
       `<p>密着が前提です。リーチと、ガードで押される距離は見ていません。コマンド入力の時間も含めていません。</p>` +
       (move.guardNote ? `<p>${esc(move.guardNote)}</p>` : "");

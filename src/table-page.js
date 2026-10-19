@@ -18,9 +18,19 @@
     ["adv", "ガード有利", ""],
     ["sure", "確定数", ""],
   ];
-  const ROW = 56;
-  const state = T.parseQuery(location.hash);
+  const ROW = 68;
+  const OO_KEY = "punish.oo";
+  const parsed = T.parseQuery(location.hash);
+  const state = parsed;
+  state.oo = parsed.oo == null ? storedOo() : parsed.oo;
   let rows = [], needs = [], chars = [], view = [], headH = 44, start = -1, end = -1, pushNext = false, sureMode, draft = [];
+
+  function storedOo() {
+    try { return localStorage.getItem(OO_KEY) === "1"; } catch (e) { return false; }
+  }
+  function rememberOo(on) {
+    try { localStorage.setItem(OO_KEY, on ? "1" : "0"); } catch (e) {}
+  }
 
   function fmt(key, v) {
     if (v == null || Number.isNaN(v)) return "—";
@@ -28,6 +38,10 @@
     if (key === "sure") return Number.isInteger(v) ? String(v) : v.toFixed(1);
     if (key === "damage") return String(Math.round(v * 10) / 10);
     return String(v);
+  }
+  function damageText(r) {
+    const f = C.formatParts(r.parts, state.oo);
+    return f.text || "—";
   }
   function writeHash() {
     const next = T.serialize(state);
@@ -49,7 +63,12 @@
     const preset = T.PRESET_BY_ID[state.preset];
     if (preset) bits.push(preset.label);
     bits.push(state.vs == null ? "確定数は全キャラ平均" : "確定数は対 " + (chars[state.vs] ? chars[state.vs].name : ""));
+    bits.push(state.oo ? "1on1補正あり（ダメージ×1.2）" : "1on1補正なし（基礎ダメージ）");
     $("meta").textContent = bits.join(" · ");
+    $("dmgAgg").innerHTML = [["max", "ダメージ最大"], ["min", "ダメージ最小"]].map(([id, label]) => `<button type="button" data-dmg="${id}" aria-pressed="${state.dmg === id}">${label}</button>`).join("");
+    $("ooOff").setAttribute("aria-pressed", state.oo ? "false" : "true");
+    $("ooOn").setAttribute("aria-pressed", state.oo ? "true" : "false");
+    document.querySelectorAll('a[href^="index.html"]').forEach((a) => { a.hash = "oo=" + (state.oo ? "1" : "0"); });
     $("head").innerHTML = `<span class="c-rank"></span>` + COLS.map(([key, label, side]) => {
       const on = state.sort === key;
       const aria = on ? (state.dir === "asc" ? "ascending" : "descending") : "none";
@@ -77,7 +96,10 @@
       const advCls = r.adv == null ? "" : r.adv > 0 ? "pos" : r.adv < 0 ? "neg" : "zero";
       const href = rowHref(r);
       h += `<a class="gridline row" style="height:${ROW}px" href="${esc(href)}"><span class="c-rank">${i + 1}</span><span class="c-name"><b>${esc(r.char)}</b><span>${esc(r.name)}</span>${r.sub ? `<small>${esc(r.sub)}</small>` : ""}</span><span class="c-kind">${esc(T.KIND_LABEL[r.kind])}</span>`;
-      for (const key of ["startup", "activeEnd", "total", "landing", "damage", "stun"]) h += `<span>${fmt(key, r[key])}</span>`;
+      for (const key of ["startup", "activeEnd", "total", "landing"]) h += `<span>${fmt(key, r[key])}</span>`;
+      const dmg = damageText(r);
+      h += `<span class="c-dmg" title="${esc(dmg)}">${esc(dmg)}</span>`;
+      h += `<span>${fmt("stun", r.stun)}</span>`;
       h += `<span class="${advCls}">${fmt("adv", r.adv)}</span><span>${fmt("sure", r.sure)}</span></a>`;
     }
     $("win").innerHTML = h;
@@ -91,12 +113,15 @@
     p.set("g", String(r.group));
     p.set("move", r.id);
     if (r.material) p.set("mo", r.material);
+    p.set("oo", state.oo ? "1" : "0");
     return "index.html#" + p.toString();
   }
   function apply(scrollTop) {
     if (state.vs != null && (state.vs < 0 || state.vs >= chars.length)) state.vs = null;
     state.chars = state.chars.filter((i) => chars[i]);
+    rememberOo(state.oo);
     if (sureMode !== state.vs) { T.fillSure(rows, needs, state.vs); sureMode = state.vs; }
+    T.applyDamageKey(rows, state.dmg);
     view = T.applyView(rows, state);
     start = end = -1;
     renderChrome();
@@ -123,6 +148,22 @@
     $("places").onclick = (e) => {
       const b = e.target.closest("[data-place]"); if (!b) return;
       state.place = b.dataset.place; pushNext = true; apply(true);
+    };
+    $("dmgAgg").onclick = (e) => {
+      const b = e.target.closest("[data-dmg]"); if (!b) return;
+      state.dmg = b.dataset.dmg === "min" ? "min" : "max";
+      state.sort = "damage";
+      state.dir = "desc";
+      state.preset = "";
+      pushNext = true; apply(true);
+    };
+    $("oo").onclick = (e) => {
+      const b = e.target.closest("[data-oo]"); if (!b) return;
+      const on = b.dataset.oo === "1";
+      if (state.oo === on) return;
+      state.oo = on;
+      rememberOo(on);
+      pushNext = true; apply(false);
     };
     $("picked").onclick = (e) => {
       const b = e.target.closest("[data-drop]"); if (!b) return;
@@ -151,7 +192,10 @@
     $("scroll").addEventListener("scroll", () => { paint(false); }, { passive: true });
     window.addEventListener("hashchange", () => {
       const n = T.parseQuery(location.hash);
+      const prevOo = state.oo;
       Object.assign(state, n);
+      if (n.oo == null) state.oo = prevOo;
+      else rememberOo(state.oo);
       $("q").value = state.text;
       apply(true);
     });
