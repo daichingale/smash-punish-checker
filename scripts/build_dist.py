@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """src/ と data/ から dist/ を作る。
-- dist/index.html: CSS・JS・データをすべて埋め込んだ単体HTML（スマホでファイルを開くだけで動く／そのまま静的公開できる）"""
-import json, pathlib, re
+- dist/index.html: CSS・JS・データをすべて埋め込んだ単体HTML（スマホでファイルを開くだけで動く／そのまま静的公開できる）
+- dist/manifest.webmanifest, icon.svg, sw.js: ホーム画面追加とオフライン用（ネットワーク優先）"""
+import hashlib, json, pathlib, re
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 src, data, dist = ROOT / "src", ROOT / "data", ROOT / "dist"
 dist.mkdir(exist_ok=True)
@@ -22,4 +23,26 @@ html = re.sub(r"<!--STYLE-->.*?<!--/STYLE-->", lambda m: f"<style>{css}</style>"
 html = re.sub(r"<!--DATA-->.*?<!--/DATA-->", lambda m: f"<script>window.__DATA__={blob};</script>", html, flags=re.S)
 html = re.sub(r"<!--SCRIPTS-->.*?<!--/SCRIPTS-->", lambda m: f"<script>{calc}</script><script>{app}</script>", html, flags=re.S)
 (dist / "index.html").write_text(html, encoding="utf-8")
+stamp = hashlib.sha256(html.encode()).hexdigest()[:10]
+(dist / "manifest.webmanifest").write_text(json.dumps({
+    "name": "スマブラSP 確定反撃チェッカー",
+    "short_name": "確定反撃",
+    "start_url": "./index.html",
+    "scope": "./",
+    "display": "standalone",
+    "background_color": "#0e1116",
+    "theme_color": "#0e1116",
+    "lang": "ja",
+    "icons": [{"src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}],
+}, ensure_ascii=False, indent=2), encoding="utf-8")
+(dist / "icon.svg").write_text(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#6cb4ff"/>'
+    '<text x="32" y="42" text-anchor="middle" font-size="26" font-family="sans-serif" font-weight="700" fill="#04121f">+F</text></svg>',
+    encoding="utf-8")
+(dist / "sw.js").write_text(
+    f'const CACHE="punish-{stamp}";\n'
+    'self.addEventListener("install",()=>self.skipWaiting());\n'
+    'self.addEventListener("activate",e=>e.waitUntil((async()=>{const ks=await caches.keys();await Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)));await self.clients.claim();})()));\n'
+    'self.addEventListener("fetch",e=>{if(e.request.method!=="GET")return;e.respondWith((async()=>{try{const res=await fetch(e.request);if(res.ok){const c=await caches.open(CACHE);c.put(e.request,res.clone());}return res;}catch(err){const hit=await caches.match(e.request);if(hit)return hit;throw err;}})());});\n',
+    encoding="utf-8")
 print("dist/index.html", len(html.encode()) // 1024, "KB")

@@ -25,6 +25,7 @@ const path = require("path");
   // 2) 自分=リュウ / 相手=カズヤ、コマンド技（雷神拳）
   await page.goto(url + `#me=${idx("リュウ")}&opp=${idx("カズヤ")}`);
   await page.reload();
+  await page.click("#groups button:has-text('コマンド')");
   await page.click(".mv:has-text('雷神拳')");
   await page.waitForTimeout(600);
   await page.waitForTimeout(300);
@@ -35,6 +36,7 @@ const path = require("path");
   await page.reload();
   await page.click("#modeB");
   await page.click(".chip:has-text('鉄')");
+  await page.click("#groups button:has-text('スマッシュ')");
   await page.click(".mv:has-text('横スマッシュ')");
   await page.waitForTimeout(300);
   await page.evaluate(() => window.scrollTo(0, 0));
@@ -43,6 +45,7 @@ const path = require("path");
   // 4) 新規キャラ: 自分=テリー / 相手=ケン 鉈落とし蹴り（コマンド専用ワザ）
   await page.goto(url + `#me=${idx("テリー")}&opp=${idx("ケン")}`);
   await page.reload();
+  await page.click("#groups button:has-text('コマンド')");
   await page.click(".mv:has-text('鉈落とし蹴り')");
   await page.waitForTimeout(800);
   await page.screenshot({ path: `${shots}/04_terry_vs_ken_natade.png`, fullPage: false });
