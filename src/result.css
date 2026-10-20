@@ -31,6 +31,13 @@ img{max-width:100%}
 .split.end label{flex:0 1 140px}
 #showN{width:88px}
 #applyN,.toolbtns button,.place > button,.lib button,.picker-head button{min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--bg);font-weight:750}
+.top8look{margin:0 12px 8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;max-width:100%}
+.top8look > span{font-size:13px;font-weight:750;color:var(--sub)}
+.top8look [role="group"]{display:flex;flex-wrap:wrap;gap:6px}
+.top8look button{min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--bg);font-weight:750}
+.top8look button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.top8look label{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:750;color:var(--sub);margin:0}
+.top8look input[type="color"]{width:44px;height:44px;padding:0;border:1px solid var(--line);border-radius:12px;background:transparent}
 .toolbtns{padding:0 12px 8px;display:flex;flex-wrap:wrap;gap:6px}
 .toolbtns.tight{padding:0}
 .card .toolbtns{padding:0}
