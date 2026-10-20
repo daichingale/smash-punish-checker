@@ -710,6 +710,58 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     });
   }
 
+  function boundsOf(objects) {
+    if (!objects || !objects.length) return null;
+    let x1 = Infinity;
+    let y1 = Infinity;
+    let x2 = -Infinity;
+    let y2 = -Infinity;
+    objects.forEach((o) => {
+      x1 = Math.min(x1, o.x);
+      y1 = Math.min(y1, o.y);
+      x2 = Math.max(x2, o.x + o.w);
+      y2 = Math.max(y2, o.y + o.h);
+    });
+    return { x: x1, y: y1, w: x2 - x1, h: y2 - y1 };
+  }
+
+  /** mode: left / centerX / right / top / centerY / bottom。ref はキャンバスか選択範囲。 */
+  function alignObjects(objects, ids, mode, ref) {
+    const want = new Set(ids);
+    return objects.map((o) => {
+      if (!want.has(o.id)) return o;
+      const n = Object.assign({}, o);
+      if (mode === "left") n.x = ref.x;
+      else if (mode === "centerX") n.x = ref.x + (ref.w - o.w) / 2;
+      else if (mode === "right") n.x = ref.x + ref.w - o.w;
+      else if (mode === "top") n.y = ref.y;
+      else if (mode === "centerY") n.y = ref.y + (ref.h - o.h) / 2;
+      else if (mode === "bottom") n.y = ref.y + ref.h - o.h;
+      return n;
+    });
+  }
+
+  /** 矩形の中心がキャンバス中央に近ければ吸い付く。guides は縦線 v / 横線 h。 */
+  function snapCenter(rect, canvasW, canvasH, threshold) {
+    const limit = threshold > 0 ? threshold : 0;
+    const cx = rect.x + rect.w / 2;
+    const cy = rect.y + rect.h / 2;
+    const midX = canvasW / 2;
+    const midY = canvasH / 2;
+    let x = rect.x;
+    let y = rect.y;
+    const guides = [];
+    if (Math.abs(cx - midX) <= limit) {
+      x = midX - rect.w / 2;
+      guides.push("v");
+    }
+    if (Math.abs(cy - midY) <= limit) {
+      y = midY - rect.h / 2;
+      guides.push("h");
+    }
+    return { x: x, y: y, guides: guides };
+  }
+
   function bringForward(objects, id) {
     return reorder(objects, id, 1);
   }
@@ -786,7 +838,8 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
 
   const api = {
     PRESETS, HANDLES, pickPreset, containRect, handlePoint, hitTest,
-    resizeFree, resizeUniform, moveObject, scaleObjects, bringForward, sendBackward, buildPdf,
+    resizeFree, resizeUniform, moveObject, scaleObjects, boundsOf, alignObjects, snapCenter,
+    bringForward, sendBackward, buildPdf,
   };
 
   if (typeof document === "undefined") {
@@ -830,6 +883,14 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
 .ip-layers li button.name{flex:1;text-align:left;background:transparent;border:none;border-radius:0;min-height:40px}
 .ip-layers li button.mini{min-height:32px;padding:4px 8px}
 .ip-lock{padding:10px 8px;color:#aaa}
+.ip-align{margin:0 0 12px}
+.ip-align-row,.ip-align-ref{display:flex;flex-wrap:wrap;gap:4px;max-width:100%}
+.ip-align-btn{width:40px;min-width:40px;min-height:40px;padding:4px;display:flex;align-items:center;justify-content:center}
+.ip-align-btn svg{width:22px;height:22px;display:block}
+.ip-align-ref{margin-top:6px}
+.ip-align-ref button{flex:1}
+.ip-align-ref button[aria-pressed=true],.ip-addsel[aria-pressed=true]{background:#1f6feb;border-color:#9cc4ff}
+.ip-addsel{margin-top:6px;width:100%}
 .ip-tabs{display:flex;background:#2c2c2c;border-top:1px solid #111;padding-bottom:env(safe-area-inset-bottom)}
 .ip-tabs button{flex:1;border:none;border-radius:0;background:transparent;min-height:48px}
 .ip-tabs button[aria-pressed=true]{color:#9cc4ff}
@@ -956,21 +1017,46 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     model.objects.forEach((obj) => drawObject(g, obj));
     if (model.draft) drawObject(g, model.draft);
     g.restore();
-    if (!opts || !opts.handles || !model.selected) return;
-    const sel = model.objects.find((o) => o.id === model.selected);
-    if (!sel) return;
-    const inv = opts.invZoom || 1;
+    const inv = (opts && opts.invZoom) || 1;
+    const ids = model.selection && model.selection.length
+      ? model.selection
+      : (model.selected != null ? [model.selected] : []);
+    if (opts && opts.handles && ids.length) {
+      g.save();
+      g.strokeStyle = "#4c9aff";
+      g.lineWidth = 1.5 * inv;
+      const size = 8 * inv;
+      ids.forEach((id) => {
+        const sel = model.objects.find((o) => o.id === id);
+        if (!sel) return;
+        g.strokeRect(sel.x, sel.y, sel.w, sel.h);
+        if (ids.length !== 1) return;
+        g.fillStyle = "#ffffff";
+        HANDLES.forEach((handle) => {
+          const p = handlePoint(sel, handle);
+          g.fillRect(p.x - size / 2, p.y - size / 2, size, size);
+          g.strokeRect(p.x - size / 2, p.y - size / 2, size, size);
+        });
+      });
+      g.restore();
+    }
+    if (!opts || !opts.guides || !opts.guides.length) return;
     g.save();
-    g.strokeStyle = "#4c9aff";
+    g.strokeStyle = "#ff2bd6";
     g.lineWidth = 1.5 * inv;
-    g.strokeRect(sel.x, sel.y, sel.w, sel.h);
-    const size = 8 * inv;
-    g.fillStyle = "#ffffff";
-    HANDLES.forEach((handle) => {
-      const p = handlePoint(sel, handle);
-      g.fillRect(p.x - size / 2, p.y - size / 2, size, size);
-      g.strokeRect(p.x - size / 2, p.y - size / 2, size, size);
-    });
+    g.setLineDash([8 * inv, 6 * inv]);
+    if (opts.guides.indexOf("v") >= 0) {
+      g.beginPath();
+      g.moveTo(w / 2, 0);
+      g.lineTo(w / 2, h);
+      g.stroke();
+    }
+    if (opts.guides.indexOf("h") >= 0) {
+      g.beginPath();
+      g.moveTo(0, h / 2);
+      g.lineTo(w, h / 2);
+      g.stroke();
+    }
     g.restore();
   }
 
@@ -988,6 +1074,18 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     text: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 5h14v3h-5.2v11h-3.6V8H5z"/></svg>',
     rect: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="16" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
     ellipse: '<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="12" rx="8" ry="6" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+  };
+  const ALIGN_ICON = {
+    left: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="2.5" height="18" fill="currentColor"/><rect x="7.5" y="6" width="8" height="12" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+    centerX: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="10.75" y="3" width="2.5" height="18" fill="currentColor"/><rect x="6" y="7" width="12" height="10" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+    right: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="18.5" y="3" width="2.5" height="18" fill="currentColor"/><rect x="8.5" y="6" width="8" height="12" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+    top: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="2.5" fill="currentColor"/><rect x="6" y="7.5" width="12" height="8" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+    centerY: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="10.75" width="18" height="2.5" fill="currentColor"/><rect x="7" y="6" width="10" height="12" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+    bottom: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="18.5" width="18" height="2.5" fill="currentColor"/><rect x="6" y="8.5" width="12" height="8" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+  };
+  const ALIGN_LABEL = {
+    left: "左へ揃える", centerX: "水平方向の中央へ揃える", right: "右へ揃える",
+    top: "上へ揃える", centerY: "垂直方向の中央へ揃える", bottom: "下へ揃える",
   };
 
   function toolButton(id, label) {
@@ -1019,6 +1117,10 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
       preset: presetById(presetId),
       objects: [],
       selected: null,
+      selection: [],
+      guides: [],
+      alignRef: "canvas",
+      addSelect: false,
       draft: null,
       tool: "select",
       nextId: 1,
@@ -1119,7 +1221,8 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
       state.bg = data.bg;
       state.preset = presetById(data.preset);
       state.objects = data.objects;
-      if (state.selected != null && !state.objects.some((o) => o.id === state.selected)) state.selected = null;
+      state.selection = state.selection.filter((id) => state.objects.some((o) => o.id === id));
+      state.selected = state.selection.length ? state.selection[state.selection.length - 1] : null;
       bgInput.value = /^#[0-9a-fA-F]{6}$/.test(state.bg) ? state.bg : "#ffffff";
       syncPresetButtons();
       renderLayers();
@@ -1166,6 +1269,29 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     function selectedObject() {
       return state.objects.find((o) => o.id === state.selected) || null;
     }
+    function setSelection(ids) {
+      const unique = [];
+      (ids || []).forEach((id) => {
+        if (state.objects.some((o) => o.id === id) && unique.indexOf(id) < 0) unique.push(id);
+      });
+      state.selection = unique;
+      state.selected = unique.length ? unique[unique.length - 1] : null;
+    }
+    function choose(id, additive) {
+      if (id == null) {
+        setSelection([]);
+        return;
+      }
+      if (additive) {
+        if (state.selection.indexOf(id) >= 0) setSelection(state.selection.filter((item) => item !== id));
+        else setSelection(state.selection.concat([id]));
+        return;
+      }
+      if (state.selection.indexOf(id) < 0 || state.selection.length !== 1) setSelection([id]);
+    }
+    function additiveEvent(e) {
+      return !!(e && (e.shiftKey || e.metaKey || e.ctrlKey)) || state.addSelect;
+    }
     function fit() {
       const sw = stage.clientWidth;
       const sh = stage.clientHeight;
@@ -1207,7 +1333,7 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
       ctx.save();
       ctx.translate(state.view.panX, state.view.panY);
       ctx.scale(state.view.zoom, state.view.zoom);
-      paintArtboard(ctx, state, { handles: true, invZoom: 1 / state.view.zoom });
+      paintArtboard(ctx, state, { handles: true, invZoom: 1 / state.view.zoom, guides: state.guides });
       ctx.restore();
       rootEl.querySelector('[data-act="zoomlabel"]').textContent = Math.round(state.view.zoom * 100) + "%";
     }
@@ -1225,13 +1351,88 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     function canvasBlob(type, quality) {
       return new Promise((resolve) => exportCanvas().toBlob((blob) => resolve(blob), type, quality));
     }
+    function renderAlign() {
+      const box = document.createElement("section");
+      box.className = "ip-align";
+      const title = document.createElement("h2");
+      title.textContent = "整列";
+      box.appendChild(title);
+      const row = document.createElement("div");
+      row.className = "ip-align-row";
+      row.setAttribute("role", "group");
+      row.setAttribute("aria-label", "整列");
+      ["left", "centerX", "right", "top", "centerY", "bottom"].forEach((mode) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "ip-align-btn";
+        btn.dataset.align = mode;
+        btn.setAttribute("aria-label", ALIGN_LABEL[mode]);
+        btn.title = ALIGN_LABEL[mode];
+        btn.innerHTML = ALIGN_ICON[mode];
+        btn.disabled = state.selection.length === 0;
+        btn.onclick = () => applyAlign(mode);
+        row.appendChild(btn);
+      });
+      box.appendChild(row);
+      if (state.selection.length > 1) {
+        const ref = document.createElement("div");
+        ref.className = "ip-align-ref";
+        ref.setAttribute("role", "group");
+        ref.setAttribute("aria-label", "整列の基準");
+        [["canvas", "キャンバス"], ["selection", "選択範囲"]].forEach((pair) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.textContent = pair[1];
+          btn.setAttribute("aria-pressed", state.alignRef === pair[0] ? "true" : "false");
+          btn.onclick = () => {
+            state.alignRef = pair[0];
+            renderProps();
+          };
+          ref.appendChild(btn);
+        });
+        box.appendChild(ref);
+      }
+      const add = document.createElement("button");
+      add.type = "button";
+      add.className = "ip-addsel";
+      add.textContent = "複数選択";
+      add.setAttribute("aria-pressed", state.addSelect ? "true" : "false");
+      add.onclick = () => {
+        state.addSelect = !state.addSelect;
+        renderProps();
+      };
+      box.appendChild(add);
+      propsEl.appendChild(box);
+    }
+    function applyAlign(mode) {
+      if (!state.selection.length) return;
+      const chosen = state.objects.filter((o) => state.selection.indexOf(o.id) >= 0);
+      const ref = state.selection.length > 1 && state.alignRef === "selection"
+        ? boundsOf(chosen)
+        : { x: 0, y: 0, w: state.preset.w, h: state.preset.h };
+      state.objects = alignObjects(state.objects, state.selection.slice(), mode, ref);
+      pushHistory();
+      renderCanvas();
+    }
     function renderProps() {
-      const obj = selectedObject();
-      propsEl.innerHTML = "<h2>調整</h2>";
+      const obj = state.selection.length === 1 ? selectedObject() : null;
+      propsEl.innerHTML = "";
+      renderAlign();
+      const heading = document.createElement("h2");
+      heading.textContent = "調整";
+      propsEl.appendChild(heading);
+      if (state.selection.length > 1) {
+        const p = document.createElement("p");
+        p.className = "ip-help";
+        p.textContent = state.selection.length + "個を選択中。整列の基準をキャンバスか選択範囲から選べます。";
+        propsEl.appendChild(p);
+        propsEl.appendChild(actionButton("削除", () => removeSelected()));
+        return;
+      }
       if (!obj) {
         const p = document.createElement("p");
         p.className = "ip-help";
-        p.textContent = "選択で文字や図形を選べます。文字は置きたい場所をタップします。四角と円はドラッグで描きます。";
+        p.textContent = "選択で文字や図形を選べます。文字は置きたい場所をタップします。四角と円はドラッグで描きます。Shiftか「複数選択」でまとめて選べます。";
         propsEl.appendChild(p);
         return;
       }
@@ -1358,12 +1559,12 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
       const ul = document.createElement("ul");
       state.objects.slice().reverse().forEach((obj) => {
         const li = document.createElement("li");
-        if (obj.id === state.selected) li.className = "on";
+        if (state.selection.indexOf(obj.id) >= 0) li.className = "on";
         const name = document.createElement("button");
         name.type = "button";
         name.className = "name";
         name.textContent = layerName(obj);
-        name.onclick = () => select(obj.id);
+        name.onclick = (e) => select(obj.id, additiveEvent(e));
         const up = mini("上へ", () => {
           state.objects = bringForward(state.objects, obj.id);
           pushHistory();
@@ -1398,20 +1599,30 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
       btn.onclick = onclick;
       return btn;
     }
-    function select(id) {
-      state.selected = id;
+    function select(id, additive) {
+      choose(id, additive);
       renderProps();
       renderLayers();
       renderCanvas();
     }
     function removeSelected() {
-      if (state.selected == null) return;
-      state.objects = state.objects.filter((o) => o.id !== state.selected);
-      state.selected = null;
+      if (!state.selection.length) return;
+      const drop = new Set(state.selection);
+      state.objects = state.objects.filter((o) => !drop.has(o.id));
+      setSelection([]);
       pushHistory();
       renderProps();
       renderLayers();
       renderCanvas();
+    }
+    function beginMove(id, p) {
+      const ids = state.selection.indexOf(id) >= 0 ? state.selection.slice() : [id];
+      const origins = {};
+      ids.forEach((oid) => {
+        const o = state.objects.find((item) => item.id === oid);
+        if (o) origins[oid] = { x: o.x, y: o.y, w: o.w, h: o.h };
+      });
+      state.drag = { kind: "move", ids: ids, origins: origins, x: p.x, y: p.y };
     }
     function addText(p) {
       const fontSize = Math.max(28, Math.round(state.preset.h * 0.045));
@@ -1434,7 +1645,7 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
       obj.x = moved.x;
       obj.y = moved.y;
       state.objects.push(obj);
-      state.selected = obj.id;
+      setSelection([obj.id]);
       setTool("select");
       pushHistory();
       renderProps();
@@ -1473,22 +1684,26 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
         state.draft = null;
         return;
       }
-      const hit = hitTest(state.objects, p.x, p.y, state.selected, hitRadius());
+      const handleId = state.selection.length === 1 ? state.selection[0] : null;
+      const hit = hitTest(state.objects, p.x, p.y, handleId, hitRadius());
       if (hit && hit.handle) {
         const obj = state.objects.find((o) => o.id === hit.id);
         state.drag = { kind: "resize", id: hit.id, handle: hit.handle, origin: Object.assign({}, obj) };
         return;
       }
       if (hit) {
-        const obj = state.objects.find((o) => o.id === hit.id);
-        state.selected = hit.id;
-        state.drag = { kind: "move", id: hit.id, x: p.x, y: p.y, origin: { x: obj.x, y: obj.y } };
+        const additive = additiveEvent(e);
+        const already = state.selection.indexOf(hit.id) >= 0;
+        if (!already) setSelection(additive ? state.selection.concat([hit.id]) : [hit.id]);
+        beginMove(hit.id, p);
+        state.drag.toggleOff = additive && already;
+        state.drag.toggleId = hit.id;
         renderProps();
         renderLayers();
         renderCanvas();
         return;
       }
-      state.selected = null;
+      if (!additiveEvent(e)) setSelection([]);
       renderProps();
       renderLayers();
       renderCanvas();
@@ -1518,21 +1733,37 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
         renderCanvas();
         return;
       }
-      const obj = state.objects.find((o) => o.id === state.drag.id);
-      if (!obj) return;
       if (state.drag.kind === "move") {
-        const moved = moveObject(
-          { x: state.drag.origin.x, y: state.drag.origin.y, w: obj.w, h: obj.h },
-          p.x - state.drag.x,
-          p.y - state.drag.y,
-          state.preset.w,
-          state.preset.h
-        );
-        obj.x = moved.x;
-        obj.y = moved.y;
+        const dx = p.x - state.drag.x;
+        const dy = p.y - state.drag.y;
+        const preview = state.drag.ids.map((id) => {
+          const origin = state.drag.origins[id];
+          return { id: id, x: origin.x + dx, y: origin.y + dy, w: origin.w, h: origin.h };
+        });
+        const box = boundsOf(preview);
+        const snapped = snapCenter(box, state.preset.w, state.preset.h, 10 / state.view.zoom);
+        const sdx = snapped.x - box.x;
+        const sdy = snapped.y - box.y;
+        state.drag.ids.forEach((id) => {
+          const origin = state.drag.origins[id];
+          const obj = state.objects.find((item) => item.id === id);
+          if (!obj || !origin) return;
+          const placed = moveObject(
+            { x: origin.x + dx + sdx, y: origin.y + dy + sdy, w: origin.w, h: origin.h },
+            0, 0, state.preset.w, state.preset.h
+          );
+          obj.x = placed.x;
+          obj.y = placed.y;
+        });
+        const after = boundsOf(state.drag.ids.map((id) => state.objects.find((o) => o.id === id)).filter(Boolean));
+        state.guides = [];
+        if (after && Math.abs(after.x + after.w / 2 - state.preset.w / 2) < 0.6) state.guides.push("v");
+        if (after && Math.abs(after.y + after.h / 2 - state.preset.h / 2) < 0.6) state.guides.push("h");
         renderCanvas();
         return;
       }
+      const obj = state.objects.find((o) => o.id === state.drag.id);
+      if (!obj) return;
       const next = obj.type === "text"
         ? resizeUniform(state.drag.origin, state.drag.handle, p.x, p.y)
         : resizeFree(state.drag.origin, state.drag.handle, p.x, p.y);
@@ -1555,13 +1786,22 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
         if (clipped.w >= 8 && clipped.h >= 8) {
           const obj = Object.assign({ id: state.nextId++ }, state.draft, clipped);
           state.objects.push(obj);
-          state.selected = obj.id;
+          setSelection([obj.id]);
           setTool("select");
           if (window.innerWidth < 900) showTab("props", true);
         }
       }
+      if (state.drag.kind === "move" && state.drag.toggleOff) {
+        const still = state.drag.ids.every((id) => {
+          const origin = state.drag.origins[id];
+          const obj = state.objects.find((item) => item.id === id);
+          return obj && origin && Math.abs(obj.x - origin.x) < 1 && Math.abs(obj.y - origin.y) < 1;
+        });
+        if (still) choose(state.drag.ids[state.drag.ids.length - 1], true);
+      }
       state.draft = null;
       state.drag = null;
+      state.guides = [];
       pushHistory();
       renderProps();
       renderLayers();
