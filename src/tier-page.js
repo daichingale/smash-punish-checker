@@ -31,7 +31,9 @@
   function chipHtml(index, picked) {
     const c = roster[index];
     const no = N.charNo(c);
-    return `<div class="chipwrap${picked ? " on" : ""}" data-i="${index}"><button type="button" class="chip" aria-pressed="${picked ? "true" : "false"}"><img src="${iconSrc(index, 1)}" alt="" width="72" height="72" loading="lazy" decoding="async"><b>${esc(c.name)}</b><small>${esc(no)}</small></button></div>`;
+    const name = N.faceName(c.name);
+    const num = c.name === "ゼニガメ" ? "33-35" : c.name === "ホムラ" ? "79-80" : no;
+    return `<div class="chipwrap${picked ? " on" : ""}" data-i="${index}"><button type="button" class="chip" aria-pressed="${picked ? "true" : "false"}"><img src="${iconSrc(index, 1)}" alt="" width="72" height="72" loading="lazy" decoding="async"><b>${esc(name)}</b><small>${esc(num)}</small></button></div>`;
   }
   function renderTiers() {
     $("board").innerHTML = state.tiers.map((tier, i) => {
@@ -80,7 +82,7 @@
   }
   function renderPool() {
     const all = T.poolIndices(state, roster.length);
-    const shown = T.filterPool(all, roster, $("q").value, N.haystack, N.norm, N.charNo);
+    const shown = T.filterPool(all, roster, $("q").value, N.groupHaystack, N.norm, N.charNo);
     $("poolTitle").textContent = shown.length === all.length ? `未配置 ${all.length}` : `未配置 ${shown.length} / ${all.length}`;
     $("poolChips").innerHTML = shown.length
       ? shown.map((n) => chipHtml(n, n === selected)).join("")
@@ -92,7 +94,7 @@
     if (selected == null || !roster[selected]) { bar.hidden = true; document.body.classList.remove("has-sel"); return; }
     document.body.classList.add("has-sel");
     bar.hidden = false;
-    $("selname").textContent = roster[selected].name;
+    $("selname").textContent = N.faceName(roster[selected].name);
     const img = $("selimg");
     img.src = iconSrc(selected, 1);
     img.alt = "";
@@ -361,7 +363,7 @@
         g.fillStyle = text;
         g.font = nameFont;
         g.textAlign = "center";
-        const lines = nameLines(g, roster[fi].name, cellW - 8);
+        const lines = nameLines(g, N.faceName(roster[fi].name), cellW - 8);
         lines.forEach((line, li) => g.fillText(line, cx + cellW / 2, cy + imgSize + 22 + li * 16));
         g.textAlign = "left";
       });

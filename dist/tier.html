@@ -123,7 +123,7 @@ footer{padding:8px 12px calc(16px + env(safe-area-inset-bottom));color:var(--sub
 <p id="toast" hidden role="status"></p>
 <footer>
   <a href="index.html">反撃チェック</a> · <a href="table.html">全技のフレーム表</a> · <a href="result.html">リザルト</a><br>
-  ファイター画像は <a href="https://www.smashbros.com/ja_JP/fighter/index.html" target="_blank" rel="noopener">大乱闘スマッシュブラザーズ SPECIAL 公式サイト</a>の切り抜きです。画面上は小さい版、画像の書き出しだけ高解像度版を読みます。ポケモントレーナー（ゼニガメ・フシギソウ・リザードン）、Miiファイター、ホムラ／ヒカリは公式の集合画像から切り出しています。出どころは fighters/SOURCES.json に記録しています。<br>
+  ファイター画像は <a href="https://www.smashbros.com/ja_JP/fighter/index.html" target="_blank" rel="noopener">大乱闘スマッシュブラザーズ SPECIAL 公式サイト</a>の切り抜きです。画面上は小さい版、画像の書き出しだけ高解像度版を読みます。ポケモントレーナーとホムラ／ヒカリは公式の集合画像をそのまま使います（単体の切り抜きは公式サイトにありません）。Miiファイターは同じ集合画像を、重ならない範囲で格闘・剣術・射撃に分けています。出どころは fighters/SOURCES.json に記録しています。<br>
   © Nintendo / HAL Laboratory, Inc. 画像・キャラクターの権利は各権利者に帰属します。<br>
   ファイター名の区分は、フレームシートの並び（<a href="https://docs.google.com/spreadsheets/d/15SClMwvDIqovtO3DJnf1GGIteH35UX3IM7-mnbdG6eE/edit" target="_blank" rel="noopener">スマブラSP検証窓</a>）に合わせています。<br>
   このページは個人が作った非公式の試作です。任天堂・HAL研究所・検証窓とは関係ありません。表示内容の正確さは保証しません。
@@ -158,8 +158,16 @@ const READ = { "マリオ": "まりお mario", "ドンキーコング": "どん�
   "ベレト／ベレス": "べれとべれす byleth", "ミェンミェン": "みぇんみぇん minmin", "スティーブ／アレックス": "すてぃーぶあれっくす steve alex", "セフィロス": "せふぃろす sephiroth",
   "ホムラ": "ほむら pyra homura", "ヒカリ": "ひかり mythra hikari", "カズヤ": "かずや kazuya", "ソラ": "そら sora" };
 const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || "") + " " + Object.keys(ALIAS).filter((k) => c.name.includes(k)).map((k) => ALIAS[k]).join(" "));
+// リザルトとティアの選択だけ、集合画像の代表に仲間の名前でも辿り着けるようにする
+const groupHaystack = (c) => {
+  const extra = c.name === "ゼニガメ" ? "ポケモントレーナー フシギソウ リザードン ふしぎそう りざーどん ivysaur charizard pokemontrainer 34 35"
+    : c.name === "ホムラ" ? "ホムラ／ヒカリ ヒカリ ひかり mythra 80"
+    : "";
+  return haystack(c) + norm(extra);
+};
+const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナー" : name === "ホムラ" ? "ホムラ／ヒカリ" : name;
 
-  const api = { norm, charNo, haystack };
+  const api = { norm, charNo, haystack, groupHaystack, faceName };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.Names = api;
 })(typeof window !== "undefined" ? window : globalThis);
@@ -189,11 +197,20 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     };
   }
 
+  // リザルト／ティアの選択に出さない。読み込み時は代表idへ寄せる。
+  function portraitId(n) {
+    if (n === 38 || n === 39) return 37;
+    if (n === 86) return 85;
+    return n;
+  }
+  function hiddenPortrait(n) {
+    return n === 38 || n === 39 || n === 86;
+  }
   function poolIndices(state, count) {
     const used = new Set();
-    for (const row of state.rows) for (const i of row) used.add(i);
+    for (const row of state.rows) for (const i of row) used.add(portraitId(i));
     const out = [];
-    for (let i = 0; i < count; i++) if (!used.has(i)) out.push(i);
+    for (let i = 0; i < count; i++) if (!hiddenPortrait(i) && !used.has(i)) out.push(i);
     return out;
   }
 
@@ -301,9 +318,11 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
       if (!Array.isArray(src)) return null;
       const row = [];
       for (const n of src) {
-        if (!Number.isInteger(n) || n < 0 || n >= count || seen.has(n)) continue;
-        seen.add(n);
-        row.push(n);
+        if (!Number.isInteger(n) || n < 0 || n >= count) continue;
+        const id = portraitId(n);
+        if (id < 0 || id >= count || seen.has(id)) continue;
+        seen.add(id);
+        row.push(id);
       }
       rows.push(row);
     }
@@ -332,6 +351,7 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     DEFAULT_COLORS, DEFAULT_NAMES, MAX_TIERS, MAX_NAME,
     validColor, defaultState, cloneState, poolIndices,
     moveFighter, toPool, addTier, removeTier, moveTier, renameTier, recolorTier,
+    portraitId, hiddenPortrait,
     compact, encode, decode, filterPool, ink,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
@@ -1858,7 +1878,9 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
   function chipHtml(index, picked) {
     const c = roster[index];
     const no = N.charNo(c);
-    return `<div class="chipwrap${picked ? " on" : ""}" data-i="${index}"><button type="button" class="chip" aria-pressed="${picked ? "true" : "false"}"><img src="${iconSrc(index, 1)}" alt="" width="72" height="72" loading="lazy" decoding="async"><b>${esc(c.name)}</b><small>${esc(no)}</small></button></div>`;
+    const name = N.faceName(c.name);
+    const num = c.name === "ゼニガメ" ? "33-35" : c.name === "ホムラ" ? "79-80" : no;
+    return `<div class="chipwrap${picked ? " on" : ""}" data-i="${index}"><button type="button" class="chip" aria-pressed="${picked ? "true" : "false"}"><img src="${iconSrc(index, 1)}" alt="" width="72" height="72" loading="lazy" decoding="async"><b>${esc(name)}</b><small>${esc(num)}</small></button></div>`;
   }
   function renderTiers() {
     $("board").innerHTML = state.tiers.map((tier, i) => {
@@ -1907,7 +1929,7 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
   }
   function renderPool() {
     const all = T.poolIndices(state, roster.length);
-    const shown = T.filterPool(all, roster, $("q").value, N.haystack, N.norm, N.charNo);
+    const shown = T.filterPool(all, roster, $("q").value, N.groupHaystack, N.norm, N.charNo);
     $("poolTitle").textContent = shown.length === all.length ? `未配置 ${all.length}` : `未配置 ${shown.length} / ${all.length}`;
     $("poolChips").innerHTML = shown.length
       ? shown.map((n) => chipHtml(n, n === selected)).join("")
@@ -1919,7 +1941,7 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     if (selected == null || !roster[selected]) { bar.hidden = true; document.body.classList.remove("has-sel"); return; }
     document.body.classList.add("has-sel");
     bar.hidden = false;
-    $("selname").textContent = roster[selected].name;
+    $("selname").textContent = N.faceName(roster[selected].name);
     const img = $("selimg");
     img.src = iconSrc(selected, 1);
     img.alt = "";
@@ -2188,7 +2210,7 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
         g.fillStyle = text;
         g.font = nameFont;
         g.textAlign = "center";
-        const lines = nameLines(g, roster[fi].name, cellW - 8);
+        const lines = nameLines(g, N.faceName(roster[fi].name), cellW - 8);
         lines.forEach((line, li) => g.fillText(line, cx + cellW / 2, cy + imgSize + 22 + li * 16));
         g.textAlign = "left";
       });

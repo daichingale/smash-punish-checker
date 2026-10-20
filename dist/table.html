@@ -462,8 +462,16 @@ const READ = { "マリオ": "まりお mario", "ドンキーコング": "どん�
   "ベレト／ベレス": "べれとべれす byleth", "ミェンミェン": "みぇんみぇん minmin", "スティーブ／アレックス": "すてぃーぶあれっくす steve alex", "セフィロス": "せふぃろす sephiroth",
   "ホムラ": "ほむら pyra homura", "ヒカリ": "ひかり mythra hikari", "カズヤ": "かずや kazuya", "ソラ": "そら sora" };
 const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || "") + " " + Object.keys(ALIAS).filter((k) => c.name.includes(k)).map((k) => ALIAS[k]).join(" "));
+// リザルトとティアの選択だけ、集合画像の代表に仲間の名前でも辿り着けるようにする
+const groupHaystack = (c) => {
+  const extra = c.name === "ゼニガメ" ? "ポケモントレーナー フシギソウ リザードン ふしぎそう りざーどん ivysaur charizard pokemontrainer 34 35"
+    : c.name === "ホムラ" ? "ホムラ／ヒカリ ヒカリ ひかり mythra 80"
+    : "";
+  return haystack(c) + norm(extra);
+};
+const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナー" : name === "ホムラ" ? "ホムラ／ヒカリ" : name;
 
-  const api = { norm, charNo, haystack };
+  const api = { norm, charNo, haystack, groupHaystack, faceName };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.Names = api;
 })(typeof window !== "undefined" ? window : globalThis);

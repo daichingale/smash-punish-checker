@@ -24,11 +24,20 @@
     };
   }
 
+  // リザルト／ティアの選択に出さない。読み込み時は代表idへ寄せる。
+  function portraitId(n) {
+    if (n === 38 || n === 39) return 37;
+    if (n === 86) return 85;
+    return n;
+  }
+  function hiddenPortrait(n) {
+    return n === 38 || n === 39 || n === 86;
+  }
   function poolIndices(state, count) {
     const used = new Set();
-    for (const row of state.rows) for (const i of row) used.add(i);
+    for (const row of state.rows) for (const i of row) used.add(portraitId(i));
     const out = [];
-    for (let i = 0; i < count; i++) if (!used.has(i)) out.push(i);
+    for (let i = 0; i < count; i++) if (!hiddenPortrait(i) && !used.has(i)) out.push(i);
     return out;
   }
 
@@ -136,9 +145,11 @@
       if (!Array.isArray(src)) return null;
       const row = [];
       for (const n of src) {
-        if (!Number.isInteger(n) || n < 0 || n >= count || seen.has(n)) continue;
-        seen.add(n);
-        row.push(n);
+        if (!Number.isInteger(n) || n < 0 || n >= count) continue;
+        const id = portraitId(n);
+        if (id < 0 || id >= count || seen.has(id)) continue;
+        seen.add(id);
+        row.push(id);
       }
       rows.push(row);
     }
@@ -167,6 +178,7 @@
     DEFAULT_COLORS, DEFAULT_NAMES, MAX_TIERS, MAX_NAME,
     validColor, defaultState, cloneState, poolIndices,
     moveFighter, toPool, addTier, removeTier, moveTier, renameTier, recolorTier,
+    portraitId, hiddenPortrait,
     compact, encode, decode, filterPool, ink,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;

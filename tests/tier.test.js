@@ -16,7 +16,7 @@ test("初期状態は S〜D が空で、共有用の文字列から同じ状態�
   assert.ok(s.rows.every((r) => r.length === 0));
   const back = T.decode(T.encode(s), 89);
   assert.deepEqual(back, s);
-  assert.deepEqual(T.poolIndices(s, 89).length, 89);
+  assert.equal(T.poolIndices(s, 89).length, 86);
 });
 
 test("配置・名前・色・段の順が encode/decode で落ちない", () => {
@@ -89,11 +89,36 @@ test("未配置の検索はひらがな・ローマ字・番号で Names と同�
   assert.deepEqual(hit("ない"), []);
 });
 
+test("まとめたキャラは仲間の名前でも未配置から見つかる", () => {
+  const hit = (q) => T.filterPool([37, 85, 0], data.chars, q, N.groupHaystack, N.norm, N.charNo);
+  assert.deepEqual(hit("リザードン"), [37]);
+  assert.deepEqual(hit("ポケモントレーナー"), [37]);
+  assert.deepEqual(hit("ヒカリ"), [85]);
+  assert.equal(N.faceName("ゼニガメ"), "ポケモントレーナー");
+  assert.equal(N.faceName("ホムラ"), "ホムラ／ヒカリ");
+  assert.equal(N.faceName("マリオ"), "マリオ");
+});
+
 test("ファイターは89人（エコーと Mii 3種を含む）", () => {
   assert.equal(data.chars.length, 89);
   for (const name of ["ダークサムス", "ルキナ", "格闘Mii", "剣術Mii", "射撃Mii", "ソラ"]) {
     assert.ok(data.chars.some((c) => c.name === name), name);
   }
   const s = T.defaultState();
-  assert.equal(T.poolIndices(s, data.chars.length).length, 89);
+  const pool = T.poolIndices(s, data.chars.length);
+  assert.equal(pool.length, 86);
+  assert.ok(pool.includes(37) && pool.includes(85));
+  assert.ok(!pool.includes(38) && !pool.includes(39) && !pool.includes(86));
+});
+
+test("ポケモンとホムラの個別番号は読み込み時に1枚へ寄る", () => {
+  const raw = encodeURIComponent(JSON.stringify({
+    v: 1,
+    t: [["S", "#d64545"], ["A", "#e07a2f"]],
+    r: [[39, 85], [37, 38, 86, 0]],
+  }));
+  const back = T.decode(raw, 89);
+  assert.deepEqual(back.rows[0], [37, 85]);
+  assert.deepEqual(back.rows[1], [0]);
+  assert.equal(T.poolIndices(back, 89).length, 86 - 3);
 });
