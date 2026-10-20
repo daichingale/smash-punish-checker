@@ -435,70 +435,144 @@
     g.lineTo(x + w - len, y);
     g.stroke();
   }
-  function drawIconIn(g, img, x, y, w, h) {
+  function fitFont(g, text, weight, size, min, width) {
+    let s = size;
+    const floor = Math.max(12, min);
+    g.font = face(weight, s);
+    while (s > floor && g.measureText(text).width > width) {
+      s -= 1;
+      g.font = face(weight, s);
+    }
+    return s;
+  }
+  function inkText(g, text, x, y, color, stroke) {
+    if (stroke) {
+      g.lineJoin = "round";
+      g.miterLimit = 2;
+      g.lineWidth = stroke;
+      g.strokeStyle = color === "#1c1c1c" ? "rgba(246,243,236,.92)" : "rgba(5,6,12,.78)";
+      g.strokeText(text, x, y);
+    }
+    g.fillStyle = color;
+    g.fillText(text, x, y);
+  }
+  function drawCover(g, img, x, y, w, h, ax, ay, zoom) {
     if (!img || w < 4 || h < 4) return;
-    const s = Math.min(w / img.naturalWidth, h / img.naturalHeight);
+    const s = Math.max(w / img.naturalWidth, h / img.naturalHeight) * (zoom || 1);
     const dw = img.naturalWidth * s;
     const dh = img.naturalHeight * s;
-    g.drawImage(img, x + (w - dw) / 2, y + h - dh, dw, dh);
+    g.drawImage(img, x + (w - dw) * ax, y + (h - dh) * ay, dw, dh);
   }
-  function paintHero(g, box, slot, icons) {
+  function paintHero(g, box, slot, icons, cover) {
     const main = slot.row && slot.row.chars[0];
     if (!main) return;
-    drawIconIn(g, icons[main.id + ":" + main.color], box.x, box.y, box.w, box.h);
+    const img = icons[main.id + ":" + main.color];
+    const c = cover || { ax: 0.5, ay: 0.2, zoom: 1.12 };
+    drawCover(g, img, box.x, box.y, box.w, box.h, c.ax, c.ay, c.zoom);
+  }
+  function paintGhost(g, text, box, o) {
+    g.save();
+    g.globalAlpha = o.ghostAlpha == null ? 0.2 : o.ghostAlpha;
+    g.fillStyle = o.ghostColor || o.placeColor;
+    g.textAlign = "left";
+    g.textBaseline = "middle";
+    fitFont(g, text, 800, o.ghostSize || Math.round(box.h * 0.5), 42, box.w * 0.96);
+    g.fillText(text, box.x + 4, box.y + box.h * (o.ghostY || 0.46));
+    g.restore();
+  }
+  function scrimBottom(g, box, mode) {
+    const grd = g.createLinearGradient(0, box.y + box.h * 0.42, 0, box.y + box.h);
+    if (mode === "light") {
+      grd.addColorStop(0, "rgba(246,243,236,0)");
+      grd.addColorStop(1, "rgba(246,243,236,.9)");
+    } else {
+      grd.addColorStop(0, "rgba(0,0,0,0)");
+      grd.addColorStop(1, "rgba(0,0,0,.72)");
+    }
+    g.fillStyle = grd;
+    g.fillRect(box.x, box.y, box.w, box.h);
+  }
+  function scrimLeft(g, box, mode) {
+    const grd = g.createLinearGradient(box.x, 0, box.x + box.w * 0.62, 0);
+    if (mode === "light") {
+      grd.addColorStop(0, "rgba(246,243,236,.92)");
+      grd.addColorStop(1, "rgba(246,243,236,0)");
+    } else {
+      grd.addColorStop(0, "rgba(5,6,12,.78)");
+      grd.addColorStop(1, "rgba(5,6,12,0)");
+    }
+    g.fillStyle = grd;
+    g.fillRect(box.x, box.y, box.w, box.h);
   }
   function paintStacked(g, box, slot, icons, o) {
     const row = slot.row;
+    const hasMain = !!(row && row.chars[0]);
+    if (o.hero !== false) {
+      if (o.ghost) paintGhost(g, o.ghost, box, o);
+      if (hasMain) {
+        paintHero(g, box, slot, icons, {
+          ax: o.ghost ? 0.82 : 0.5,
+          ay: 0.2,
+          zoom: o.zoom || 1.14,
+        });
+      }
+      if (o.scrim) scrimBottom(g, box, o.scrim);
+    }
     const label = o.hidePlace || slot.place == null ? "" : o.placeText(slot.place);
     g.textBaseline = "alphabetic";
     g.textAlign = "left";
+    let placeUsed = 0;
     if (label) {
-      g.fillStyle = o.placeColor;
-      g.font = face(800, o.placeSize);
-      g.fillText(label, box.x, box.y + o.placeSize, Math.max(8, box.w));
+      placeUsed = fitFont(g, label, 800, o.placeSize, Math.max(16, Math.round(o.placeSize * 0.55)), Math.max(8, box.w));
+      g.textBaseline = "alphabetic";
+      inkText(g, label, box.x, box.y + placeUsed, o.placeColor, Math.max(3, Math.round(placeUsed * 0.08)));
     }
-    const nameSize = o.nameSize;
-    const nameY = box.y + box.h - 2;
     const name = row ? (tagLine(row) || "—") : "";
     const nation = row && row.nation ? row.nation : "";
-    let limit = box.w;
-    if (nation) {
-      g.font = face(700, Math.max(11, nameSize - 4));
-      g.fillStyle = o.mute;
-      g.textAlign = "right";
-      const nationMax = Math.min(84, box.w * 0.38);
-      g.fillText(nation, box.x + box.w, nameY, nationMax);
-      limit = box.w - nationMax - 8;
-      g.textAlign = "left";
-    }
+    const nationCol = nation ? Math.min(110, box.w * 0.3) : 0;
+    const nameLimit = Math.max(24, box.w - (nationCol ? nationCol + 12 : 0));
+    let nameUsed = o.nameSize;
+    const nameY = box.y + box.h - 4;
     if (name) {
-      g.fillStyle = o.nameColor;
-      g.font = face(750, nameSize);
+      nameUsed = fitFont(g, name, 750, o.nameSize, o.nameMin || 14, nameLimit);
       g.textAlign = "left";
-      g.fillText(name, box.x, nameY, Math.max(8, limit));
+      inkText(g, name, box.x, nameY, o.nameColor, Math.max(3, Math.round(nameUsed * 0.1)));
+    }
+    if (nation) {
+      g.textAlign = "right";
+      const nSize = fitFont(g, nation, 700, Math.max(14, Math.round(nameUsed * 0.48)), 12, nationCol);
+      g.fillStyle = o.mute;
+      g.fillText(nation, box.x + box.w, nameY - Math.max(0, (nameUsed - nSize) * 0.15));
+      g.textAlign = "left";
     }
     const subs = row ? row.chars.slice(1, 5) : [];
-    const sub = o.sub;
-    const subY = nameY - nameSize - sub - 4;
+    if (!subs.length) return;
+    const gap = 6;
+    let sub = o.sub;
+    const maxByWidth = Math.floor((box.w - gap * (subs.length - 1)) / subs.length);
+    sub = Math.max(28, Math.min(sub, maxByWidth));
+    const room = box.h - placeUsed - nameUsed - 18;
+    if (sub > room) sub = Math.max(28, Math.floor(room));
+    const subY = nameY - nameUsed - sub - 8;
     subs.forEach((ch, k) => {
-      const sx = box.x + k * (sub + 4);
-      if (sx + sub > box.x + box.w + 1) return;
+      const sx = box.x + k * (sub + gap);
       if (o.subPlate) {
         g.fillStyle = o.subPlate;
-        roundRect(g, sx - 1, subY - 1, sub + 2, sub + 2, 4);
+        roundRect(g, sx - 2, subY - 2, sub + 4, sub + 4, 8);
         g.fill();
       }
       drawIcon(g, icons[ch.id + ":" + ch.color], sx, subY, sub);
     });
-    if (o.hero === false) return;
-    const top = box.y + (label ? o.placeSize + 6 : 2);
-    const bottom = (subs.length ? subY : nameY - nameSize) - 4;
-    paintHero(g, { x: box.x, y: top, w: box.w, h: Math.max(8, bottom - top) }, slot, icons);
   }
   function paintSplit(g, box, slot, icons, o) {
-    const textW = Math.max(96, Math.round(box.w * 0.44));
-    paintStacked(g, { x: box.x, y: box.y, w: textW, h: box.h }, slot, icons, Object.assign({}, o, { hero: false }));
-    paintHero(g, { x: box.x + textW - 6, y: box.y, w: box.w - textW + 6, h: box.h - 4 }, slot, icons);
+    if (o.ghost) paintGhost(g, o.ghost, box, o);
+    const start = o.heroStart == null ? 0.2 : o.heroStart;
+    const hero = { x: box.x + box.w * start, y: box.y - 8, w: box.w * (1 - start) + 12, h: box.h + 16 };
+    if (o.glow) paintGlow(g, hero, o.glow);
+    paintHero(g, hero, slot, icons, { ax: 0.02, ay: 0.16, zoom: o.zoom || 1.2 });
+    if (o.scrim) scrimLeft(g, box, o.scrim);
+    const textW = Math.max(120, Math.round(box.w * (o.textRatio || 0.6)));
+    paintStacked(g, { x: box.x, y: box.y, w: textW, h: box.h }, slot, icons, Object.assign({}, o, { hero: false, ghost: "" }));
   }
   function skewPath(g, x, y, w, h, lean) {
     g.beginPath();
@@ -546,30 +620,30 @@
       g.strokeStyle = i === 0 ? theme : "rgba(255,255,255,.14)";
       g.stroke();
       g.clip();
-      if (i === 0 && slot.place) {
-        g.save();
-        g.globalAlpha = 0.08;
-        g.fillStyle = "#ffffff";
-        g.font = face(800, 300);
-        g.textAlign = "left";
-        g.fillText(String(slot.place), card.x + card.lean + 4, card.y + card.h - 20);
-        g.restore();
-      }
       const inner = {
-        x: card.x + Math.round(card.lean * 0.72) + 12,
-        y: card.y + 12,
-        w: card.w - Math.round(card.lean * 1.2) - 22,
-        h: card.h - 26,
+        x: card.x + Math.round(card.lean * 0.55) + 14,
+        y: card.y + 14,
+        w: card.w - Math.round(card.lean * 0.95) - 24,
+        h: card.h - 28,
       };
       const opt = {
         placeText: ordinal,
         placeColor: theme,
-        placeSize: i === 0 ? 40 : 22,
+        placeSize: i === 0 ? 84 : (i === 1 ? 48 : 36),
         nameColor: "#f5f7fb",
-        nameSize: i === 0 ? 30 : (i < 4 ? 20 : 16),
-        mute: "#b7c0cc",
-        sub: i === 0 ? 34 : 24,
-        subPlate: "#0c1018",
+        nameSize: i === 0 ? 64 : (i === 1 ? 40 : 30),
+        nameMin: i === 0 ? 26 : 16,
+        mute: "#d5dde6",
+        sub: i === 0 ? 78 : (i === 1 ? 56 : 48),
+        subPlate: "rgba(8,10,16,.82)",
+        ghost: i === 0 ? "WINNER" : "",
+        ghostSize: i === 0 ? 168 : 0,
+        ghostAlpha: 0.22,
+        ghostColor: theme,
+        scrim: "dark",
+        textRatio: i === 0 ? 0.62 : 0.58,
+        heroStart: 0.18,
+        zoom: i === 0 ? 1.22 : 1.16,
       };
       if (card.split) paintSplit(g, inner, slot, icons, opt);
       else paintStacked(g, inner, slot, icons, opt);
@@ -616,26 +690,39 @@
     g.lineTo(1189, 868);
     g.stroke();
     const cards = [
-      { x: 40, y: 124, w: 700, h: 500, place: 48, name: 32, sub: 36 },
-      { x: 784, y: 124, w: 752, h: 230, place: 28, name: 22, sub: 28 },
-      { x: 784, y: 386, w: 360, h: 238, place: 24, name: 20, sub: 26 },
-      { x: 1184, y: 386, w: 360, h: 238, place: 24, name: 20, sub: 26 },
-      { x: 40, y: 656, w: 371, h: 200, place: 22, name: 16, sub: 22 },
-      { x: 423, y: 656, w: 371, h: 200, place: 22, name: 16, sub: 22 },
-      { x: 806, y: 656, w: 371, h: 200, place: 22, name: 16, sub: 22 },
-      { x: 1189, y: 656, w: 371, h: 200, place: 22, name: 16, sub: 22 },
+      { x: 40, y: 124, w: 700, h: 500, place: 78, name: 58, sub: 72 },
+      { x: 784, y: 124, w: 752, h: 230, place: 46, name: 38, sub: 52 },
+      { x: 784, y: 386, w: 360, h: 238, place: 40, name: 32, sub: 48 },
+      { x: 1184, y: 386, w: 360, h: 238, place: 40, name: 32, sub: 48 },
+      { x: 40, y: 656, w: 371, h: 200, place: 34, name: 28, sub: 44 },
+      { x: 423, y: 656, w: 371, h: 200, place: 34, name: 28, sub: 44 },
+      { x: 806, y: 656, w: 371, h: 200, place: 34, name: 28, sub: 44 },
+      { x: 1189, y: 656, w: 371, h: 200, place: 34, name: 28, sub: 44 },
     ];
     cards.forEach((card, i) => {
-      paintStacked(g, { x: card.x + 12, y: card.y + 8, w: card.w - 24, h: card.h - 16 }, slots[i], icons, {
+      const box = { x: card.x + 12, y: card.y + 8, w: card.w - 24, h: card.h - 16 };
+      g.save();
+      g.beginPath();
+      g.rect(card.x, card.y, card.w, card.h);
+      g.clip();
+      paintStacked(g, box, slots[i], icons, {
         placeText: jaPlace,
         placeColor: theme,
         placeSize: card.place,
         nameColor: "#1c1c1c",
         nameSize: card.name,
-        mute: "#6e675f",
+        nameMin: i === 0 ? 24 : 15,
+        mute: "#5c564e",
         sub: card.sub,
-        subPlate: "",
+        subPlate: "rgba(246,243,236,.88)",
+        ghost: i === 0 ? "優勝" : "",
+        ghostSize: 200,
+        ghostAlpha: 0.16,
+        ghostColor: theme,
+        scrim: "light",
+        zoom: i === 0 ? 1.2 : 1.12,
       });
+      g.restore();
     });
     paintCredit(g, W - 40, H - 16, "#8a8478");
   }
@@ -689,25 +776,28 @@
       const opt = {
         placeText: ordinal,
         placeColor: theme,
-        placeSize: i === 0 ? 40 : 22,
+        placeSize: i === 0 ? 86 : (i === 1 ? 48 : 36),
         nameColor: "#f7f8ff",
-        nameSize: i === 0 ? 30 : (i < 4 ? 20 : 16),
-        mute: "#b7c0d4",
-        sub: i === 0 ? 34 : 24,
-        subPlate: "#070910",
+        nameSize: i === 0 ? 66 : (i === 1 ? 40 : 30),
+        nameMin: i === 0 ? 26 : 16,
+        mute: "#d5deee",
+        sub: i === 0 ? 80 : (i === 1 ? 56 : 48),
+        subPlate: "rgba(5,6,12,.84)",
+        ghost: i === 0 ? "WINNER" : "",
+        ghostSize: 188,
+        ghostAlpha: 0.28,
+        ghostColor: theme,
+        scrim: "dark",
+        textRatio: 0.64,
+        heroStart: 0.16,
+        zoom: i === 0 ? 1.26 : 1.16,
+        glow: card.split ? theme : "",
       };
       const pad = 16;
       const inner = { x: card.x + pad, y: card.y + 12, w: card.w - pad * 2, h: card.h - 24 };
-      if (card.split) {
-        const textW = Math.max(96, Math.round(inner.w * 0.42));
-        paintStacked(g, { x: inner.x, y: inner.y, w: textW, h: inner.h }, slot, icons, Object.assign({}, opt, { hero: false }));
-        const hero = { x: inner.x + textW, y: inner.y, w: inner.w - textW, h: inner.h };
-        paintGlow(g, hero, theme);
-        paintHero(g, hero, slot, icons);
-      } else {
-        paintGlow(g, inner, theme);
-        paintStacked(g, inner, slot, icons, opt);
-      }
+      if (!card.split) paintGlow(g, inner, theme);
+      if (card.split) paintSplit(g, inner, slot, icons, opt);
+      else paintStacked(g, inner, slot, icons, opt);
       g.restore();
     });
     paintCredit(g, W - 24, H - 14, "#8d97ad");
@@ -777,36 +867,47 @@
     g.lineTo(884, 570);
     g.stroke();
     const cards = [
-      { x: 908, y: 78, w: 644, h: 492, r: 34, big: true },
-      { x: 108, y: 78, w: 752, h: 156, r: 22, big: false },
-      { x: 108, y: 246, w: 752, h: 156, r: 22, big: false },
-      { x: 108, y: 414, w: 752, h: 156, r: 22, big: false },
-      { x: 108, y: 604, w: 349, h: 220, r: 20, big: false },
-      { x: 473, y: 604, w: 349, h: 220, r: 20, big: false },
-      { x: 838, y: 604, w: 349, h: 220, r: 20, big: false },
-      { x: 1203, y: 604, w: 349, h: 220, r: 20, big: false },
+      { x: 908, y: 78, w: 644, h: 492, r: 52, big: true },
+      { x: 108, y: 78, w: 752, h: 156, r: 28, big: false },
+      { x: 108, y: 246, w: 752, h: 156, r: 28, big: false },
+      { x: 108, y: 414, w: 752, h: 156, r: 28, big: false },
+      { x: 108, y: 604, w: 349, h: 220, r: 26, big: false },
+      { x: 473, y: 604, w: 349, h: 220, r: 26, big: false },
+      { x: 838, y: 604, w: 349, h: 220, r: 26, big: false },
+      { x: 1203, y: 604, w: 349, h: 220, r: 26, big: false },
     ];
-    const order = [0, 1, 2, 3, 4, 5, 6, 7];
-    order.forEach((index) => {
-      const card = cards[index];
+    cards.forEach((card, index) => {
       const slot = slots[index];
+      g.save();
+      g.beginPath();
+      g.rect(card.x, card.y, card.w, card.h);
+      g.clip();
       const r = card.r;
-      if (slot.place != null) {
-        const sealText = card.big && slot.place === 1 ? "優勝" : waPlace(slot.place);
-        paintSeal(g, card.x + r + 2, card.y + r + 2, r, sealText, theme);
-      }
-      const left = card.x + r * 2 + 14;
-      paintStacked(g, { x: left, y: card.y + 4, w: card.x + card.w - left, h: card.h - 8 }, slot, icons, {
+      const left = card.x + r * 2 + 16;
+      const box = { x: left, y: card.y + 6, w: card.x + card.w - left - 8, h: card.h - 12 };
+      paintStacked(g, box, slot, icons, {
         hidePlace: true,
         placeText: waPlace,
         placeColor: theme,
-        placeSize: 18,
+        placeSize: 20,
         nameColor: "#f6efe4",
-        nameSize: card.big ? 32 : 18,
-        mute: "#cbbba8",
-        sub: card.big ? 32 : 22,
-        subPlate: "rgba(28,20,18,.55)",
+        nameSize: card.big ? 52 : 28,
+        nameMin: card.big ? 22 : 15,
+        mute: "#f0e2d0",
+        sub: card.big ? 68 : 44,
+        subPlate: "rgba(28,20,18,.72)",
+        ghost: card.big ? "優勝" : "",
+        ghostSize: 210,
+        ghostAlpha: 0.2,
+        ghostColor: theme,
+        scrim: "dark",
+        zoom: card.big ? 1.24 : 1.14,
       });
+      if (slot.place != null) {
+        const sealText = card.big && slot.place === 1 ? "優勝" : waPlace(slot.place);
+        paintSeal(g, card.x + r + 4, card.y + r + 4, r, sealText, theme);
+      }
+      g.restore();
     });
     g.strokeStyle = "#f3ead7";
     g.lineWidth = 2;
