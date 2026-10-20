@@ -5,7 +5,8 @@
   "buildCommand": "echo 'skip build (dist/ is prebuilt; run python3 scripts/build_dist.py locally)'",
   "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/table", "destination": "/table.html" }
+    { "source": "/table", "destination": "/table.html" },
+    { "source": "/tier", "destination": "/tier.html" }
   ],
   "headers": [
     { "source": "/sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },

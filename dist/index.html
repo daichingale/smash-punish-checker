@@ -33,7 +33,8 @@ button,input{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:max(8px,env(safe-area-inset-top)) 12px 8px}
-.titlebar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.titlebar{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.navs{display:flex;gap:6px;flex:none;flex-wrap:wrap}
 h1{font-size:16px;margin:0;font-weight:750;letter-spacing:.01em}
 .navlink{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--text);text-decoration:none;font-size:14px;font-weight:750;white-space:nowrap}
 body.has-move .titlebar{display:none}
@@ -162,7 +163,7 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
   <div class="wrap">
     <div class="titlebar">
       <h1>確定反撃チェッカー<small>スマブラSP・タイマン・試作版</small></h1>
-      <a class="navlink" href="table.html">フレーム表</a>
+      <nav class="navs" aria-label="ページ"><a class="navlink" href="table.html">フレーム表</a><a class="navlink" href="tier.html">ティア</a></nav>
     </div>
     <div class="pick">
       <div><span class="lab me">自分（ガードする側）</span><button id="meBtn" class="cbtn" type="button" aria-haspopup="dialog"></button></div>
@@ -228,7 +229,7 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
 </main>
 <footer>
   <div class="wrap">
-  <a href="table.html">全技のフレーム表</a><br>
+  <a href="table.html">全技のフレーム表</a> · <a href="tier.html">ティア表</a><br>
   フレームデータ: <a id="srcLink" href="https://docs.google.com/spreadsheets/d/15SClMwvDIqovtO3DJnf1GGIteH35UX3IM7-mnbdG6eE/edit" target="_blank" rel="noopener">スマブラSP検証窓</a>（<a href="https://w.atwiki.jp/smashsp_kensyou/" target="_blank" rel="noopener">スマブラSPECIAL 検証wiki</a>）のフレームシートをもとに計算しています。<br>
   このページは個人が作った非公式の試作です。検証窓・任天堂とは関係ありません。表示内容の正確さは保証しません。実際の対戦ではトレーニングモードで確認してください。<br>
   <span id="builtAt"></span>
