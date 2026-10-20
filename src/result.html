@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0e1116" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f3f5f7" media="(prefers-color-scheme: light)">
+<title>リザルト — スマブラSP 確定反撃チェッカー</title>
+<!--STYLE--><link rel="stylesheet" href="result.css"><!--/STYLE-->
+</head>
+<body>
+<header class="headbar">
+  <h1>リザルト<small>スマブラSP・試作版</small></h1>
+  <nav class="headlinks" aria-label="ページ">
+    <a class="back" href="table.html">フレーム表</a>
+    <a class="back" href="tier.html">ティア</a>
+    <a class="back" href="index.html">反撃チェック</a>
+  </nav>
+</header>
+<p class="hint">順位ごとに選手名と使用キャラ（色1〜8）を入れます。同じキャラの色違いは、集計では1人です。</p>
+<section class="card" aria-label="大会">
+  <label>大会名<input id="evName" maxlength="80" autocomplete="off" enterkeyhint="done"></label>
+  <label>日付<input id="evDate" type="date"></label>
+  <label>参加人数<input id="evEntrants" inputmode="numeric" maxlength="4" placeholder="任意"></label>
+</section>
+<div id="rows"></div>
+<div class="toolbtns">
+  <button type="button" id="addRow">順位を追加</button>
+  <button type="button" id="share">共有リンク</button>
+  <button type="button" id="png">画像で保存</button>
+  <button type="button" id="toLib">この大会を集計に加える</button>
+  <button type="button" id="export">JSONで書き出す</button>
+  <button type="button" id="importBtn">JSONを読み込む</button>
+  <input id="importFile" type="file" accept="application/json,.json" hidden>
+</div>
+<section class="card" aria-label="保存した大会">
+  <h2>集計に入っている大会</h2>
+  <ul id="libList" class="lib"></ul>
+</section>
+<section class="card" aria-label="使用人数">
+  <div class="rankhead">
+    <h2>キャラ使用人数 <span id="playerCount"></span></h2>
+    <div class="toolbtns">
+      <button type="button" id="sortCount">人数順</button>
+      <button type="button" id="sortName">名前順</button>
+      <button type="button" id="toTier">この順でティア表に並べる</button>
+    </div>
+  </div>
+  <p class="fine">同じ選手が同じキャラを色違いで何回出しても1人です。別キャラはそれぞれ1人です。名前が空の行は、行ごとに別の人として数えます。集計は「この大会を集計に加える」か JSON の読み込みで足した大会だけを見ます。</p>
+  <ol id="rankList" class="rank"></ol>
+</section>
+<dialog id="picker">
+  <div class="picker-head">
+    <input id="pq" type="search" placeholder="キャラを検索（まりお / mario）" autocomplete="off" aria-label="追加するキャラを検索">
+    <button type="button" id="pickerClose">閉じる</button>
+  </div>
+  <div id="pickerGrid" class="picker-grid"></div>
+</dialog>
+<p id="toast" hidden role="status"></p>
+<footer>
+  <a href="index.html">反撃チェック</a> · <a href="table.html">全技のフレーム表</a> · <a href="tier.html">ティア表</a><br>
+  ファイター画像は <a href="https://www.smashbros.com/ja_JP/fighter/index.html" target="_blank" rel="noopener">大乱闘スマッシュブラザーズ SPECIAL 公式サイト</a>の切り抜きを、表示用に縮小して同梱しています。ポケモントレーナー（ゼニガメ・フシギソウ・リザードン）、Miiファイター、ホムラ／ヒカリは公式の集合画像から切り出しています。出どころは fighters/SOURCES.json に記録しています。<br>
+  © Nintendo / HAL Laboratory, Inc. 画像・キャラクターの権利は各権利者に帰属します。<br>
+  このページは個人が作った非公式の試作です。任天堂・HAL研究所・検証窓とは関係ありません。表示内容の正確さは保証しません。
+</footer>
+<!--DATA--><script>window.__ROSTER__=[];</script><!--/DATA-->
+<!--SCRIPTS--><script src="names.js"></script><script src="result.js"></script><script src="tier.js"></script><script src="result-page.js"></script><!--/SCRIPTS-->
+</body>
+</html>

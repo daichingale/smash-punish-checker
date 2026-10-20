@@ -1,0 +1,700 @@
+{
+  "sourceSite": "https://www.smashbros.com/",
+  "sourcePage": "https://www.smashbros.com/ja_JP/fighter/index.html",
+  "urlPattern": "https://www.smashbros.com/assets_v2/img/fighter/{file}/main.png （色1）および main2.png〜main8.png（色2〜8）",
+  "fighterList": "https://www.smashbros.com/assets_v2/data/fighter.json",
+  "fetched": "2026-10-20",
+  "format": "WebP quality 62, longest side 200px, alpha trimmed. Original PNGs are not committed.",
+  "layout": "fighters/{rosterIndex}/{color}.webp  color is 1-8",
+  "crops": {
+    "37-39": "ポケモントレーナーの公式集合画像（pokemon_trainer）から ゼニガメ / フシギソウ / リザードン を切り出し",
+    "55-57": "Miiファイターの公式集合画像（mii_fighter）から 格闘 / 剣術 / 射撃 を切り出し。公式サイトに色違いの切り抜きが無いため色2〜8は色1と同じ",
+    "85-86": "ホムラ／ヒカリの公式集合画像（homura、英語ページの pyra と同一）から ホムラ / ヒカリ を切り出し"
+  },
+  "copyright": "© Nintendo / HAL Laboratory, Inc. 画像の権利は権利者に帰属します。この同梱は非公式のファン制作です。",
+  "roster": [
+    {
+      "id": 0,
+      "name": "マリオ",
+      "file": "mario",
+      "crop": false
+    },
+    {
+      "id": 1,
+      "name": "ドンキーコング",
+      "file": "donkey_kong",
+      "crop": false
+    },
+    {
+      "id": 2,
+      "name": "リンク",
+      "file": "link",
+      "crop": false
+    },
+    {
+      "id": 3,
+      "name": "サムス",
+      "file": "samus",
+      "crop": false
+    },
+    {
+      "id": 4,
+      "name": "ダークサムス",
+      "file": "dark_samus",
+      "crop": false
+    },
+    {
+      "id": 5,
+      "name": "ヨッシー",
+      "file": "yoshi",
+      "crop": false
+    },
+    {
+      "id": 6,
+      "name": "カービィ",
+      "file": "kirby",
+      "crop": false
+    },
+    {
+      "id": 7,
+      "name": "フォックス",
+      "file": "fox",
+      "crop": false
+    },
+    {
+      "id": 8,
+      "name": "ピカチュウ",
+      "file": "pikachu",
+      "crop": false
+    },
+    {
+      "id": 9,
+      "name": "ルイージ",
+      "file": "luigi",
+      "crop": false
+    },
+    {
+      "id": 10,
+      "name": "ネス",
+      "file": "ness",
+      "crop": false
+    },
+    {
+      "id": 11,
+      "name": "キャプテン・ファルコン",
+      "file": "captain_falcon",
+      "crop": false
+    },
+    {
+      "id": 12,
+      "name": "プリン",
+      "file": "purin",
+      "crop": false
+    },
+    {
+      "id": 13,
+      "name": "ピーチ",
+      "file": "peach",
+      "crop": false
+    },
+    {
+      "id": 14,
+      "name": "デイジー",
+      "file": "daisy",
+      "crop": false
+    },
+    {
+      "id": 15,
+      "name": "クッパ",
+      "file": "koopa",
+      "crop": false
+    },
+    {
+      "id": 16,
+      "name": "アイスクライマー",
+      "file": "ice_climber",
+      "crop": false
+    },
+    {
+      "id": 17,
+      "name": "シーク",
+      "file": "sheik",
+      "crop": false
+    },
+    {
+      "id": 18,
+      "name": "ゼルダ",
+      "file": "zelda",
+      "crop": false
+    },
+    {
+      "id": 19,
+      "name": "ドクターマリオ",
+      "file": "dr_mario",
+      "crop": false
+    },
+    {
+      "id": 20,
+      "name": "ピチュー",
+      "file": "pichu",
+      "crop": false
+    },
+    {
+      "id": 21,
+      "name": "ファルコ",
+      "file": "falco",
+      "crop": false
+    },
+    {
+      "id": 22,
+      "name": "マルス",
+      "file": "marth",
+      "crop": false
+    },
+    {
+      "id": 23,
+      "name": "ルキナ",
+      "file": "lucina",
+      "crop": false
+    },
+    {
+      "id": 24,
+      "name": "こどもリンク",
+      "file": "young_link",
+      "crop": false
+    },
+    {
+      "id": 25,
+      "name": "ガノンドロフ",
+      "file": "ganondorf",
+      "crop": false
+    },
+    {
+      "id": 26,
+      "name": "ミュウツー",
+      "file": "mewtwo",
+      "crop": false
+    },
+    {
+      "id": 27,
+      "name": "ロイ",
+      "file": "roy",
+      "crop": false
+    },
+    {
+      "id": 28,
+      "name": "クロム",
+      "file": "chrom",
+      "crop": false
+    },
+    {
+      "id": 29,
+      "name": "Mr.ゲーム&ウォッチ",
+      "file": "mr_game_and_watch",
+      "crop": false
+    },
+    {
+      "id": 30,
+      "name": "メタナイト",
+      "file": "meta_knight",
+      "crop": false
+    },
+    {
+      "id": 31,
+      "name": "ピット",
+      "file": "pit",
+      "crop": false
+    },
+    {
+      "id": 32,
+      "name": "ブラックピット",
+      "file": "black_pit",
+      "crop": false
+    },
+    {
+      "id": 33,
+      "name": "ゼロスーツサムス",
+      "file": "zero_suit_samus",
+      "crop": false
+    },
+    {
+      "id": 34,
+      "name": "ワリオ",
+      "file": "wario",
+      "crop": false
+    },
+    {
+      "id": 35,
+      "name": "スネーク",
+      "file": "snake",
+      "crop": false
+    },
+    {
+      "id": 36,
+      "name": "アイク",
+      "file": "ike",
+      "crop": false
+    },
+    {
+      "id": 37,
+      "name": "ゼニガメ",
+      "file": "pokemon_trainer",
+      "crop": true
+    },
+    {
+      "id": 38,
+      "name": "フシギソウ",
+      "file": "pokemon_trainer",
+      "crop": true
+    },
+    {
+      "id": 39,
+      "name": "リザードン",
+      "file": "pokemon_trainer",
+      "crop": true
+    },
+    {
+      "id": 40,
+      "name": "ディディーコング",
+      "file": "diddy_kong",
+      "crop": false
+    },
+    {
+      "id": 41,
+      "name": "リュカ",
+      "file": "lucas",
+      "crop": false
+    },
+    {
+      "id": 42,
+      "name": "ソニック",
+      "file": "sonic",
+      "crop": false
+    },
+    {
+      "id": 43,
+      "name": "デデデ",
+      "file": "dedede",
+      "crop": false
+    },
+    {
+      "id": 44,
+      "name": "ピクミン&オリマー",
+      "file": "pikmin_and_olimar",
+      "crop": false
+    },
+    {
+      "id": 45,
+      "name": "ルカリオ",
+      "file": "lucario",
+      "crop": false
+    },
+    {
+      "id": 46,
+      "name": "ロボット",
+      "file": "robot",
+      "crop": false
+    },
+    {
+      "id": 47,
+      "name": "トゥーンリンク",
+      "file": "toon_link",
+      "crop": false
+    },
+    {
+      "id": 48,
+      "name": "ウルフ",
+      "file": "wolf",
+      "crop": false
+    },
+    {
+      "id": 49,
+      "name": "むらびと",
+      "file": "murabito",
+      "crop": false
+    },
+    {
+      "id": 50,
+      "name": "ロックマン",
+      "file": "rockman",
+      "crop": false
+    },
+    {
+      "id": 51,
+      "name": "Wii Fit トレーナー",
+      "file": "wii_fit_trainer",
+      "crop": false
+    },
+    {
+      "id": 52,
+      "name": "ロゼッタ&チコ",
+      "file": "rosetta_and_chiko",
+      "crop": false
+    },
+    {
+      "id": 53,
+      "name": "リトル・マック",
+      "file": "little_mac",
+      "crop": false
+    },
+    {
+      "id": 54,
+      "name": "ゲッコウガ",
+      "file": "gekkouga",
+      "crop": false
+    },
+    {
+      "id": 55,
+      "name": "格闘Mii",
+      "file": "mii_fighter",
+      "crop": true
+    },
+    {
+      "id": 56,
+      "name": "剣術Mii",
+      "file": "mii_fighter",
+      "crop": true
+    },
+    {
+      "id": 57,
+      "name": "射撃Mii",
+      "file": "mii_fighter",
+      "crop": true
+    },
+    {
+      "id": 58,
+      "name": "パルテナ",
+      "file": "palutena",
+      "crop": false
+    },
+    {
+      "id": 59,
+      "name": "パックマン",
+      "file": "pac_man",
+      "crop": false
+    },
+    {
+      "id": 60,
+      "name": "ルフレ",
+      "file": "reflet",
+      "crop": false
+    },
+    {
+      "id": 61,
+      "name": "シュルク",
+      "file": "shulk",
+      "crop": false
+    },
+    {
+      "id": 62,
+      "name": "クッパ Jr.",
+      "file": "koopa_jr",
+      "crop": false
+    },
+    {
+      "id": 63,
+      "name": "ダックハント",
+      "file": "duck_hunt",
+      "crop": false
+    },
+    {
+      "id": 64,
+      "name": "リュウ",
+      "file": "ryu",
+      "crop": false
+    },
+    {
+      "id": 65,
+      "name": "ケン",
+      "file": "ken",
+      "crop": false
+    },
+    {
+      "id": 66,
+      "name": "クラウド",
+      "file": "cloud",
+      "crop": false
+    },
+    {
+      "id": 67,
+      "name": "カムイ",
+      "file": "kamui",
+      "crop": false
+    },
+    {
+      "id": 68,
+      "name": "ベヨネッタ",
+      "file": "bayonetta",
+      "crop": false
+    },
+    {
+      "id": 69,
+      "name": "インクリング",
+      "file": "inkling",
+      "crop": false
+    },
+    {
+      "id": 70,
+      "name": "リドリー",
+      "file": "ridley",
+      "crop": false
+    },
+    {
+      "id": 71,
+      "name": "シモン",
+      "file": "simon",
+      "crop": false
+    },
+    {
+      "id": 72,
+      "name": "リヒター",
+      "file": "richter",
+      "crop": false
+    },
+    {
+      "id": 73,
+      "name": "キングクルール",
+      "file": "king_k_rool",
+      "crop": false
+    },
+    {
+      "id": 74,
+      "name": "しずえ",
+      "file": "shizue",
+      "crop": false
+    },
+    {
+      "id": 75,
+      "name": "ガオガエン",
+      "file": "gaogaen",
+      "crop": false
+    },
+    {
+      "id": 76,
+      "name": "パックンフラワー",
+      "file": "packun_flower",
+      "crop": false
+    },
+    {
+      "id": 77,
+      "name": "ジョーカー",
+      "file": "joker",
+      "crop": false
+    },
+    {
+      "id": 78,
+      "name": "勇者",
+      "file": "dq_hero",
+      "crop": false
+    },
+    {
+      "id": 79,
+      "name": "バンジョー&カズーイ",
+      "file": "banjo_and_kazooie",
+      "crop": false
+    },
+    {
+      "id": 80,
+      "name": "テリー",
+      "file": "terry",
+      "crop": false
+    },
+    {
+      "id": 81,
+      "name": "ベレト／ベレス",
+      "file": "byleth",
+      "crop": false
+    },
+    {
+      "id": 82,
+      "name": "ミェンミェン",
+      "file": "minmin",
+      "crop": false
+    },
+    {
+      "id": 83,
+      "name": "スティーブ／アレックス",
+      "file": "steve",
+      "crop": false
+    },
+    {
+      "id": 84,
+      "name": "セフィロス",
+      "file": "sephiroth",
+      "crop": false
+    },
+    {
+      "id": 85,
+      "name": "ホムラ",
+      "file": "homura",
+      "crop": true
+    },
+    {
+      "id": 86,
+      "name": "ヒカリ",
+      "file": "homura",
+      "crop": true
+    },
+    {
+      "id": 87,
+      "name": "カズヤ",
+      "file": "kazuya",
+      "crop": false
+    },
+    {
+      "id": 88,
+      "name": "ソラ",
+      "file": "sora",
+      "crop": false
+    }
+  ],
+  "missingColors": [
+    {
+      "id": 55,
+      "name": "格闘Mii",
+      "file": "mii_fighter",
+      "color": 2,
+      "fallback": 1
+    },
+    {
+      "id": 55,
+      "name": "格闘Mii",
+      "file": "mii_fighter",
+      "color": 3,
+      "fallback": 1
+    },
+    {
+      "id": 55,
+      "name": "格闘Mii",
+      "file": "mii_fighter",
+      "color": 4,
+      "fallback": 1
+    },
+    {
+      "id": 55,
+      "name": "格闘Mii",
+      "file": "mii_fighter",
+      "color": 5,
+      "fallback": 1
+    },
+    {
+      "id": 55,
+      "name": "格闘Mii",
+      "file": "mii_fighter",
+      "color": 6,
+      "fallback": 1
+    },
+    {
+      "id": 55,
+      "name": "格闘Mii",
+      "file": "mii_fighter",
+      "color": 7,
+      "fallback": 1
+    },
+    {
+      "id": 55,
+      "name": "格闘Mii",
+      "file": "mii_fighter",
+      "color": 8,
+      "fallback": 1
+    },
+    {
+      "id": 56,
+      "name": "剣術Mii",
+      "file": "mii_fighter",
+      "color": 2,
+      "fallback": 1
+    },
+    {
+      "id": 56,
+      "name": "剣術Mii",
+      "file": "mii_fighter",
+      "color": 3,
+      "fallback": 1
+    },
+    {
+      "id": 56,
+      "name": "剣術Mii",
+      "file": "mii_fighter",
+      "color": 4,
+      "fallback": 1
+    },
+    {
+      "id": 56,
+      "name": "剣術Mii",
+      "file": "mii_fighter",
+      "color": 5,
+      "fallback": 1
+    },
+    {
+      "id": 56,
+      "name": "剣術Mii",
+      "file": "mii_fighter",
+      "color": 6,
+      "fallback": 1
+    },
+    {
+      "id": 56,
+      "name": "剣術Mii",
+      "file": "mii_fighter",
+      "color": 7,
+      "fallback": 1
+    },
+    {
+      "id": 56,
+      "name": "剣術Mii",
+      "file": "mii_fighter",
+      "color": 8,
+      "fallback": 1
+    },
+    {
+      "id": 57,
+      "name": "射撃Mii",
+      "file": "mii_fighter",
+      "color": 2,
+      "fallback": 1
+    },
+    {
+      "id": 57,
+      "name": "射撃Mii",
+      "file": "mii_fighter",
+      "color": 3,
+      "fallback": 1
+    },
+    {
+      "id": 57,
+      "name": "射撃Mii",
+      "file": "mii_fighter",
+      "color": 4,
+      "fallback": 1
+    },
+    {
+      "id": 57,
+      "name": "射撃Mii",
+      "file": "mii_fighter",
+      "color": 5,
+      "fallback": 1
+    },
+    {
+      "id": 57,
+      "name": "射撃Mii",
+      "file": "mii_fighter",
+      "color": 6,
+      "fallback": 1
+    },
+    {
+      "id": 57,
+      "name": "射撃Mii",
+      "file": "mii_fighter",
+      "color": 7,
+      "fallback": 1
+    },
+    {
+      "id": 57,
+      "name": "射撃Mii",
+      "file": "mii_fighter",
+      "color": 8,
+      "fallback": 1
+    }
+  ]
+}

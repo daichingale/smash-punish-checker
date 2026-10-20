@@ -36,11 +36,11 @@ a{color:var(--accent)}
 .pool{margin:8px 12px 16px;padding:8px;border:1px solid var(--line);border-radius:14px;background:var(--card);min-width:0}
 .pool h2{font-size:14px;margin:0 0 8px;color:var(--sub)}
 .chips{display:flex;flex-wrap:wrap;gap:6px;min-height:52px}
-.chipwrap{display:flex;flex-direction:column;max-width:100%}
-.chip{display:flex;align-items:center;gap:6px;min-height:44px;padding:4px 10px 4px 8px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-weight:750;touch-action:pan-y;max-width:100%}
-.chip i{width:8px;align-self:stretch;border-radius:99px;flex:none}
-.chip b{min-width:0;overflow-wrap:anywhere;text-align:left}
-.chip small{color:var(--sub);font-weight:650;font-size:11px;flex:none}
+.chipwrap{display:flex;flex-direction:column;width:84px;max-width:100%}
+.chip{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:1px;width:84px;min-height:108px;padding:4px 2px 5px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-weight:650;touch-action:pan-y}
+.chip img{width:72px;height:72px;object-fit:contain;pointer-events:none}
+.chip b{font-size:10px;line-height:1.15;font-weight:650;text-align:center;max-width:100%;overflow-wrap:anywhere}
+.chip small{color:var(--sub);font-weight:650;font-size:9px;line-height:1.1}
 .chipwrap.on .chip{box-shadow:0 0 0 2px var(--accent)}
 .chipwrap.dragging{opacity:.35}
 .go{font-size:12px;font-weight:750;text-align:center;min-height:36px;display:flex;align-items:center;justify-content:center}
@@ -48,6 +48,7 @@ a{color:var(--accent)}
 body.has-sel{padding-bottom:72px}
 #selbar{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;align-items:center;gap:6px;margin:0;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--card) 94%,transparent);border-top:1px solid var(--line)}
 #selbar[hidden]{display:none}
+#selbar img{width:36px;height:36px;object-fit:contain;flex:none}
 #selbar b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
 #selbar span{flex:none;color:var(--sub);font-size:13px;font-weight:650}
 #selbar button,#selbar a{min-height:44px;flex:none;display:inline-flex;align-items:center;padding:0 10px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--text);text-decoration:none;font-weight:750}
