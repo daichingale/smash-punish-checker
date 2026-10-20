@@ -87,6 +87,20 @@ test("共有文字列と JSON は往復でき、壊れた色番号は捨てる",
   assert.equal(one[0].event.entrants, 4);
 });
 
+test("開催地・国・スポンサーは共有で残る", () => {
+  const src = {
+    event: { name: "杯", date: "Apr. 01", entrants: 48, city: "Tokyo, Kanto", country: "Japan" },
+    rows: [{ place: 1, player: "たろう", nation: "jp", sponsor: "SS", chars: [ch(0, 2), ch(2, 1)] }],
+  };
+  const back = R.decode(R.encode(R.normalizeEvent(src, 89)), 89);
+  assert.equal(back.event.city, "Tokyo, Kanto");
+  assert.equal(back.event.country, "Japan");
+  assert.equal(back.event.date, "Apr. 01");
+  assert.equal(back.rows[0].nation, "jp");
+  assert.equal(back.rows[0].sponsor, "SS");
+  assert.deepEqual(back.rows[0].chars.map((c) => c.id), [0, 2]);
+});
+
 test("同じ大会名と日付は上書きし、人数は増えない", () => {
   const lib = [];
   R.upsertEvent(lib, ev("月例", "2026-10-20", [row(1, "たろう", [ch(0, 1)])]));

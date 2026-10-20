@@ -31,10 +31,7 @@
   function chipHtml(index, picked) {
     const c = roster[index];
     const no = N.charNo(c);
-    const go = picked && inTier(index)
-      ? `<a class="go" href="index.html#me=${index}&mode=A">反撃チェック</a>`
-      : "";
-    return `<div class="chipwrap${picked ? " on" : ""}" data-i="${index}"><button type="button" class="chip" aria-pressed="${picked ? "true" : "false"}"><img src="${iconSrc(index, 1)}" alt="" width="72" height="72" loading="lazy" decoding="async"><b>${esc(c.name)}</b><small>${esc(no)}</small></button>${go}</div>`;
+    return `<div class="chipwrap${picked ? " on" : ""}" data-i="${index}"><button type="button" class="chip" aria-pressed="${picked ? "true" : "false"}"><img src="${iconSrc(index, 1)}" alt="" width="72" height="72" loading="lazy" decoding="async"><b>${esc(c.name)}</b><small>${esc(no)}</small></button></div>`;
   }
   function renderTiers() {
     $("board").innerHTML = state.tiers.map((tier, i) => {
@@ -99,14 +96,9 @@
     const img = $("selimg");
     img.src = iconSrc(selected, 1);
     img.alt = "";
-    const go = $("selgo");
     const placed = inTier(selected);
     $("selhint").hidden = placed;
-    if (placed) {
-      go.hidden = false;
-      go.href = "index.html#me=" + selected + "&mode=A";
-    } else go.hidden = true;
-    $("selpool").hidden = !inTier(selected);
+    $("selpool").hidden = !placed;
   }
   function render() {
     renderTiers();
@@ -122,8 +114,6 @@
   function bindChips(root) {
     root.querySelectorAll(".chipwrap").forEach((wrap) => {
       wrap.querySelector(".chip").addEventListener("pointerdown", onDown);
-      const go = wrap.querySelector(".go");
-      if (go) go.addEventListener("pointerdown", (e) => e.stopPropagation());
     });
   }
   function armDrag() {

@@ -23,47 +23,52 @@ img{max-width:100%}
 .hint,.fine{margin:8px 12px;color:var(--sub);font-size:13px}
 .card{margin:8px 12px;padding:10px;border:1px solid var(--line);border-radius:14px;background:var(--card);min-width:0}
 .card h2{font-size:15px;margin:0 0 8px}
-.card label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:700;color:var(--sub);margin:0 0 8px}
-.card input{min-height:44px;font-size:16px;border-radius:12px;border:1px solid var(--line);background:var(--bg);padding:0 12px;width:100%;max-width:100%}
+.card label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:700;color:var(--sub);margin:0 0 8px;min-width:0}
+.card input,.place input{min-height:44px;font-size:16px;border-radius:12px;border:1px solid var(--line);background:var(--bg);padding:0 12px;width:100%;max-width:100%}
+.split{display:flex;flex-wrap:wrap;gap:8px}
+.split label{flex:1 1 140px}
+.split.end{align-items:flex-end}
+.split.end label{flex:0 1 140px}
+#showN{width:88px}
+#applyN,.toolbtns button,.place > button,.lib button,.picker-head button{min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--bg);font-weight:750}
 .toolbtns{padding:0 12px 8px;display:flex;flex-wrap:wrap;gap:6px}
+.toolbtns.tight{padding:0}
 .card .toolbtns{padding:0}
-.toolbtns button{min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-weight:750}
-.card .toolbtns button{background:var(--bg)}
-.place{margin:0 12px 8px;padding:8px;border:1px solid var(--line);border-radius:14px;background:var(--card);min-width:0;display:flex;flex-wrap:wrap;gap:6px;align-items:flex-end}
-.place label{display:flex;flex-direction:column;gap:2px;font-size:12px;font-weight:700;color:var(--sub);min-width:0}
-.place input{min-height:44px;font-size:16px;border-radius:12px;border:1px solid var(--line);background:var(--bg);padding:0 10px}
-.place-in{width:76px}
-.player-lab{flex:1 1 140px}
-.player-in{width:100%}
-.place > button{min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--bg);font-weight:750}
-.slots{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:8px;min-width:0}
-.slot{width:176px;max-width:100%;border:1px solid var(--line);border-radius:12px;background:var(--bg);padding:6px;display:flex;flex-direction:column;align-items:center;gap:2px}
-.slot .portrait{width:72px;height:72px;object-fit:contain}
-.slot b{font-size:11px;text-align:center;line-height:1.2;overflow-wrap:anywhere}
-.swatches{display:flex;flex-wrap:wrap;gap:3px;justify-content:center}
-.swatch{width:40px;height:40px;padding:2px;border-radius:8px;border:1px solid var(--line);background:var(--card)}
+.place{margin:0 12px 8px;padding:8px;border:1px solid var(--line);border-radius:14px;background:var(--card);min-width:0}
+.fields{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-end}
+.fields label{display:flex;flex-direction:column;gap:2px;font-size:12px;font-weight:700;color:var(--sub);min-width:0}
+.place-lab{flex:0 0 76px}
+.nation-lab{flex:0 0 88px}
+.grow{flex:1 1 140px}
+.slots{display:flex;flex-direction:column;gap:8px;margin-top:8px;min-width:0}
+.slot{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-width:0;width:100%}
+.portrait-btn{width:76px;height:76px;padding:2px;border-radius:12px;border:1px solid var(--line);background:var(--bg);flex:none}
+.portrait-btn img{width:100%;height:100%;object-fit:contain;pointer-events:none}
+.swatches{display:flex;flex-wrap:wrap;gap:4px;flex:1 1 160px;min-width:0}
+.swatch{width:40px;height:40px;padding:2px;border-radius:8px;border:1px solid var(--line);background:var(--card);flex:none}
 .swatch img{width:100%;height:100%;object-fit:contain;pointer-events:none}
 .swatch.on{box-shadow:0 0 0 2px var(--accent)}
 .slot [data-act="rmchar"]{min-height:44px;padding:0 8px;border:0;background:transparent;color:var(--sub);font-size:12px;font-weight:700}
+.addchar{margin-top:8px}
 .lib,.rank{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
 .rank{list-style:decimal;padding-left:28px}
 .lib li,.rank li{display:flex;align-items:center;gap:8px;min-width:0;min-height:44px}
 .lib li span{flex:1;min-width:0;overflow-wrap:anywhere}
 .lib small{color:var(--sub);font-weight:650}
-.lib button{min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--bg);font-weight:750;flex:none}
+.lib button{flex:none}
 .rank img{width:48px;height:48px;object-fit:contain;flex:none}
-.rank b{flex:1;min-width:0;overflow-wrap:anywhere;font-size:14px}
-.rank span{flex:none;font-variant-numeric:tabular-nums;font-weight:750;font-size:14px}
+.rank span{flex:none;font-variant-numeric:tabular-nums;font-weight:750;font-size:14px;margin-left:auto}
+.rank span + span{margin-left:0}
 .empty{color:var(--sub);font-size:14px}
 dialog{width:min(640px,calc(100vw - 16px));max-height:min(86vh,760px);border:1px solid var(--line);border-radius:16px;padding:12px;background:var(--card);color:var(--text)}
 dialog::backdrop{background:rgba(0,0,0,.5)}
+dialog .fine{margin:0 0 8px}
 .picker-head{display:flex;gap:6px;margin-bottom:8px}
 .picker-head input{flex:1;min-width:0;min-height:44px;font-size:16px;border-radius:12px;border:1px solid var(--line);background:var(--bg);padding:0 12px}
-.picker-head button{min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--bg);font-weight:750;flex:none}
+.picker-head button{flex:none}
 .picker-grid{display:flex;flex-wrap:wrap;gap:6px;max-height:62vh;overflow:auto}
-.pick{display:flex;flex-direction:column;align-items:center;width:76px;min-height:100px;padding:4px 2px;border-radius:12px;border:1px solid var(--line);background:var(--bg);font-weight:650}
-.pick img{width:64px;height:64px;object-fit:contain;pointer-events:none}
-.pick b{font-size:10px;line-height:1.15;text-align:center;overflow-wrap:anywhere}
+.pick{width:72px;height:72px;padding:4px;border-radius:12px;border:1px solid var(--line);background:var(--bg)}
+.pick img{width:100%;height:100%;object-fit:contain;pointer-events:none}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:8px 14px;border-radius:999px;font-weight:750;z-index:30;max-width:calc(100vw - 24px);text-align:center}
 #toast[hidden]{display:none}
 footer{padding:8px 12px calc(16px + env(safe-area-inset-bottom));color:var(--sub);font-size:12px;border-top:1px solid var(--line)}

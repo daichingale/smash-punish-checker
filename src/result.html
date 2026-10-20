@@ -18,17 +18,27 @@
     <a class="back" href="index.html">反撃チェック</a>
   </nav>
 </header>
-<p class="hint">順位ごとに選手名と使用キャラ（色1〜8）を入れます。同じキャラの色違いは、集計では1人です。</p>
+<p class="hint">大会名と順位、選手、使用キャラを入れます。画像はリザルトと Top8 の2種類です。アイコンをタップすると別のキャラに差し替えられます。</p>
 <section class="card" aria-label="大会">
-  <label>大会名<input id="evName" maxlength="80" autocomplete="off" enterkeyhint="done"></label>
-  <label>日付<input id="evDate" type="date"></label>
-  <label>参加人数<input id="evEntrants" inputmode="numeric" maxlength="4" placeholder="任意"></label>
+  <label>大会名<input id="evName" maxlength="80" autocomplete="off" placeholder="TournamentName" enterkeyhint="done"></label>
+  <div class="split">
+    <label>参加人数<input id="evEntrants" inputmode="numeric" maxlength="4" placeholder="48"></label>
+    <label>日付<input id="evDate" maxlength="32" placeholder="Apr. 01" autocomplete="off"></label>
+  </div>
+  <div class="split">
+    <label>都市<input id="evCity" maxlength="48" placeholder="Tokyo, Kanto" autocomplete="off"></label>
+    <label>国<input id="evCountry" maxlength="32" placeholder="Japan" autocomplete="off"></label>
+  </div>
+  <div class="split end">
+    <label>表示する順位<input id="showN" inputmode="numeric" value="8" aria-label="表示する順位の数"></label>
+    <button type="button" id="applyN">枠を作る</button>
+  </div>
 </section>
 <div id="rows"></div>
 <div class="toolbtns">
-  <button type="button" id="addRow">順位を追加</button>
+  <button type="button" id="png">リザルト画像</button>
+  <button type="button" id="top8">Top8画像</button>
   <button type="button" id="share">共有リンク</button>
-  <button type="button" id="png">画像で保存</button>
   <button type="button" id="toLib">この大会を集計に加える</button>
   <button type="button" id="export">JSONで書き出す</button>
   <button type="button" id="importBtn">JSONを読み込む</button>
@@ -41,7 +51,7 @@
 <section class="card" aria-label="使用人数">
   <div class="rankhead">
     <h2>キャラ使用人数 <span id="playerCount"></span></h2>
-    <div class="toolbtns">
+    <div class="toolbtns tight">
       <button type="button" id="sortCount">人数順</button>
       <button type="button" id="sortName">名前順</button>
       <button type="button" id="toTier">この順でティア表に並べる</button>
@@ -52,9 +62,10 @@
 </section>
 <dialog id="picker">
   <div class="picker-head">
-    <input id="pq" type="search" placeholder="キャラを検索（まりお / mario）" autocomplete="off" aria-label="追加するキャラを検索">
+    <input id="pq" type="search" placeholder="検索（まりお / mario）" autocomplete="off" aria-label="追加するキャラを検索">
     <button type="button" id="pickerClose">閉じる</button>
   </div>
+  <p class="fine" id="pickerHint">アイコンを選んでください。</p>
   <div id="pickerGrid" class="picker-grid"></div>
 </dialog>
 <p id="toast" hidden role="status"></p>

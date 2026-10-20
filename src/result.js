@@ -61,6 +61,8 @@
       rows.push({
         place: place,
         player: cleanText(row.player, MAX_PLAYER),
+        nation: cleanText(row.nation, 12),
+        sponsor: cleanText(row.sponsor, 32),
         chars: cleanChars(row.chars, rosterCount),
       });
       if (rows.length >= MAX_ROWS) break;
@@ -70,19 +72,27 @@
         name: cleanText(src.name, MAX_NAME),
         date: cleanText(src.date, 32),
         entrants: cleanEntrants(src.entrants),
+        city: cleanText(src.city, 48),
+        country: cleanText(src.country, 32),
       },
       rows: rows,
     };
   }
   function defaultEvent() {
     const rows = [];
-    for (let i = 1; i <= 8; i++) rows.push({ place: i, player: "", chars: [] });
-    return { event: { name: "", date: "", entrants: null }, rows: rows };
+    for (let i = 1; i <= 8; i++) rows.push({ place: i, player: "", nation: "", sponsor: "", chars: [] });
+    return { event: { name: "", date: "", entrants: null, city: "", country: "" }, rows: rows };
   }
   function cloneEvent(ev) {
     return {
-      event: { name: ev.event.name, date: ev.event.date, entrants: ev.event.entrants },
-      rows: ev.rows.map((r) => ({ place: r.place, player: r.player, chars: r.chars.map((c) => ({ id: c.id, color: c.color })) })),
+      event: {
+        name: ev.event.name, date: ev.event.date, entrants: ev.event.entrants,
+        city: ev.event.city || "", country: ev.event.country || "",
+      },
+      rows: ev.rows.map((r) => ({
+        place: r.place, player: r.player, nation: r.nation || "", sponsor: r.sponsor || "",
+        chars: r.chars.map((c) => ({ id: c.id, color: c.color })),
+      })),
     };
   }
 
