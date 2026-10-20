@@ -5,9 +5,9 @@
   "use strict";
 
   const PRESETS = [
-    { id: "x", label: "横長", w: 1600, h: 900 },
-    { id: "square", label: "正方形", w: 1080, h: 1080 },
-    { id: "story", label: "縦長", w: 1080, h: 1920 },
+    { id: "x", label: "横長", w: 3200, h: 1800 },
+    { id: "square", label: "正方形", w: 2160, h: 2160 },
+    { id: "story", label: "縦長", w: 2160, h: 3840 },
   ];
   const HANDLES = ["nw", "ne", "se", "sw"];
   const MIN_SIZE = 12;
@@ -428,6 +428,8 @@
     g.clip();
     g.fillStyle = model.bg;
     g.fillRect(0, 0, w, h);
+    g.imageSmoothingEnabled = true;
+    g.imageSmoothingQuality = "high";
     if (model.bitmap) {
       const rect = containRect(model.bitmap.width, model.bitmap.height, w, h);
       g.drawImage(model.bitmap, rect.x, rect.y, rect.w, rect.h);
@@ -526,13 +528,16 @@
   }
 
   function mount(bitmap, opts) {
-    const presetId = pickPreset(bitmap.width, bitmap.height);
+    const matched = presetById(pickPreset(bitmap.width, bitmap.height));
+    const preset = bitmap.width === matched.w && bitmap.height === matched.h
+      ? matched
+      : { id: "source", label: "元のサイズ", w: bitmap.width, h: bitmap.height };
     const state = {
       bitmap: bitmap,
       title: opts.title || "プレビュー",
       filename: opts.filename || "image.png",
       bg: sampleCorner(bitmap),
-      preset: presetById(presetId),
+      preset: preset,
       objects: [],
       selected: null,
       selection: [],
@@ -623,7 +628,7 @@
     bgInput.value = /^#[0-9a-fA-F]{6}$/.test(state.bg) ? state.bg : "#ffffff";
 
     function snapshot() {
-      return JSON.stringify({ bg: state.bg, preset: state.preset.id, objects: state.objects });
+      return JSON.stringify({ bg: state.bg, preset: state.preset.id, w: state.preset.w, h: state.preset.h, objects: state.objects });
     }
     function pushHistory() {
       const snap = snapshot();
@@ -637,7 +642,8 @@
     function restore(snap) {
       const data = JSON.parse(snap);
       state.bg = data.bg;
-      state.preset = presetById(data.preset);
+      const base = presetById(data.preset);
+      state.preset = data.w && data.h ? { id: data.preset, label: base.label, w: data.w, h: data.h } : base;
       state.objects = data.objects;
       state.selection = state.selection.filter((id) => state.objects.some((o) => o.id === id));
       state.selected = state.selection.length ? state.selection[state.selection.length - 1] : null;
@@ -734,10 +740,14 @@
     function renderCanvas() {
       const sw = stage.clientWidth;
       const sh = stage.clientHeight;
-      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const dpr = Math.min(3, window.devicePixelRatio || 1);
       canvas.width = Math.max(1, Math.round(sw * dpr));
       canvas.height = Math.max(1, Math.round(sh * dpr));
+      canvas.style.width = sw + "px";
+      canvas.style.height = sh + "px";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
       ctx.fillStyle = "#141414";
       ctx.fillRect(0, 0, sw, sh);
       ctx.save();
@@ -760,6 +770,8 @@
       out.width = state.preset.w;
       out.height = state.preset.h;
       const g = out.getContext("2d");
+      g.imageSmoothingEnabled = true;
+      g.imageSmoothingQuality = "high";
       const draft = state.draft;
       state.draft = null;
       paintArtboard(g, state, { handles: false });

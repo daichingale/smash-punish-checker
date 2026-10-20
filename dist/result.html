@@ -157,7 +157,7 @@ footer{padding:8px 12px calc(16px + env(safe-area-inset-bottom));color:var(--sub
 <p id="toast" hidden role="status"></p>
 <footer>
   <a href="index.html">反撃チェック</a> · <a href="table.html">全技のフレーム表</a> · <a href="tier.html">ティア表</a><br>
-  ファイター画像は <a href="https://www.smashbros.com/ja_JP/fighter/index.html" target="_blank" rel="noopener">大乱闘スマッシュブラザーズ SPECIAL 公式サイト</a>の切り抜きを、表示用に縮小して同梱しています。ポケモントレーナー（ゼニガメ・フシギソウ・リザードン）、Miiファイター、ホムラ／ヒカリは公式の集合画像から切り出しています。出どころは fighters/SOURCES.json に記録しています。<br>
+  ファイター画像は <a href="https://www.smashbros.com/ja_JP/fighter/index.html" target="_blank" rel="noopener">大乱闘スマッシュブラザーズ SPECIAL 公式サイト</a>の切り抜きです。画面上は小さい版、画像の書き出しだけ高解像度版を読みます。ポケモントレーナー（ゼニガメ・フシギソウ・リザードン）、Miiファイター、ホムラ／ヒカリは公式の集合画像から切り出しています。出どころは fighters/SOURCES.json に記録しています。<br>
   © Nintendo / HAL Laboratory, Inc. 画像・キャラクターの権利は各権利者に帰属します。<br>
   このページは個人が作った非公式の試作です。任天堂・HAL研究所・検証窓とは関係ありません。表示内容の正確さは保証しません。
 </footer>
@@ -603,9 +603,9 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
   "use strict";
 
   const PRESETS = [
-    { id: "x", label: "横長", w: 1600, h: 900 },
-    { id: "square", label: "正方形", w: 1080, h: 1080 },
-    { id: "story", label: "縦長", w: 1080, h: 1920 },
+    { id: "x", label: "横長", w: 3200, h: 1800 },
+    { id: "square", label: "正方形", w: 2160, h: 2160 },
+    { id: "story", label: "縦長", w: 2160, h: 3840 },
   ];
   const HANDLES = ["nw", "ne", "se", "sw"];
   const MIN_SIZE = 12;
@@ -1026,6 +1026,8 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     g.clip();
     g.fillStyle = model.bg;
     g.fillRect(0, 0, w, h);
+    g.imageSmoothingEnabled = true;
+    g.imageSmoothingQuality = "high";
     if (model.bitmap) {
       const rect = containRect(model.bitmap.width, model.bitmap.height, w, h);
       g.drawImage(model.bitmap, rect.x, rect.y, rect.w, rect.h);
@@ -1124,13 +1126,16 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
   }
 
   function mount(bitmap, opts) {
-    const presetId = pickPreset(bitmap.width, bitmap.height);
+    const matched = presetById(pickPreset(bitmap.width, bitmap.height));
+    const preset = bitmap.width === matched.w && bitmap.height === matched.h
+      ? matched
+      : { id: "source", label: "元のサイズ", w: bitmap.width, h: bitmap.height };
     const state = {
       bitmap: bitmap,
       title: opts.title || "プレビュー",
       filename: opts.filename || "image.png",
       bg: sampleCorner(bitmap),
-      preset: presetById(presetId),
+      preset: preset,
       objects: [],
       selected: null,
       selection: [],
@@ -1221,7 +1226,7 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     bgInput.value = /^#[0-9a-fA-F]{6}$/.test(state.bg) ? state.bg : "#ffffff";
 
     function snapshot() {
-      return JSON.stringify({ bg: state.bg, preset: state.preset.id, objects: state.objects });
+      return JSON.stringify({ bg: state.bg, preset: state.preset.id, w: state.preset.w, h: state.preset.h, objects: state.objects });
     }
     function pushHistory() {
       const snap = snapshot();
@@ -1235,7 +1240,8 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     function restore(snap) {
       const data = JSON.parse(snap);
       state.bg = data.bg;
-      state.preset = presetById(data.preset);
+      const base = presetById(data.preset);
+      state.preset = data.w && data.h ? { id: data.preset, label: base.label, w: data.w, h: data.h } : base;
       state.objects = data.objects;
       state.selection = state.selection.filter((id) => state.objects.some((o) => o.id === id));
       state.selected = state.selection.length ? state.selection[state.selection.length - 1] : null;
@@ -1332,10 +1338,14 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     function renderCanvas() {
       const sw = stage.clientWidth;
       const sh = stage.clientHeight;
-      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const dpr = Math.min(3, window.devicePixelRatio || 1);
       canvas.width = Math.max(1, Math.round(sw * dpr));
       canvas.height = Math.max(1, Math.round(sh * dpr));
+      canvas.style.width = sw + "px";
+      canvas.style.height = sh + "px";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
       ctx.fillStyle = "#141414";
       ctx.fillRect(0, 0, sw, sh);
       ctx.save();
@@ -1358,6 +1368,8 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
       out.width = state.preset.w;
       out.height = state.preset.h;
       const g = out.getContext("2d");
+      g.imageSmoothingEnabled = true;
+      g.imageSmoothingQuality = "high";
       const draft = state.draft;
       state.draft = null;
       paintArtboard(g, state, { handles: false });
@@ -2110,16 +2122,19 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => { el.hidden = true; }, 1800);
   }
-  function iconSrc(index, color) {
+  function iconSrc(index, color, hires) {
     const c = color >= 1 && color <= 8 ? color : 1;
-    return "fighters/" + index + "/" + c + ".webp";
+    return (hires ? "fighters/hires/" : "fighters/") + index + "/" + c + ".webp";
   }
-  function loadIcon(index, color) {
+  function loadIcon(index, color, hires) {
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = () => resolve(img);
-      img.onerror = () => resolve(null);
-      img.src = iconSrc(index, color);
+      img.onerror = () => {
+        if (hires) { loadIcon(index, color, false).then(resolve); return; }
+        resolve(null);
+      };
+      img.src = iconSrc(index, color, hires);
     });
   }
   function blankRow(place) {
@@ -2314,9 +2329,20 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
       const key = pair.id + ":" + pair.color;
       if (icons[key] !== undefined) return;
       icons[key] = null;
-      icons[key] = await loadIcon(pair.id, pair.color);
+      icons[key] = await loadIcon(pair.id, pair.color, true);
     }));
     return icons;
+  }
+  function sharpCanvas(w, h) {
+    const canvas = document.createElement("canvas");
+    const scale = 2;
+    canvas.width = Math.round(w * scale);
+    canvas.height = Math.round(h * scale);
+    const g = canvas.getContext("2d");
+    g.setTransform(scale, 0, 0, scale, 0, 0);
+    g.imageSmoothingEnabled = true;
+    g.imageSmoothingQuality = "high";
+    return { canvas: canvas, g: g };
   }
   async function drawResult() {
     const ev = R.normalizeEvent(current, roster.length) || current;
@@ -2350,10 +2376,9 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
       return { row: row, name: name, nation: nation, nationW: nationW, nameX: nameX, lines: lines, h: h };
     });
     const height = 150 + layouts.reduce((s, b) => s + b.h, 0) + 36;
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    const g = canvas.getContext("2d");
+    const made = sharpCanvas(width, height);
+    const canvas = made.canvas;
+    const g = made.g;
     g.fillStyle = "#ffffff";
     g.fillRect(0, 0, width, height);
     g.fillStyle = "#2c2c2c";
@@ -2467,17 +2492,11 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     }
     return slots;
   }
-  function jaPlace(n) {
-    if (n === 1) return "優勝";
-    if (n === 2) return "準優勝";
-    return n + "位";
-  }
-  const WA_NUM = { 3: "三", 4: "四", 5: "五", 6: "六", 7: "七", 8: "八", 9: "九" };
-  function waPlace(n) {
-    if (n === 1) return "優勝";
-    if (n === 2) return "準優勝";
-    if (WA_NUM[n]) return WA_NUM[n] + "位";
-    return n + "位";
+  const WA_FACE = "\"Iowan Old Style\",\"Palatino Linotype\",Palatino,\"Times New Roman\",\"Yu Mincho\",serif";
+  function enRank(n) {
+    const v = n % 100;
+    const suf = (v >= 11 && v <= 13) ? "TH" : ({ 1: "ST", 2: "ND", 3: "RD" }[n % 10] || "TH");
+    return n + suf;
   }
   function captionOf(ev, arrow) {
     const bits = [];
@@ -2550,8 +2569,11 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     g.fillStyle = o.ghostColor || o.placeColor;
     g.textAlign = "left";
     g.textBaseline = "middle";
-    fitFont(g, text, 800, o.ghostSize || Math.round(box.h * 0.5), 42, box.w * 0.96);
+    const ghostSize = fitFont(g, text, 800, o.ghostSize || Math.round(box.h * 0.5), 42, box.w * 0.96);
+    if (o.ghostFace) g.font = "700 " + ghostSize + "px " + o.ghostFace;
+    if (o.ghostFace && "letterSpacing" in g) g.letterSpacing = Math.round(ghostSize * 0.12) + "px";
     g.fillText(text, box.x + 4, box.y + box.h * (o.ghostY || 0.46));
+    if ("letterSpacing" in g) g.letterSpacing = "0px";
     g.restore();
   }
   function scrimBottom(g, box, mode) {
@@ -2780,7 +2802,7 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
       g.rect(card.x, card.y, card.w, card.h);
       g.clip();
       paintStacked(g, box, slots[i], icons, {
-        placeText: jaPlace,
+        placeText: function (n) { return n === 1 ? "WINNER" : enRank(n); },
         placeColor: theme,
         placeSize: card.place,
         nameColor: "#1c1c1c",
@@ -2789,7 +2811,7 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
         mute: "#5c564e",
         sub: card.sub,
         subPlate: "rgba(246,243,236,.88)",
-        ghost: i === 0 ? "優勝" : "",
+        ghost: i === 0 ? "WINNER" : "",
         ghostSize: 200,
         ghostAlpha: 0.16,
         ghostColor: theme,
@@ -2876,7 +2898,7 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     });
     paintCredit(g, W - 24, H - 14, "#8d97ad");
   }
-  function paintSeal(g, cx, cy, r, text, fill) {
+  function paintSeal(g, cx, cy, r, text, fill, faceName) {
     g.beginPath();
     g.arc(cx, cy, r, 0, Math.PI * 2);
     g.fillStyle = fill;
@@ -2885,10 +2907,9 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     g.lineWidth = 2;
     g.strokeStyle = ink;
     g.stroke();
-    const len = Array.from(text).length;
-    const size = len <= 1 ? r : len === 2 ? r * 0.58 : r * 0.4;
+    const size = fitFont(g, text, 800, Math.floor(r * 0.78), 11, r * 1.55);
+    g.font = "800 " + size + "px " + (faceName || FACE);
     g.fillStyle = ink;
-    g.font = face(800, Math.max(10, Math.floor(size)));
     g.textAlign = "center";
     g.textBaseline = "middle";
     g.fillText(text, cx, cy + 1);
@@ -2961,7 +2982,7 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
       const box = { x: left, y: card.y + 6, w: card.x + card.w - left - 8, h: card.h - 12 };
       paintStacked(g, box, slot, icons, {
         hidePlace: true,
-        placeText: waPlace,
+        placeText: enRank,
         placeColor: theme,
         placeSize: 20,
         nameColor: "#f6efe4",
@@ -2970,16 +2991,16 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
         mute: "#f0e2d0",
         sub: card.big ? 68 : 44,
         subPlate: "rgba(28,20,18,.72)",
-        ghost: card.big ? "優勝" : "",
-        ghostSize: 210,
-        ghostAlpha: 0.2,
+        ghost: card.big ? "WINNER" : "",
+        ghostSize: 168,
+        ghostAlpha: 0.22,
         ghostColor: theme,
+        ghostFace: WA_FACE,
         scrim: "dark",
         zoom: card.big ? 1.24 : 1.14,
       });
       if (slot.place != null) {
-        const sealText = card.big && slot.place === 1 ? "優勝" : waPlace(slot.place);
-        paintSeal(g, card.x + r + 4, card.y + r + 4, r, sealText, theme);
+        paintSeal(g, card.x + r + 4, card.y + r + 4, r, enRank(slot.place), theme, WA_FACE);
       }
       g.restore();
     });
@@ -2994,11 +3015,9 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     const ev = R.normalizeEvent(current, roster.length) || current;
     const slots = top8Slots(ev);
     const icons = await preload(slots.flatMap((slot) => (slot.row ? slot.row.chars : [])));
-    const canvas = document.createElement("canvas");
-    canvas.width = 1600;
-    canvas.height = 900;
-    const g = canvas.getContext("2d");
-    g.imageSmoothingEnabled = true;
+    const made = sharpCanvas(1600, 900);
+    const canvas = made.canvas;
+    const g = made.g;
     const theme = hexOk(top8Look.color);
     const id = knownTemplate(top8Look.template);
     const paint = id === "minimal" ? paintMinimal : id === "neon" ? paintNeon : id === "wa" ? paintWa : paintSlash;

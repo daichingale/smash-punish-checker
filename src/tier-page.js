@@ -24,9 +24,9 @@
   function inTier(index) {
     return state.rows.some((r) => r.indexOf(index) >= 0);
   }
-  function iconSrc(index, color) {
+  function iconSrc(index, color, hires) {
     const c = color >= 1 && color <= 8 ? color : 1;
-    return "fighters/" + index + "/" + c + ".webp";
+    return (hires ? "fighters/hires/" : "fighters/") + index + "/" + c + ".webp";
   }
   function chipHtml(index, picked) {
     const c = roster[index];
@@ -269,12 +269,15 @@
     } catch (e) {}
     return T.defaultState();
   }
-  function loadIcon(index, color) {
+  function loadIcon(index, color, hires) {
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = () => resolve(img);
-      img.onerror = () => resolve(null);
-      img.src = iconSrc(index, color);
+      img.onerror = () => {
+        if (hires) { loadIcon(index, color, false).then(resolve); return; }
+        resolve(null);
+      };
+      img.src = iconSrc(index, color, hires);
     });
   }
   function nameLines(g, name, maxW) {
@@ -294,7 +297,7 @@
     const ids = [];
     state.rows.forEach((row) => row.forEach((id) => { if (!ids.includes(id)) ids.push(id); }));
     const icons = {};
-    await Promise.all(ids.map(async (id) => { icons[id] = await loadIcon(id, 1); }));
+    await Promise.all(ids.map(async (id) => { icons[id] = await loadIcon(id, 1, true); }));
     const dark = matchMedia("(prefers-color-scheme: dark)").matches;
     const bg = dark ? "#0e1116" : "#f4f6f8";
     const card = dark ? "#171c24" : "#ffffff";
@@ -319,11 +322,13 @@
     });
     const height = pad + 78 + blocks.reduce((s, b) => s + b.h + 10, 0) + 72;
     const canvas = document.createElement("canvas");
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    canvas.width = Math.round(width * dpr);
-    canvas.height = Math.round(height * dpr);
+    const scale = 2;
+    canvas.width = Math.round(width * scale);
+    canvas.height = Math.round(height * scale);
     const g = canvas.getContext("2d");
-    g.scale(dpr, dpr);
+    g.setTransform(scale, 0, 0, scale, 0, 0);
+    g.imageSmoothingEnabled = true;
+    g.imageSmoothingQuality = "high";
     g.fillStyle = bg;
     g.fillRect(0, 0, width, height);
     g.fillStyle = text;
