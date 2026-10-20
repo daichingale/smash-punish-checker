@@ -75,7 +75,7 @@
           hay: norm(name + " " + (m.command || "") + " " + (m.material || "")),
           startup: f.startup, activeEnd: f.activeEnd, total: f.total, landing: f.landing,
           parts, damageMax: span.max, damageMin: span.min, damage: span.max,
-          stun: f.stun, adv: f.adv, sure: null,
+          stun: f.stun, adv: f.adv, advMin: f.advMin == null ? null : f.advMin, advMax: f.advMax == null ? null : f.advMax, sure: null,
         });
       });
     });
@@ -111,6 +111,16 @@
   function applyDamageKey(rows, agg) {
     for (const r of rows) r.damage = agg === "min" ? r.damageMin : r.damageMax;
     return rows;
+  }
+
+  function fmtSigned(v) { return (v > 0 ? "+" : "") + v; }
+  /** 判定で有利が変わる技は「+14〜+16」。ソートに使う主数値は別（adv） */
+  function formatAdvRange(row) {
+    if (!row || row.adv == null || Number.isNaN(row.adv)) return "—";
+    const lo = row.advMin == null ? row.adv : row.advMin;
+    const hi = row.advMax == null ? row.adv : row.advMax;
+    if (lo === hi) return fmtSigned(row.adv);
+    return fmtSigned(Math.min(lo, hi)) + "〜" + fmtSigned(Math.max(lo, hi));
   }
 
   function missing(v) { return v == null || (typeof v === "number" && Number.isNaN(v)); }
@@ -207,7 +217,7 @@
 
   const api = {
     KIND_LABEL, KIND_IDS, PLACE_LABEL, SORT_KEYS, FIRST_DIR, PRESETS, PRESET_BY_ID,
-    moveLabel, kindOf, placeOf, buildRows, punishNeeds, fillSure, sortRows, applyDamageKey, applyView, parseQuery, serialize, norm,
+    moveLabel, kindOf, placeOf, buildRows, punishNeeds, fillSure, sortRows, applyDamageKey, applyView, parseQuery, serialize, norm, formatAdvRange,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FrameTable = api;

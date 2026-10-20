@@ -10,7 +10,7 @@
 <style>:root{
   --bg:#0e1116;--card:#171c24;--line:#313846;--text:#f2f5f8;--sub:#c5ced8;
   --accent:#6cb4ff;--on-accent:#04121f;--sure:#3ddc84;--bad:#ff9b9b;
-  --cols:36px 168px 76px 52px 80px 64px 64px 168px 80px 76px 64px;
+  --cols:36px 168px 76px 52px 80px 64px 64px 168px 80px 104px 64px;
   color-scheme:dark
 }
 @media (prefers-color-scheme: light){
@@ -21,7 +21,7 @@
   }
 }
 @media (min-width:900px){
-  :root{--cols:44px 220px 96px 64px 96px 72px 72px 210px 96px 96px 72px}
+  :root{--cols:44px 220px 96px 64px 96px 72px 72px 210px 96px 120px 72px}
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;font-size:15px;line-height:1.35}
@@ -65,6 +65,7 @@ a{color:var(--accent)}
 .row{color:inherit;text-decoration:none;border-bottom:1px solid var(--line);height:68px}
 .row span{display:flex;align-items:center;justify-content:flex-end;padding:0 6px;font-variant-numeric:tabular-nums}
 .row span.c-dmg{display:block;align-self:center;text-align:right;white-space:normal;font-size:12px;line-height:1.25;overflow:hidden}
+.row span.c-adv{white-space:nowrap;font-size:13px}
 .row .c-rank,.row .c-name,.row .c-kind{justify-content:flex-start}
 a.row > .c-name{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:0;min-width:0;overflow:hidden}
 a.row > .c-name b,a.row > .c-name span{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0;font-weight:650}
@@ -128,7 +129,7 @@ body.noscroll{overflow:hidden}
   <a href="index.html">反撃チェックに戻る</a><br>
   フレームデータ: <a href="https://docs.google.com/spreadsheets/d/15SClMwvDIqovtO3DJnf1GGIteH35UX3IM7-mnbdG6eE/edit" target="_blank" rel="noopener">スマブラSP検証窓</a>（<a href="https://w.atwiki.jp/smashsp_kensyou/" target="_blank" rel="noopener">スマブラSPECIAL 検証wiki</a>）のフレームシートをもとに計算しています。<br>
   このページは個人が作った非公式の試作です。検証窓・任天堂とは関係ありません。表示内容の正確さは保証しません。実際の対戦ではトレーニングモードで確認してください。<br>
-  ガード有利は反撃チェックと同じ式（ガード側の有利。＋ならガードした側が有利）。多段は通常の最終段、前と後ろがある技は正面です。確定数は、密着でフレームが間に合う反撃の数です。ダメージは判定ごとで、行の名前がシートにあるときだけ括弧で付けます。1on1補正ありは表示ダメージだけ基礎ダメージの1.2倍で、ガード硬直とガード有利は変わりません。
+  ガード有利は反撃チェックと同じ式（ガード側の有利。＋ならガードした側が有利）。多段は通常の最終段、前と後ろがある技は正面です。同じ段で硬直が違う技は、きびしい方〜弱い方の範囲を出します。並び順と確定数はきびしい方のままです。ダメージは判定ごとで、行の名前がシートにあるときだけ括弧で付けます。1on1補正ありは表示ダメージだけ基礎ダメージの1.2倍で、ガード硬直とガード有利は変わりません。
 </footer>
 <div id="picker" hidden role="dialog" aria-modal="true" aria-labelledby="pkTitle">
   <div class="pkHead">
@@ -160,6 +161,29 @@ body.noscroll{overflow:hidden}
   const STARTER_SEQ = /^(弱1|横強1|空N1|空前1)/;
 
   const maxOf = (a) => Math.max.apply(null, a);
+  const minOf = (a) => Math.min.apply(null, a);
+  /** 1行の中の判定名。シートの行ラベルが数字の個数と一致するときだけその名前を使い、それ以外は hit1 / hit2 */
+  function partNames(row, n) {
+    const label = String((row && row.label) || "").trim();
+    if (n === 1) return [label || "hit1"];
+    const parts = label.split(/[/、]/).map((s) => s.trim()).filter(Boolean);
+    if (parts.length === n) return parts;
+    const names = [];
+    for (let i = 0; i < n; i++) names.push("hit" + (i + 1));
+    return names;
+  }
+  /** ダメージと硬直の個数が一致するときだけ、同じ行の判定を対応づける。合わなければ null（推測しない） */
+  function pairedHitboxes(row, advOf) {
+    const damages = row && Array.isArray(row.damage) ? row.damage : null;
+    const stuns = row && Array.isArray(row.stun) ? row.stun : null;
+    if (!damages || !stuns || !damages.length || damages.length !== stuns.length) return null;
+    for (let i = 0; i < damages.length; i++) {
+      if (typeof damages[i] !== "number" || Number.isNaN(damages[i])) return null;
+      if (typeof stuns[i] !== "number" || Number.isNaN(stuns[i])) return null;
+    }
+    const names = partNames(row, damages.length);
+    return damages.map((damage, i) => ({ name: names[i], damage: damage, stun: stuns[i], adv: advOf(stuns[i]) }));
+  }
   function hasHit(row) {
     return !!row.active && (row.damage == null || maxOf(row.damage) > 0);
   }
@@ -214,7 +238,7 @@ body.noscroll{overflow:hidden}
     const L = bounce ? bounce.total : move.landingLag;
     // 終わりが '*' の判定は、終わり際の有利Fを数字にしない
     const lateUnknown = use.some((r) => r.active && r.active.open);
-    let primary, worst, detail = [];
+    let primary, worst, detail = [], advOf;
     const groundAdv = (r, late) => r.total - (late ? r.active.end : r.active.starts[0]) - maxOf(r.stun);
     if (isAir) {
       if (L == null) return { ok: false, reason: "着地隙がシートに無い" };
@@ -222,19 +246,27 @@ body.noscroll{overflow:hidden}
       primary = f(pRow, false);
       worst = lateUnknown ? primary : Math.min.apply(null, use.map((r) => f(r, true)));
       detail = use.map((r) => ({ label: r.label || "本体", stun: r.stun, adv: f(r, false) }));
+      const base = pRow.label.includes("着地") ? L - pRow.active.starts[0] : L;
+      advOf = (s) => base - s;
     } else {
       const hit = seq ? lastStart(pRow) : pRow.active.starts[0];
       primary = pRow.total - hit - maxOf(pRow.stun);
       worst = lateUnknown ? primary : Math.min.apply(null, use.map((r) => groundAdv(r, true)));
       detail = use.map((r) => ({ label: r.label || "本体", stun: r.stun, total: r.total, hitFrame: r.active.starts[0], adv: groundAdv(r, false) }));
+      advOf = (s) => pRow.total - hit - s;
     }
+    // 主数値に使った段だけ。硬直が違う判定の有利は、同じ発生F・同じ後隙から引く。多段の他の段は混ぜない
+    const hitboxes = pairedHitboxes(pRow, advOf);
+    const advs = hitboxes ? hitboxes.map((h) => h.adv) : null;
+    const advMin = advs ? minOf(advs) : primary;
+    const advMax = advs ? maxOf(advs) : primary;
     const alt = rows.filter((r) => use.indexOf(r) < 0).map((r) => ({
       label: r.label,
       adv: isAir ? (L == null ? null : (r.label.includes("着地") ? L - r.active.starts[0] - maxOf(r.stun) : L - maxOf(r.stun))) : groundAdv(r, false),
     }));
     const damage = pRow.damage && pRow.damage.length ? maxOf(pRow.damage) : null;
     const total = pRow.total == null ? null : pRow.total;
-    return { ok: true, primary, worst: Math.min(worst, primary), lateUnknown, primaryStun: maxOf(pRow.stun), primaryLabel: pRow.label || "", multiHit: seq, aerial: isAir, landingLag: isAir ? move.landingLag : null, bounceLag: bounce ? bounce.total : null, alt, damage, total, detail };
+    return { ok: true, primary, worst: Math.min(worst, primary), lateUnknown, primaryStun: maxOf(pRow.stun), primaryLabel: pRow.label || "", multiHit: seq, aerial: isAir, landingLag: isAir ? move.landingLag : null, bounceLag: bounce ? bounce.total : null, alt, damage, total, detail, hitboxes, advMin, advMax };
   }
 
   /** 表の1行分。読めない値は null（画面では —）。有利は shieldAdvantage と同じ */
@@ -248,13 +280,13 @@ body.noscroll{overflow:hidden}
     if (!adv.ok) {
       const r = firstHitRow(move);
       return {
-        startup, activeEnd, landing, adv: null,
+        startup, activeEnd, landing, adv: null, advMin: null, advMax: null,
         total: r && r.total != null ? r.total : null,
         damage: r && r.damage && r.damage.length ? maxOf(r.damage) : null,
         stun: r && r.stun && r.stun.length ? maxOf(r.stun) : null,
       };
     }
-    return { startup, activeEnd, total: adv.total, landing, damage: adv.damage, stun: adv.primaryStun, adv: adv.primary };
+    return { startup, activeEnd, total: adv.total, landing, damage: adv.damage, stun: adv.primaryStun, adv: adv.primary, advMin: adv.advMin, advMax: adv.advMax };
   }
 
   function isStarter(move) {
@@ -310,6 +342,17 @@ body.noscroll{overflow:hidden}
     return null;
   }
 
+  /** きびしい判定では不可で、弱い判定の有利なら間に合うときの短い補足。確定側には付けない */
+  function weakSureNote(hitboxes, primary, bonus, need) {
+    if (!hitboxes) return "";
+    const names = [];
+    for (let i = 0; i < hitboxes.length; i++) {
+      const h = hitboxes[i];
+      if (h.adv > primary && h.adv + bonus - need >= 0) names.push(h.name);
+    }
+    return names.length ? names.join("・") + "なら確定" : "";
+  }
+
   /** attacker の move をガードした defender の反撃一覧 */
   function evaluate(attacker, move, defender, o) {
     o = o || {};
@@ -323,7 +366,8 @@ body.noscroll{overflow:hidden}
       const marginWorst = adv.worst + bonus - need;
       // 密着を前提に、フレームが間に合えば「確定」（リーチ・ガードで押される距離は考慮しない）
       const status = margin >= 0 ? "sure" : "impossible";
-      return { ...opt, cost, need, margin, marginWorst, status, tier: marginTier(margin), routeLabel: ROUTE_LABEL[opt.route] };
+      const weakNote = status === "impossible" ? weakSureNote(adv.hitboxes, adv.primary, bonus, need) : "";
+      return { ...opt, cost, need, margin, marginWorst, status, tier: marginTier(margin), routeLabel: ROUTE_LABEL[opt.route], weakNote };
     });
     // 猶予の大きい順（同じなら必要Fの小さい順）。「不可」は後ろ
     list.sort((a, b) => (a.status === b.status ? 0 : a.status === "sure" ? -1 : 1) || b.margin - a.margin || a.need - b.need);
@@ -381,7 +425,7 @@ body.noscroll{overflow:hidden}
   }
 
   const api = {
-    THRESHOLDS, marginTier, shieldAdvantage, listFrames, punishOptions, evaluate, startupOf, routeCost, isStarter,
+    THRESHOLDS, marginTier, shieldAdvantage, listFrames, punishOptions, evaluate, weakSureNote, startupOf, routeCost, isStarter,
     ROUTE_LABEL, SHIELD_DROP, GRAB_EXTRA, PERFECT_SHIELD_BONUS,
     ONE_ON_ONE, scaleDamage, hitboxParts, formatParts, formatHitboxes,
   };
@@ -499,7 +543,7 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
           hay: norm(name + " " + (m.command || "") + " " + (m.material || "")),
           startup: f.startup, activeEnd: f.activeEnd, total: f.total, landing: f.landing,
           parts, damageMax: span.max, damageMin: span.min, damage: span.max,
-          stun: f.stun, adv: f.adv, sure: null,
+          stun: f.stun, adv: f.adv, advMin: f.advMin == null ? null : f.advMin, advMax: f.advMax == null ? null : f.advMax, sure: null,
         });
       });
     });
@@ -535,6 +579,16 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
   function applyDamageKey(rows, agg) {
     for (const r of rows) r.damage = agg === "min" ? r.damageMin : r.damageMax;
     return rows;
+  }
+
+  function fmtSigned(v) { return (v > 0 ? "+" : "") + v; }
+  /** 判定で有利が変わる技は「+14〜+16」。ソートに使う主数値は別（adv） */
+  function formatAdvRange(row) {
+    if (!row || row.adv == null || Number.isNaN(row.adv)) return "—";
+    const lo = row.advMin == null ? row.adv : row.advMin;
+    const hi = row.advMax == null ? row.adv : row.advMax;
+    if (lo === hi) return fmtSigned(row.adv);
+    return fmtSigned(Math.min(lo, hi)) + "〜" + fmtSigned(Math.max(lo, hi));
   }
 
   function missing(v) { return v == null || (typeof v === "number" && Number.isNaN(v)); }
@@ -631,7 +685,7 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
 
   const api = {
     KIND_LABEL, KIND_IDS, PLACE_LABEL, SORT_KEYS, FIRST_DIR, PRESETS, PRESET_BY_ID,
-    moveLabel, kindOf, placeOf, buildRows, punishNeeds, fillSure, sortRows, applyDamageKey, applyView, parseQuery, serialize, norm,
+    moveLabel, kindOf, placeOf, buildRows, punishNeeds, fillSure, sortRows, applyDamageKey, applyView, parseQuery, serialize, norm, formatAdvRange,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FrameTable = api;
@@ -738,7 +792,7 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
       const dmg = damageText(r);
       h += `<span class="c-dmg" title="${esc(dmg)}">${esc(dmg)}</span>`;
       h += `<span>${fmt("stun", r.stun)}</span>`;
-      h += `<span class="${advCls}">${fmt("adv", r.adv)}</span><span>${fmt("sure", r.sure)}</span></a>`;
+      h += `<span class="c-adv ${advCls}">${esc(T.formatAdvRange(r))}</span><span>${fmt("sure", r.sure)}</span></a>`;
     }
     $("win").innerHTML = h;
     $("win").style.transform = "translateY(" + (headH + s * ROW) + "px)";

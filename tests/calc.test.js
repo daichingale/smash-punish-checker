@@ -333,4 +333,124 @@ test("硬直の個数がダメージと合わない行は対応づけない", ()
   const f = C.formatHitboxes(mv, false);
   assert.equal(f.text, "3 / 1 (炎)");
   assert.equal(f.items[0].stuns, null);
+  assert.equal(f.items[0].stuns ? "硬直あり" : "—", "—");
+});
+
+test("マルス弱1と横強は同じ段の判定ごとに有利が違い、主数値は硬直が大きい方", () => {
+  const jab = C.shieldAdvantage(mv(ch("マルス"), "弱1"));
+  assert.equal(jab.primary, 14);
+  assert.equal(jab.primaryStun, 6);
+  assert.deepEqual(jab.hitboxes.map((h) => h.stun), [4, 4, 6, 6]);
+  assert.deepEqual(jab.hitboxes.map((h) => h.adv), [16, 16, 14, 14]);
+  assert.deepEqual(jab.hitboxes.map((h) => h.name), ["hit1", "hit2", "hit3", "hit4"]);
+  assert.equal(jab.advMin, 14);
+  assert.equal(jab.advMax, 16);
+  assert.ok(jab.hitboxes.every((h) => !/先端|根元|弱/.test(h.name)));
+  const ft = C.shieldAdvantage(mv(ch("マルス"), "横強"));
+  assert.equal(ft.primary, 14);
+  assert.equal(ft.primaryStun, 11);
+  assert.deepEqual(ft.hitboxes.map((h) => h.damage), [9, 9, 12]);
+  assert.deepEqual(ft.hitboxes.map((h) => h.stun), [9, 9, 11]);
+  assert.deepEqual(ft.hitboxes.map((h) => h.adv), [16, 16, 14]);
+  assert.deepEqual(ft.hitboxes.map((h) => h.name), ["hit1", "hit2", "hit3"]);
+  assert.equal(ft.advMin, 14);
+  assert.equal(ft.advMax, 16);
+  const utilt = C.shieldAdvantage(mv(ch("マルス"), "上強"));
+  assert.equal(utilt.primary, 17);
+  assert.equal(utilt.hitboxes.length, 4);
+  assert.deepEqual(utilt.hitboxes.map((h) => h.adv), [21, 21, 21, 17]);
+});
+
+test("シートが判定名を個数ぶん書いているときだけその名前を使う", () => {
+  const move = { name: "横強", category: "ground", rows: [row({ label: "先端、根元", active: act([8], 11), total: 33, damage: [12, 9], stun: [11, 9] })] };
+  const a = C.shieldAdvantage(move);
+  assert.equal(a.primary, 14);
+  assert.deepEqual(a.hitboxes.map((h) => [h.name, h.stun, h.adv]), [["先端", 11, 14], ["根元", 9, 16]]);
+  const mk = (name, s) => ({ name, category: "ground", rows: [row({ active: act([s], s), damage: [1], stun: [1], total: 40 })] });
+  const def = { name: "D", jumpsquat: 3, moves: [mk("上スマッシュ", 14), mk("上スマッシュB", 15), mk("上スマッシュC", 17)] };
+  const r = C.evaluate({ name: "A", moves: [] }, move, def, {});
+  const by = Object.fromEntries(r.list.map((x) => [x.move.name, x]));
+  assert.equal(by["上スマッシュ"].status, "sure");
+  assert.equal(by["上スマッシュ"].weakNote, "");
+  assert.equal(by["上スマッシュ"].margin, 0);
+  assert.equal(by["上スマッシュB"].status, "impossible");
+  assert.equal(by["上スマッシュB"].weakNote, "根元なら確定");
+  assert.equal(by["上スマッシュB"].tier, null);
+  assert.equal(by["上スマッシュC"].status, "impossible");
+  assert.equal(by["上スマッシュC"].weakNote, "");
+  const ps = C.evaluate({ name: "A", moves: [] }, move, def, { perfectShield: true });
+  const psB = ps.list.find((x) => x.move.name === "上スマッシュB");
+  assert.equal(psB.status, "sure");
+  assert.equal(psB.weakNote, "");
+});
+
+test("弱い判定だけで間に合う補足は逆向きでも同じ（evaluate が共通）", () => {
+  const move = mv(ch("マルス"), "横強");
+  const mk = (name, s) => ({ name, category: "ground", rows: [row({ active: act([s], s), damage: [1], stun: [1], total: 40 })] });
+  const def = { name: "D", jumpsquat: 3, moves: [mk("上スマッシュ", 15), mk("上スマッシュ遅", 16), mk("上スマッシュ不可", 17)] };
+  const r = C.evaluate(ch("マルス"), move, def, {});
+  const by = Object.fromEntries(r.list.map((x) => [x.move.name, x]));
+  assert.equal(by["上スマッシュ"].status, "impossible");
+  assert.equal(by["上スマッシュ"].weakNote, "hit1・hit2なら確定");
+  assert.equal(by["上スマッシュ"].margin, -1);
+  assert.equal(by["上スマッシュ遅"].weakNote, "hit1・hit2なら確定");
+  assert.equal(by["上スマッシュ遅"].margin, -2);
+  assert.equal(by["上スマッシュ不可"].weakNote, "");
+  assert.ok(r.list.filter((x) => x.status === "sure").every((x) => x.weakNote === ""));
+});
+
+test("判定が1つだけの技は有利の幅も補足も出さない", () => {
+  const u = C.shieldAdvantage(mv(ch("マリオ"), "上強"));
+  assert.equal(u.primary, 18);
+  assert.equal(u.primaryStun, 6);
+  assert.equal(u.hitboxes.length, 1);
+  assert.equal(u.hitboxes[0].adv, 18);
+  assert.equal(u.advMin, 18);
+  assert.equal(u.advMax, 18);
+  const frames = C.listFrames(mv(ch("マリオ"), "上強"));
+  assert.equal(frames.adv, 18);
+  assert.equal(frames.advMin, 18);
+  assert.equal(frames.advMax, 18);
+  const r = C.evaluate(ch("マリオ"), mv(ch("マリオ"), "上強"), ch("マルス"), {});
+  assert.ok(r.list.every((x) => x.weakNote === ""));
+});
+
+test("ダメージと硬直の個数が合わない行は判定ごとの有利を出さず、画面の硬直は —", () => {
+  const move = { name: "x", category: "ground", rows: [row({ label: "炎", active: act([5], 6), total: 20, damage: [3, 1], stun: [2] })] };
+  const a = C.shieldAdvantage(move);
+  assert.equal(a.ok, true);
+  assert.equal(a.primary, 13);
+  assert.equal(a.hitboxes, null);
+  assert.equal(a.advMin, 13);
+  assert.equal(a.advMax, 13);
+  const f = C.formatHitboxes(move, false);
+  assert.equal(f.items[0].stuns, null);
+  assert.equal(f.items[0].stuns ? "硬直あり" : "—", "—");
+  const mk = (name, s) => ({ name, category: "ground", rows: [row({ active: act([s], s), damage: [1], stun: [1], total: 40 })] });
+  const r = C.evaluate({ name: "A", moves: [] }, move, { name: "D", jumpsquat: 3, moves: [mk("上スマッシュ", 14)] }, {});
+  assert.equal(r.list[0].status, "impossible");
+  assert.equal(r.list[0].weakNote, "");
+});
+
+test("主数値は最大硬直のまま。1on1では判定ごとの有利は変わらない", () => {
+  let spread = 0;
+  for (const ch of data.chars) for (const m of ch.moves) {
+    const a = C.shieldAdvantage(m);
+    if (!a.ok) continue;
+    if (a.hitboxes) {
+      const advs = a.hitboxes.map((h) => h.adv);
+      assert.equal(a.primary, Math.min.apply(null, advs));
+      assert.equal(a.advMin, a.primary);
+      assert.equal(a.advMax, Math.max.apply(null, advs));
+      if (a.advMin !== a.advMax) spread++;
+    } else {
+      assert.equal(a.advMin, a.primary);
+      assert.equal(a.advMax, a.primary);
+    }
+  }
+  assert.ok(spread > 10);
+  const ft = C.shieldAdvantage(mv(ch("マルス"), "横強"));
+  assert.deepEqual(ft.hitboxes.map((h) => h.adv), [16, 16, 14]);
+  assert.equal(C.scaleDamage(ft.hitboxes[0].damage, true), 10.8);
+  assert.equal(ft.hitboxes[0].adv, 16);
 });
