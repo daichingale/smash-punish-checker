@@ -412,12 +412,11 @@
     $("png").onclick = async () => {
       const blob = await drawPng();
       if (!blob) { toast("画像を作れませんでした"); return; }
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "smash-tier.png";
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-      toast("画像を保存しました");
+      try {
+        await ImagePreview.open({ title: "ティア表", source: blob, filename: "smash-tier.png" });
+      } catch (e) {
+        toast("プレビューを開けませんでした");
+      }
     };
     $("selclear").onclick = () => { selected = null; render(); };
     $("selpool").onclick = () => {
