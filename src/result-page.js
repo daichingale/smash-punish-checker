@@ -8,6 +8,16 @@
   const LIB = "punish.resultLibrary";
   const CUR = "punish.result";
   const TIER_KEY = "punish.tier";
+  const TOP8_TEMPLATES = [
+    { id: "slash", label: "斜め" },
+    { id: "minimal", label: "ミニマル" },
+    { id: "neon", label: "ネオン" },
+    { id: "wa", label: "和" },
+  ];
+  const TOP8_COLOR = "#e23b4a";
+  const LOOK_KEY = "punish.top8look";
+  const FACE = "\"Hiragino Sans\",\"Noto Sans JP\",\"Yu Gothic\",sans-serif";
+  let top8Look = { template: "slash", color: TOP8_COLOR };
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   let current = R.defaultEvent();
@@ -322,79 +332,502 @@
     g.fillText("非公式  © Nintendo / HAL Laboratory, Inc.", width / 2, height - 16);
     return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob), "image/png"));
   }
-  async function drawTop8() {
-    const ev = R.normalizeEvent(current, roster.length) || current;
-    const filled = ev.rows.slice().sort((a, b) => a.place - b.place || 0).slice(0, 8);
-    const icons = await preload(filled.flatMap((row) => row.chars));
+  function hexOk(c) {
+    return /^#[0-9a-fA-F]{6}$/.test(c) ? c : TOP8_COLOR;
+  }
+  function hexRgb(hex) {
+    const h = hexOk(hex).slice(1);
+    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+  }
+  function rgbaOf(hex, a) {
+    const p = hexRgb(hex);
+    return "rgba(" + p[0] + "," + p[1] + "," + p[2] + "," + a + ")";
+  }
+  function luma(hex) {
+    const p = hexRgb(hex);
+    return 0.2126 * p[0] + 0.7152 * p[1] + 0.0722 * p[2];
+  }
+  function knownTemplate(id) {
+    return TOP8_TEMPLATES.some((t) => t.id === id) ? id : "slash";
+  }
+  function readLook() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(LOOK_KEY) || "");
+      return { template: knownTemplate(raw && raw.template), color: hexOk(raw && raw.color) };
+    } catch (e) {
+      return { template: "slash", color: TOP8_COLOR };
+    }
+  }
+  function writeLook() {
+    try { localStorage.setItem(LOOK_KEY, JSON.stringify(top8Look)); } catch (e) {}
+  }
+  function syncLook() {
+    const box = $("top8templates");
+    if (box) {
+      box.querySelectorAll("[data-tpl]").forEach((btn) => {
+        btn.setAttribute("aria-pressed", btn.dataset.tpl === top8Look.template ? "true" : "false");
+      });
+    }
+    const color = $("top8color");
+    if (color && color.value !== top8Look.color) color.value = top8Look.color;
+  }
+  function renderLook() {
+    const box = $("top8templates");
+    if (!box) return;
+    box.innerHTML = TOP8_TEMPLATES.map((t) =>
+      `<button type="button" data-tpl="${t.id}" aria-pressed="false">${t.label}</button>`
+    ).join("");
+    syncLook();
+  }
+  function top8Slots(ev) {
+    const filled = ev.rows.slice().sort((a, b) => a.place - b.place).slice(0, 8);
+    const used = {};
+    filled.forEach((row) => { used[row.place] = true; });
+    const slots = [];
+    for (let i = 0; i < 8; i++) {
+      const row = filled[i] || null;
+      let place = null;
+      if (row) place = row.place;
+      else if (!used[i + 1]) place = i + 1;
+      slots.push({ row: row, place: place });
+    }
+    return slots;
+  }
+  function jaPlace(n) {
+    if (n === 1) return "優勝";
+    if (n === 2) return "準優勝";
+    return n + "位";
+  }
+  const WA_NUM = { 3: "三", 4: "四", 5: "五", 6: "六", 7: "七", 8: "八", 9: "九" };
+  function waPlace(n) {
+    if (n === 1) return "優勝";
+    if (n === 2) return "準優勝";
+    if (WA_NUM[n]) return WA_NUM[n] + "位";
+    return n + "位";
+  }
+  function captionOf(ev, arrow) {
+    const bits = [];
+    const meta = metaLine(ev);
+    if (meta) bits.push(meta);
+    if (ev.entrants) bits.push(arrow ? ev.entrants + " → 1" : ev.entrants + "人");
+    return bits.join("   ");
+  }
+  function face(weight, size) {
+    return weight + " " + size + "px " + FACE;
+  }
+  function paintCredit(g, x, y, color) {
+    g.fillStyle = color;
+    g.font = face(650, 13);
+    g.textAlign = "right";
+    g.textBaseline = "alphabetic";
+    g.fillText("非公式  © Nintendo / HAL Laboratory, Inc.", x, y);
+  }
+  function ticks(g, x, y, w, len, color) {
+    g.strokeStyle = color;
+    g.lineWidth = 3;
+    g.lineCap = "square";
+    g.beginPath();
+    g.moveTo(x, y + len);
+    g.lineTo(x, y);
+    g.lineTo(x + len, y);
+    g.moveTo(x + w, y + len);
+    g.lineTo(x + w, y);
+    g.lineTo(x + w - len, y);
+    g.stroke();
+  }
+  function drawIconIn(g, img, x, y, w, h) {
+    if (!img || w < 4 || h < 4) return;
+    const s = Math.min(w / img.naturalWidth, h / img.naturalHeight);
+    const dw = img.naturalWidth * s;
+    const dh = img.naturalHeight * s;
+    g.drawImage(img, x + (w - dw) / 2, y + h - dh, dw, dh);
+  }
+  function paintHero(g, box, slot, icons) {
+    const main = slot.row && slot.row.chars[0];
+    if (!main) return;
+    drawIconIn(g, icons[main.id + ":" + main.color], box.x, box.y, box.w, box.h);
+  }
+  function paintStacked(g, box, slot, icons, o) {
+    const row = slot.row;
+    const label = o.hidePlace || slot.place == null ? "" : o.placeText(slot.place);
+    g.textBaseline = "alphabetic";
+    g.textAlign = "left";
+    if (label) {
+      g.fillStyle = o.placeColor;
+      g.font = face(800, o.placeSize);
+      g.fillText(label, box.x, box.y + o.placeSize, Math.max(8, box.w));
+    }
+    const nameSize = o.nameSize;
+    const nameY = box.y + box.h - 2;
+    const name = row ? (tagLine(row) || "—") : "";
+    const nation = row && row.nation ? row.nation : "";
+    let limit = box.w;
+    if (nation) {
+      g.font = face(700, Math.max(11, nameSize - 4));
+      g.fillStyle = o.mute;
+      g.textAlign = "right";
+      const nationMax = Math.min(84, box.w * 0.38);
+      g.fillText(nation, box.x + box.w, nameY, nationMax);
+      limit = box.w - nationMax - 8;
+      g.textAlign = "left";
+    }
+    if (name) {
+      g.fillStyle = o.nameColor;
+      g.font = face(750, nameSize);
+      g.textAlign = "left";
+      g.fillText(name, box.x, nameY, Math.max(8, limit));
+    }
+    const subs = row ? row.chars.slice(1, 5) : [];
+    const sub = o.sub;
+    const subY = nameY - nameSize - sub - 4;
+    subs.forEach((ch, k) => {
+      const sx = box.x + k * (sub + 4);
+      if (sx + sub > box.x + box.w + 1) return;
+      if (o.subPlate) {
+        g.fillStyle = o.subPlate;
+        roundRect(g, sx - 1, subY - 1, sub + 2, sub + 2, 4);
+        g.fill();
+      }
+      drawIcon(g, icons[ch.id + ":" + ch.color], sx, subY, sub);
+    });
+    if (o.hero === false) return;
+    const top = box.y + (label ? o.placeSize + 6 : 2);
+    const bottom = (subs.length ? subY : nameY - nameSize) - 4;
+    paintHero(g, { x: box.x, y: top, w: box.w, h: Math.max(8, bottom - top) }, slot, icons);
+  }
+  function paintSplit(g, box, slot, icons, o) {
+    const textW = Math.max(96, Math.round(box.w * 0.44));
+    paintStacked(g, { x: box.x, y: box.y, w: textW, h: box.h }, slot, icons, Object.assign({}, o, { hero: false }));
+    paintHero(g, { x: box.x + textW - 6, y: box.y, w: box.w - textW + 6, h: box.h - 4 }, slot, icons);
+  }
+  function skewPath(g, x, y, w, h, lean) {
+    g.beginPath();
+    g.moveTo(x + lean, y);
+    g.lineTo(x + w, y);
+    g.lineTo(x + w - lean, y + h);
+    g.lineTo(x, y + h);
+    g.closePath();
+  }
+  function paintSlash(g, ev, slots, icons, theme) {
     const W = 1600;
     const H = 900;
-    const canvas = document.createElement("canvas");
-    canvas.width = W;
-    canvas.height = H;
-    const g = canvas.getContext("2d");
-    g.fillStyle = "#10141c";
+    g.fillStyle = "#090b10";
     g.fillRect(0, 0, W, H);
-    g.fillStyle = "#1a2230";
-    g.fillRect(0, 0, W, 84);
-    g.fillStyle = "#f2f5f8";
-    g.font = "750 34px \"Hiragino Sans\",\"Noto Sans JP\",\"Yu Gothic\",sans-serif";
+    g.fillStyle = theme;
+    g.fillRect(0, 0, W, 5);
+    const title = ev.event.name || "Top 8";
+    g.font = face(800, 34);
     g.textAlign = "left";
-    g.fillText(ev.event.name || "Top 8", 28, 40);
-    g.fillStyle = "#c5ced8";
-    g.font = "650 18px \"Hiragino Sans\",\"Noto Sans JP\",\"Yu Gothic\",sans-serif";
-    g.fillText(metaLine(ev.event), 28, 68);
-    const slots = [
-      { x: 20, y: 100, w: 780, h: 500, main: 390 },
-      { x: 816, y: 100, w: 764, h: 236, main: 200 },
-      { x: 816, y: 348, w: 376, h: 252, main: 170 },
-      { x: 1204, y: 348, w: 376, h: 252, main: 170 },
-      { x: 20, y: 616, w: 381, h: 264, main: 150 },
-      { x: 413, y: 616, w: 381, h: 264, main: 150 },
-      { x: 806, y: 616, w: 381, h: 264, main: 150 },
-      { x: 1199, y: 616, w: 381, h: 264, main: 150 },
+    g.textBaseline = "alphabetic";
+    const tw = Math.min(g.measureText(title).width, 860);
+    ticks(g, 28, 22, tw + 20, 12, theme);
+    g.fillStyle = "#f4f7fb";
+    g.fillText(title, 44, 50, 900);
+    g.fillStyle = "#9aa6b5";
+    g.font = face(650, 16);
+    g.fillText(captionOf(ev.event, true), 44, 76, 1100);
+    const cards = [
+      { x: 20, y: 96, w: 800, h: 512, lean: 44, split: true },
+      { x: 844, y: 96, w: 736, h: 244, lean: 26, split: true },
+      { x: 844, y: 352, w: 360, h: 256, lean: 18, split: false },
+      { x: 1216, y: 352, w: 364, h: 256, lean: 18, split: false },
+      { x: 20, y: 624, w: 381, h: 244, lean: 16, split: false },
+      { x: 413, y: 624, w: 381, h: 244, lean: 16, split: false },
+      { x: 806, y: 624, w: 381, h: 244, lean: 16, split: false },
+      { x: 1199, y: 624, w: 381, h: 244, lean: 16, split: false },
     ];
-    const accent = ["#e6b325", "#d5dbe3", "#cd7f32", "#8ea0b5", "#6cb4ff", "#6cb4ff", "#6cb4ff", "#6cb4ff"];
-    slots.forEach((box, i) => {
-      const row = filled[i] || null;
-      g.fillStyle = "#1c2433";
-      roundRect(g, box.x, box.y, box.w, box.h, 16);
+    cards.forEach((card, i) => {
+      const slot = slots[i];
+      g.save();
+      skewPath(g, card.x, card.y, card.w, card.h, card.lean);
+      g.fillStyle = i === 0 ? "#171d2a" : "#121722";
       g.fill();
-      const label = row ? ordinal(row.place) : (filled.some((r) => r.place === i + 1) ? "" : ordinal(i + 1));
-      g.fillStyle = accent[i];
-      g.font = "800 " + (i === 0 ? 32 : 22) + "px \"Hiragino Sans\",\"Noto Sans JP\",\"Yu Gothic\",sans-serif";
-      g.textAlign = "left";
-      g.fillText(label, box.x + 16, box.y + (i === 0 ? 40 : 32));
-      if (row && row.nation) {
-        g.fillStyle = "#c5ced8";
-        g.font = "700 16px \"Hiragino Sans\",\"Noto Sans JP\",\"Yu Gothic\",sans-serif";
-        g.textAlign = "right";
-        g.fillText(row.nation, box.x + box.w - 16, box.y + 30);
+      g.lineWidth = i === 0 ? 2.5 : 1.25;
+      g.strokeStyle = i === 0 ? theme : "rgba(255,255,255,.14)";
+      g.stroke();
+      g.clip();
+      if (i === 0 && slot.place) {
+        g.save();
+        g.globalAlpha = 0.08;
+        g.fillStyle = "#ffffff";
+        g.font = face(800, 300);
         g.textAlign = "left";
+        g.fillText(String(slot.place), card.x + card.lean + 4, card.y + card.h - 20);
+        g.restore();
       }
-      const main = row && row.chars[0];
-      const imgTop = box.y + (i === 0 ? 52 : 40);
-      const imgH = box.h - (i === 0 ? 120 : 108);
-      if (main) drawIcon(g, icons[main.id + ":" + main.color], box.x + (box.w - box.main) / 2, imgTop + Math.max(0, (imgH - box.main) / 2), box.main);
-      const subs = row ? row.chars.slice(1) : [];
-      const sub = i === 0 ? 40 : 28;
-      subs.forEach((ch, k) => {
-        const sx = box.x + box.w - 14 - (subs.length - k) * (sub + 4);
-        const sy = box.y + box.h - sub - 52;
-        g.fillStyle = "#10141c";
-        roundRect(g, sx, sy, sub, sub, 6);
-        g.fill();
-        drawIcon(g, icons[ch.id + ":" + ch.color], sx + 2, sy + 2, sub - 4);
-      });
-      g.fillStyle = "#f2f5f8";
-      g.font = "750 " + (i === 0 ? 28 : 20) + "px \"Hiragino Sans\",\"Noto Sans JP\",\"Yu Gothic\",sans-serif";
-      g.textAlign = "left";
-      const name = row ? (tagLine(row) || "—") : "";
-      g.fillText(name, box.x + 16, box.y + box.h - 18, box.w - 32);
+      const inner = {
+        x: card.x + Math.round(card.lean * 0.72) + 12,
+        y: card.y + 12,
+        w: card.w - Math.round(card.lean * 1.2) - 22,
+        h: card.h - 26,
+      };
+      const opt = {
+        placeText: ordinal,
+        placeColor: theme,
+        placeSize: i === 0 ? 40 : 22,
+        nameColor: "#f5f7fb",
+        nameSize: i === 0 ? 30 : (i < 4 ? 20 : 16),
+        mute: "#b7c0cc",
+        sub: i === 0 ? 34 : 24,
+        subPlate: "#0c1018",
+      };
+      if (card.split) paintSplit(g, inner, slot, icons, opt);
+      else paintStacked(g, inner, slot, icons, opt);
+      g.restore();
     });
-    g.fillStyle = "#8b97a6";
-    g.font = "650 14px \"Hiragino Sans\",\"Noto Sans JP\",\"Yu Gothic\",sans-serif";
+    paintCredit(g, W - 24, H - 14, "#8b97a6");
+  }
+  function paintMinimal(g, ev, slots, icons, theme) {
+    const W = 1600;
+    const H = 900;
+    g.fillStyle = "#f6f3ec";
+    g.fillRect(0, 0, W, H);
+    const title = ev.event.name || "Top 8";
+    g.textAlign = "left";
+    g.textBaseline = "alphabetic";
+    g.fillStyle = "#1c1c1c";
+    g.font = face(750, 40);
+    g.fillText(title, 40, 62, 980);
+    g.strokeStyle = theme;
+    g.lineWidth = 4;
+    g.beginPath();
+    g.moveTo(40, 78);
+    g.lineTo(168, 78);
+    g.stroke();
+    g.fillStyle = "#6e675f";
+    g.font = face(650, 16);
+    g.fillText(captionOf(ev.event, false), 40, 106, 1100);
+    g.strokeStyle = "#d9d2c6";
+    g.lineWidth = 1;
+    g.beginPath();
+    g.moveTo(760, 124);
+    g.lineTo(760, 640);
+    g.moveTo(40, 640);
+    g.lineTo(1560, 640);
+    g.moveTo(760, 370);
+    g.lineTo(1560, 370);
+    g.moveTo(1160, 370);
+    g.lineTo(1160, 640);
+    g.moveTo(423, 656);
+    g.lineTo(423, 868);
+    g.moveTo(806, 656);
+    g.lineTo(806, 868);
+    g.moveTo(1189, 656);
+    g.lineTo(1189, 868);
+    g.stroke();
+    const cards = [
+      { x: 40, y: 124, w: 700, h: 500, place: 48, name: 32, sub: 36 },
+      { x: 784, y: 124, w: 752, h: 230, place: 28, name: 22, sub: 28 },
+      { x: 784, y: 386, w: 360, h: 238, place: 24, name: 20, sub: 26 },
+      { x: 1184, y: 386, w: 360, h: 238, place: 24, name: 20, sub: 26 },
+      { x: 40, y: 656, w: 371, h: 200, place: 22, name: 16, sub: 22 },
+      { x: 423, y: 656, w: 371, h: 200, place: 22, name: 16, sub: 22 },
+      { x: 806, y: 656, w: 371, h: 200, place: 22, name: 16, sub: 22 },
+      { x: 1189, y: 656, w: 371, h: 200, place: 22, name: 16, sub: 22 },
+    ];
+    cards.forEach((card, i) => {
+      paintStacked(g, { x: card.x + 12, y: card.y + 8, w: card.w - 24, h: card.h - 16 }, slots[i], icons, {
+        placeText: jaPlace,
+        placeColor: theme,
+        placeSize: card.place,
+        nameColor: "#1c1c1c",
+        nameSize: card.name,
+        mute: "#6e675f",
+        sub: card.sub,
+        subPlate: "",
+      });
+    });
+    paintCredit(g, W - 40, H - 16, "#8a8478");
+  }
+  function paintGlow(g, box, color) {
+    const cx = box.x + box.w / 2;
+    const cy = box.y + box.h * 0.42;
+    const rad = Math.max(box.w, box.h) * 0.62;
+    const grd = g.createRadialGradient(cx, cy, 8, cx, cy, rad);
+    grd.addColorStop(0, rgbaOf(color, 0.7));
+    grd.addColorStop(0.42, rgbaOf(color, 0.2));
+    grd.addColorStop(1, rgbaOf(color, 0));
+    g.fillStyle = grd;
+    g.fillRect(box.x, box.y, box.w, box.h);
+  }
+  function paintNeon(g, ev, slots, icons, theme) {
+    const W = 1600;
+    const H = 900;
+    g.fillStyle = "#05060c";
+    g.fillRect(0, 0, W, H);
+    const title = ev.event.name || "Top 8";
+    g.font = face(800, 34);
+    g.textAlign = "left";
+    g.textBaseline = "alphabetic";
+    const tw = Math.min(g.measureText(title).width, 860);
+    ticks(g, 28, 22, tw + 20, 12, theme);
+    g.fillStyle = "#f7f8ff";
+    g.fillText(title, 44, 50, 900);
+    g.fillStyle = "#9aa3b8";
+    g.font = face(650, 16);
+    g.fillText(captionOf(ev.event, true), 44, 76, 1100);
+    const cards = [
+      { x: 24, y: 100, w: 940, h: 508, r: 18, split: true },
+      { x: 980, y: 100, w: 596, h: 240, r: 16, split: true },
+      { x: 980, y: 356, w: 290, h: 252, r: 14, split: false },
+      { x: 1286, y: 356, w: 290, h: 252, r: 14, split: false },
+      { x: 24, y: 624, w: 379, h: 244, r: 14, split: false },
+      { x: 415, y: 624, w: 379, h: 244, r: 14, split: false },
+      { x: 806, y: 624, w: 379, h: 244, r: 14, split: false },
+      { x: 1197, y: 624, w: 379, h: 244, r: 14, split: false },
+    ];
+    cards.forEach((card, i) => {
+      const slot = slots[i];
+      g.save();
+      roundRect(g, card.x, card.y, card.w, card.h, card.r);
+      g.fillStyle = "#0c1018";
+      g.fill();
+      g.lineWidth = i === 0 ? 3 : 1.5;
+      g.strokeStyle = i === 0 ? theme : rgbaOf(theme, 0.72);
+      g.stroke();
+      g.clip();
+      const opt = {
+        placeText: ordinal,
+        placeColor: theme,
+        placeSize: i === 0 ? 40 : 22,
+        nameColor: "#f7f8ff",
+        nameSize: i === 0 ? 30 : (i < 4 ? 20 : 16),
+        mute: "#b7c0d4",
+        sub: i === 0 ? 34 : 24,
+        subPlate: "#070910",
+      };
+      const pad = 16;
+      const inner = { x: card.x + pad, y: card.y + 12, w: card.w - pad * 2, h: card.h - 24 };
+      if (card.split) {
+        const textW = Math.max(96, Math.round(inner.w * 0.42));
+        paintStacked(g, { x: inner.x, y: inner.y, w: textW, h: inner.h }, slot, icons, Object.assign({}, opt, { hero: false }));
+        const hero = { x: inner.x + textW, y: inner.y, w: inner.w - textW, h: inner.h };
+        paintGlow(g, hero, theme);
+        paintHero(g, hero, slot, icons);
+      } else {
+        paintGlow(g, inner, theme);
+        paintStacked(g, inner, slot, icons, opt);
+      }
+      g.restore();
+    });
+    paintCredit(g, W - 24, H - 14, "#8d97ad");
+  }
+  function paintSeal(g, cx, cy, r, text, fill) {
+    g.beginPath();
+    g.arc(cx, cy, r, 0, Math.PI * 2);
+    g.fillStyle = fill;
+    g.fill();
+    const ink = luma(fill) > 170 ? "#1c1412" : "#fff8ee";
+    g.lineWidth = 2;
+    g.strokeStyle = ink;
+    g.stroke();
+    const len = Array.from(text).length;
+    const size = len <= 1 ? r : len === 2 ? r * 0.58 : r * 0.4;
+    g.fillStyle = ink;
+    g.font = face(800, Math.max(10, Math.floor(size)));
+    g.textAlign = "center";
+    g.textBaseline = "middle";
+    g.fillText(text, cx, cy + 1);
+    g.textBaseline = "alphabetic";
+    g.textAlign = "left";
+  }
+  function paintVertical(g, text, x, y, size, color) {
+    const chars = Array.from(text).slice(0, 12);
+    g.fillStyle = color;
+    g.font = face(750, size);
+    g.textAlign = "center";
+    g.textBaseline = "alphabetic";
+    chars.forEach((ch, i) => g.fillText(ch, x, y + i * (size + 6)));
+    g.textAlign = "left";
+  }
+  function paintWa(g, ev, slots, icons, theme) {
+    const W = 1600;
+    const H = 900;
+    g.fillStyle = "#1c1412";
+    g.fillRect(0, 0, W, H);
+    g.save();
+    g.strokeStyle = "rgba(243,234,215,.16)";
+    g.lineWidth = 1;
+    const step = 56;
+    for (let x = -H; x < W + H; x += step) {
+      g.beginPath();
+      g.moveTo(x, 0);
+      g.lineTo(x + H, H);
+      g.stroke();
+      g.beginPath();
+      g.moveTo(x, 0);
+      g.lineTo(x - H, H);
+      g.stroke();
+    }
+    g.restore();
+    const title = ev.event.name || "Top 8";
+    paintVertical(g, title, 64, 118, 22, "#f3ead7");
+    g.fillStyle = "#cbbba8";
+    g.font = face(650, 16);
     g.textAlign = "right";
-    g.fillText("非公式  © Nintendo / HAL Laboratory, Inc.", W - 20, H - 8);
+    g.textBaseline = "alphabetic";
+    g.fillText(captionOf(ev.event, true), 1548, 58, 640);
+    g.textAlign = "left";
+    g.strokeStyle = "rgba(243,234,215,.35)";
+    g.lineWidth = 1;
+    g.beginPath();
+    g.moveTo(108, 586);
+    g.lineTo(1552, 586);
+    g.moveTo(884, 78);
+    g.lineTo(884, 570);
+    g.stroke();
+    const cards = [
+      { x: 908, y: 78, w: 644, h: 492, r: 34, big: true },
+      { x: 108, y: 78, w: 752, h: 156, r: 22, big: false },
+      { x: 108, y: 246, w: 752, h: 156, r: 22, big: false },
+      { x: 108, y: 414, w: 752, h: 156, r: 22, big: false },
+      { x: 108, y: 604, w: 349, h: 220, r: 20, big: false },
+      { x: 473, y: 604, w: 349, h: 220, r: 20, big: false },
+      { x: 838, y: 604, w: 349, h: 220, r: 20, big: false },
+      { x: 1203, y: 604, w: 349, h: 220, r: 20, big: false },
+    ];
+    const order = [0, 1, 2, 3, 4, 5, 6, 7];
+    order.forEach((index) => {
+      const card = cards[index];
+      const slot = slots[index];
+      const r = card.r;
+      if (slot.place != null) {
+        const sealText = card.big && slot.place === 1 ? "優勝" : waPlace(slot.place);
+        paintSeal(g, card.x + r + 2, card.y + r + 2, r, sealText, theme);
+      }
+      const left = card.x + r * 2 + 14;
+      paintStacked(g, { x: left, y: card.y + 4, w: card.x + card.w - left, h: card.h - 8 }, slot, icons, {
+        hidePlace: true,
+        placeText: waPlace,
+        placeColor: theme,
+        placeSize: 18,
+        nameColor: "#f6efe4",
+        nameSize: card.big ? 32 : 18,
+        mute: "#cbbba8",
+        sub: card.big ? 32 : 22,
+        subPlate: "rgba(28,20,18,.55)",
+      });
+    });
+    g.strokeStyle = "#f3ead7";
+    g.lineWidth = 2;
+    g.strokeRect(16, 16, 1568, 868);
+    g.lineWidth = 1;
+    g.strokeRect(26, 26, 1548, 848);
+    paintCredit(g, 1548, 850, "#cbbba8");
+  }
+  async function drawTop8() {
+    const ev = R.normalizeEvent(current, roster.length) || current;
+    const slots = top8Slots(ev);
+    const icons = await preload(slots.flatMap((slot) => (slot.row ? slot.row.chars : [])));
+    const canvas = document.createElement("canvas");
+    canvas.width = 1600;
+    canvas.height = 900;
+    const g = canvas.getContext("2d");
+    g.imageSmoothingEnabled = true;
+    const theme = hexOk(top8Look.color);
+    const id = knownTemplate(top8Look.template);
+    const paint = id === "minimal" ? paintMinimal : id === "neon" ? paintNeon : id === "wa" ? paintWa : paintSlash;
+    paint(g, ev, slots, icons, theme);
     return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob), "image/png"));
   }
   function init() {
@@ -404,6 +837,25 @@
     }
     current = loadCurrent();
     library = loadLibrary();
+    top8Look = readLook();
+    renderLook();
+    let lookTimer = 0;
+    $("top8templates").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-tpl]");
+      if (!btn) return;
+      top8Look.template = knownTemplate(btn.dataset.tpl);
+      writeLook();
+      syncLook();
+      if (window.ImagePreview && ImagePreview.applyLook) ImagePreview.applyLook(top8Look.template, top8Look.color);
+    });
+    $("top8color").addEventListener("input", () => {
+      top8Look.color = hexOk($("top8color").value);
+      writeLook();
+      clearTimeout(lookTimer);
+      lookTimer = setTimeout(() => {
+        if (window.ImagePreview && ImagePreview.applyLook) ImagePreview.applyLook(top8Look.template, top8Look.color);
+      }, 120);
+    });
     fillMeta();
     renderRows();
     renderLibrary();
@@ -480,8 +932,22 @@
       if (!blob) { toast("画像を作れませんでした"); return; }
       const filename = kind === "top8" ? "smash-top8.png" : "smash-result.png";
       const title = kind === "top8" ? "Top8画像" : "リザルト画像";
+      const opts = { title: title, source: blob, filename: filename };
+      if (kind === "top8") {
+        opts.look = {
+          templates: TOP8_TEMPLATES,
+          template: top8Look.template,
+          color: top8Look.color,
+          onChange: async (template, color) => {
+            top8Look = { template: knownTemplate(template), color: hexOk(color) };
+            writeLook();
+            syncLook();
+            return drawTop8();
+          },
+        };
+      }
       try {
-        await ImagePreview.open({ title: title, source: blob, filename: filename });
+        await ImagePreview.open(opts);
       } catch (e) {
         toast("プレビューを開けませんでした");
       }

@@ -268,7 +268,10 @@
 .ip button,.ip-top button{font:inherit;color:#f4f4f4;background:#3c3c3c;border:1px solid #5a5a5a;border-radius:8px;padding:6px 10px;min-height:36px}
 .ip button:disabled{opacity:.4}
 .ip-title{font-weight:700;margin-right:4px}
-.ip-presets,.ip-zoom,.ip-history,.ip-export,.ip-themes{display:flex;flex-wrap:wrap;gap:4px;align-items:center;max-width:100%}
+.ip-presets,.ip-zoom,.ip-history,.ip-export,.ip-themes,.ip-look{display:flex;flex-wrap:wrap;gap:4px;align-items:center;max-width:100%}
+.ip-look button[aria-pressed=true]{background:#1f6feb;border-color:#9cc4ff}
+.ip-look label{display:flex;align-items:center;gap:4px;font-size:12px;color:#ddd;margin:0}
+.ip-look input[type=color]{width:36px;height:28px;padding:0;border:1px solid #666;background:transparent}
 .ip-bg{display:flex;align-items:center;gap:4px;font-size:12px;color:#ddd}
 .ip-bg input[type=color]{width:36px;height:28px;padding:0;border:1px solid #666;background:transparent}
 .ip-themes button{width:28px;min-height:28px;padding:0}
@@ -321,6 +324,7 @@
 `;
 
   let shell = null;
+  let liveApply = null;
 
   function ensureStyle() {
     if (document.getElementById("ip-style")) return;
@@ -1318,7 +1322,82 @@
       if (state.index > 0 && !confirm("プレビューを閉じますか？加えた文字や図形は残しません。")) return;
       destroy(true);
     }
+    let alive = true;
+    let lookGen = 0;
+    function syncLookPressed(template, color) {
+      rootEl.querySelectorAll("[data-look]").forEach((btn) => {
+        btn.setAttribute("aria-pressed", btn.dataset.look === template ? "true" : "false");
+      });
+      const input = rootEl.querySelector(".ip-look input[type=color]");
+      if (input && /^#[0-9a-fA-F]{6}$/.test(color)) input.value = color;
+    }
+    async function runLook(template, color) {
+      if (!alive || !opts.look || typeof opts.look.onChange !== "function") return;
+      const gen = ++lookGen;
+      const nextColor = /^#[0-9a-fA-F]{6}$/.test(color) ? color : (opts.look.color || "#e23b4a");
+      let blob = null;
+      try { blob = await opts.look.onChange(template, nextColor); } catch (e) { blob = null; }
+      if (!alive || gen !== lookGen) return;
+      if (!blob) { toast("型を切り替えられませんでした"); return; }
+      let next = null;
+      try { next = await toBitmap(blob); } catch (e) { next = null; }
+      if (!alive || gen !== lookGen) {
+        if (next && next.close) { try { next.close(); } catch (err) {} }
+        return;
+      }
+      if (!next) { toast("型を切り替えられませんでした"); return; }
+      const prev = state.bitmap;
+      state.bitmap = next;
+      if (prev && prev !== next && prev.close) { try { prev.close(); } catch (e) {} }
+      syncLookPressed(template, nextColor);
+      renderCanvas();
+    }
+    function mountLook() {
+      const look = opts.look;
+      if (!look || !Array.isArray(look.templates) || typeof look.onChange !== "function") return;
+      const bar = document.createElement("div");
+      bar.className = "ip-look";
+      bar.setAttribute("role", "group");
+      bar.setAttribute("aria-label", "Top8の型");
+      const chosen = /^#[0-9a-fA-F]{6}$/.test(look.color) ? look.color : "#e23b4a";
+      look.templates.forEach((item) => {
+        if (!item || !item.id) return;
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = item.label || item.id;
+        btn.dataset.look = item.id;
+        btn.setAttribute("aria-pressed", item.id === look.template ? "true" : "false");
+        btn.addEventListener("click", () => {
+          const input = bar.querySelector("input[type=color]");
+          runLook(item.id, input ? input.value : chosen);
+        });
+        bar.appendChild(btn);
+      });
+      const label = document.createElement("label");
+      label.appendChild(document.createTextNode("テーマ色"));
+      const colorInput = document.createElement("input");
+      colorInput.type = "color";
+      colorInput.value = chosen;
+      colorInput.setAttribute("aria-label", "Top8のテーマ色");
+      let timer = 0;
+      colorInput.addEventListener("input", () => {
+        clearTimeout(timer);
+        const pressed = bar.querySelector('[aria-pressed="true"]');
+        const id = pressed ? pressed.dataset.look : look.template;
+        const value = colorInput.value;
+        timer = setTimeout(() => runLook(id, value), 120);
+      });
+      label.appendChild(colorInput);
+      bar.appendChild(label);
+      rootEl.querySelector(".ip-title").insertAdjacentElement("afterend", bar);
+      liveApply = (template, color) => {
+        if (/^#[0-9a-fA-F]{6}$/.test(color)) colorInput.value = color;
+        return runLook(template, color);
+      };
+    }
     function destroy(silent) {
+      alive = false;
+      liveApply = null;
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("resize", onResize);
       if (observer) observer.disconnect();
@@ -1326,8 +1405,9 @@
       document.documentElement.style.overflow = prevHtmlOverflow;
       document.body.style.overflow = prevBodyOverflow;
       if (shell && shell.root === rootEl) shell = null;
-      if (bitmap.close) {
-        try { bitmap.close(); } catch (e) { /* 既に閉じている */ }
+      const liveBitmap = state.bitmap;
+      if (liveBitmap && liveBitmap.close) {
+        try { liveBitmap.close(); } catch (e) { /* 既に閉じている */ }
       }
       void silent;
     }
@@ -1375,6 +1455,7 @@
     window.addEventListener("resize", onResize);
 
     shell = { root: rootEl, toast: rootEl.querySelector(".ip-toast"), destroy: destroy };
+    mountLook();
     pushHistory();
     syncPresetButtons();
     syncToolButtons();
@@ -1386,6 +1467,9 @@
     rootEl.querySelector('[data-act="close"]').focus();
   }
 
+  api.applyLook = function (template, color) {
+    if (liveApply) return liveApply(template, color);
+  };
   api.open = open;
   root.ImagePreview = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
