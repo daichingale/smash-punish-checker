@@ -68,6 +68,39 @@ test("レイヤーは前面・背面に1つずつ動く", () => {
   assert.deepEqual(P.bringForward(objs, "c").map((o) => o.id), ["a", "b", "c"]);
 });
 
+test("整列はキャンバス基準と選択範囲基準を切り替えられる", () => {
+  const objs = [
+    { id: "a", x: 10, y: 20, w: 100, h: 40 },
+    { id: "b", x: 40, y: 80, w: 30, h: 20 },
+  ];
+  const canvas = { x: 0, y: 0, w: 200, h: 200 };
+  const left = P.alignObjects(objs, ["a", "b"], "left", canvas);
+  assert.equal(left[0].x, 0);
+  assert.equal(left[1].x, 0);
+  assert.equal(left[0].y, 20);
+  const mid = P.alignObjects(objs, ["a"], "centerX", canvas);
+  assert.equal(mid[0].x, 50);
+  assert.equal(mid[1].x, 40);
+  const bottom = P.alignObjects(objs, ["b"], "bottom", canvas);
+  assert.equal(bottom[1].y, 180);
+  const bounds = P.boundsOf(objs);
+  assert.deepEqual(bounds, { x: 10, y: 20, w: 100, h: 80 });
+  const grouped = P.alignObjects(objs, ["a", "b"], "right", bounds);
+  assert.equal(grouped[0].x, 10);
+  assert.equal(grouped[1].x, 80);
+});
+
+test("中央に近い移動だけガイド用にスナップする", () => {
+  const hit = P.snapCenter({ x: 86, y: 36, w: 20, h: 20 }, 200, 100, 8);
+  assert.equal(hit.x, 90);
+  assert.equal(hit.y, 40);
+  assert.deepEqual(hit.guides.slice().sort(), ["h", "v"]);
+  const miss = P.snapCenter({ x: 10, y: 10, w: 20, h: 20 }, 200, 100, 8);
+  assert.equal(miss.x, 10);
+  assert.equal(miss.y, 10);
+  assert.deepEqual(miss.guides, []);
+});
+
 test("PDFはJPEGを1ページに埋め、外部リンクを持たない", () => {
   const jpeg = Uint8Array.from([0xff, 0xd8, 0xff, 0xd9, 1, 2, 3]);
   const pdf = P.buildPdf(jpeg, 1600, 900);
