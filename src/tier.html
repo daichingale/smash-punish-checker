@@ -23,11 +23,14 @@
   <div class="toolbtns">
     <button type="button" id="add">段を追加</button>
     <button type="button" id="share">共有リンク</button>
-    <button type="button" id="png">画像プレビュー</button>
     <button type="button" id="reset">初期化</button>
   </div>
 </div>
-<p class="hint">ドラッグで移動できます。スマホは少し長押ししてから動かします。タップしてから、置きたい段の色の部分をタップしても置けます。画像ボタンはプレビューを開きます。</p>
+<button type="button" class="make-card" id="png">
+  <canvas id="pngThumb" width="320" height="180" aria-hidden="true"></canvas>
+  <span class="make-copy"><b>ティア表の画像を作る</b><small>今の並びから。タップで編集</small></span>
+</button>
+<p class="hint">ドラッグで移動できます。スマホは少し長押ししてから動かします。タップしてから、置きたい段の色の部分をタップしても置けます。</p>
 <div class="layout">
   <div class="board" id="board"></div>
   <section class="pool" id="pool">
@@ -41,6 +44,7 @@
   <button type="button" id="selpool">未配置へ</button>
   <button type="button" id="selclear">やめる</button>
 </div>
+<div class="make-dock"><button type="button" id="dockPng">ティア表の画像を作る</button></div>
 <p id="toast" hidden role="status"></p>
 <footer>
   <a href="index.html">反撃チェック</a> · <a href="table.html">全技のフレーム表</a> · <a href="result.html">リザルト</a><br>

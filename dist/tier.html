@@ -31,6 +31,18 @@ a{color:var(--accent)}
 .tools{padding:8px 12px 0;display:flex;flex-direction:column;gap:8px}
 #q{width:100%;min-height:44px;font-size:16px;border-radius:12px;border:1px solid var(--line);background:var(--card);padding:0 12px}
 .toolbtns{display:flex;flex-wrap:wrap;gap:6px}
+.make-card{display:flex;flex-direction:column;align-items:stretch;gap:8px;text-align:left;margin:8px 12px 0;padding:8px;border-radius:16px;border:2px solid var(--accent);background:var(--accent);color:var(--on-accent);min-width:0}
+.make-card canvas{width:100%;height:auto;max-height:220px;object-fit:cover;object-position:top;border-radius:10px;background:#111;display:block}
+.make-copy{display:flex;flex-direction:column;gap:2px}
+.make-card b{font-size:17px;font-weight:800}
+.make-card small{font-size:12px;font-weight:650;color:color-mix(in srgb, var(--on-accent) 78%, transparent)}
+.make-dock{display:none}
+@media (max-width:720px){
+  .make-dock{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:8;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:color-mix(in srgb, var(--card) 94%, transparent);border-top:1px solid var(--line)}
+  .make-dock button{flex:1;min-height:52px;border:0;border-radius:14px;background:var(--accent);color:var(--on-accent);font-weight:800;font-size:16px}
+  body{padding-bottom:84px}
+  #toast{bottom:92px}
+}
 .toolbtns button{min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-weight:750}
 .hint{margin:8px 12px;color:var(--sub);font-size:13px}
 .board{padding:0 12px}
@@ -54,6 +66,7 @@ a{color:var(--accent)}
 .chipwrap.dragging{opacity:.35}
 #ghost{position:fixed;z-index:40;pointer-events:none;transform:translate(-50%,-60%);box-shadow:0 8px 24px rgba(0,0,0,.35);touch-action:none}
 body.has-sel{padding-bottom:72px}
+body.has-sel .make-dock{display:none}
 #selbar{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;align-items:center;gap:6px;margin:0;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--card) 94%,transparent);border-top:1px solid var(--line)}
 #selbar[hidden]{display:none}
 #selbar img{width:36px;height:36px;object-fit:contain;flex:none}
@@ -85,11 +98,14 @@ footer{padding:8px 12px calc(16px + env(safe-area-inset-bottom));color:var(--sub
   <div class="toolbtns">
     <button type="button" id="add">段を追加</button>
     <button type="button" id="share">共有リンク</button>
-    <button type="button" id="png">画像プレビュー</button>
     <button type="button" id="reset">初期化</button>
   </div>
 </div>
-<p class="hint">ドラッグで移動できます。スマホは少し長押ししてから動かします。タップしてから、置きたい段の色の部分をタップしても置けます。画像ボタンはプレビューを開きます。</p>
+<button type="button" class="make-card" id="png">
+  <canvas id="pngThumb" width="320" height="180" aria-hidden="true"></canvas>
+  <span class="make-copy"><b>ティア表の画像を作る</b><small>今の並びから。タップで編集</small></span>
+</button>
+<p class="hint">ドラッグで移動できます。スマホは少し長押ししてから動かします。タップしてから、置きたい段の色の部分をタップしても置けます。</p>
 <div class="layout">
   <div class="board" id="board"></div>
   <section class="pool" id="pool">
@@ -103,6 +119,7 @@ footer{padding:8px 12px calc(16px + env(safe-area-inset-bottom));color:var(--sub
   <button type="button" id="selpool">未配置へ</button>
   <button type="button" id="selclear">やめる</button>
 </div>
+<div class="make-dock"><button type="button" id="dockPng">ティア表の画像を作る</button></div>
 <p id="toast" hidden role="status"></p>
 <footer>
   <a href="index.html">反撃チェック</a> · <a href="table.html">全技のフレーム表</a> · <a href="result.html">リザルト</a><br>
@@ -2059,6 +2076,7 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     dirty = true;
     render();
     persist(true);
+    scheduleThumb();
   }
   function readHash() {
     return new URLSearchParams(location.hash.replace(/^#/, "")).get("t");
@@ -2103,11 +2121,11 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     const h = img.naturalHeight * s;
     g.drawImage(img, x + (size - w) / 2, y + (size - h) / 2, w, h);
   }
-  async function drawPng() {
+  async function drawPng(lite) {
     const ids = [];
     state.rows.forEach((row) => row.forEach((id) => { if (!ids.includes(id)) ids.push(id); }));
     const icons = {};
-    await Promise.all(ids.map(async (id) => { icons[id] = await loadIcon(id, 1, true); }));
+    await Promise.all(ids.map(async (id) => { icons[id] = await loadIcon(id, 1, !lite); }));
     const dark = matchMedia("(prefers-color-scheme: dark)").matches;
     const bg = dark ? "#0e1116" : "#f4f6f8";
     const card = dark ? "#171c24" : "#ffffff";
@@ -2132,7 +2150,7 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     });
     const height = pad + 78 + blocks.reduce((s, b) => s + b.h + 10, 0) + 72;
     const canvas = document.createElement("canvas");
-    const scale = 2;
+    const scale = lite ? 1 : 2;
     canvas.width = Math.round(width * scale);
     canvas.height = Math.round(height * scale);
     const g = canvas.getContext("2d");
@@ -2181,7 +2199,29 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     const left = T.poolIndices(state, roster.length).length;
     g.fillText("未配置 " + left + "人", pad, height - 40);
     g.fillText("画像: 大乱闘スマッシュブラザーズ SPECIAL 公式サイトの切り抜きを縮小", pad, height - 18);
+    if (lite) return canvas;
     return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob), "image/png"));
+  }
+  let thumbTimer = 0;
+  let thumbGen = 0;
+  function scheduleThumb() {
+    if (!$("pngThumb")) return;
+    clearTimeout(thumbTimer);
+    thumbTimer = setTimeout(drawThumb, 280);
+  }
+  async function drawThumb() {
+    const gen = ++thumbGen;
+    const canvas = await drawPng(true);
+    if (gen !== thumbGen || !canvas || !canvas.getContext) return;
+    const shot = $("pngThumb");
+    if (!shot) return;
+    const w = 320;
+    const h = Math.max(72, Math.round(w * canvas.height / canvas.width));
+    shot.width = w;
+    shot.height = Math.min(h, 360);
+    const g = shot.getContext("2d");
+    g.imageSmoothingEnabled = true;
+    g.drawImage(canvas, 0, 0, shot.width, shot.height);
   }
   function roundRect(g, x, y, w, h, r) {
     const rad = Math.min(r, w / 2, h / 2);
@@ -2224,15 +2264,18 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
         toast(ok ? "共有リンクをコピーしました" : "コピーできなかったので、アドレス欄のリンクを使ってください");
       }
     };
-    $("png").onclick = async () => {
-      const blob = await drawPng();
+    async function openPng() {
+      const blob = await drawPng(false);
       if (!blob) { toast("画像を作れませんでした"); return; }
       try {
         await ImagePreview.open({ title: "ティア表", source: blob, filename: "smash-tier.png" });
       } catch (e) {
         toast("プレビューを開けませんでした");
       }
-    };
+    }
+    $("png").onclick = openPng;
+    if ($("dockPng")) $("dockPng").onclick = openPng;
+    scheduleThumb();
     $("selclear").onclick = () => { selected = null; render(); };
     $("selpool").onclick = () => {
       if (selected == null) return;

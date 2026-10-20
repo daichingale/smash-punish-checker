@@ -249,6 +249,7 @@
     dirty = true;
     render();
     persist(true);
+    scheduleThumb();
   }
   function readHash() {
     return new URLSearchParams(location.hash.replace(/^#/, "")).get("t");
@@ -293,11 +294,11 @@
     const h = img.naturalHeight * s;
     g.drawImage(img, x + (size - w) / 2, y + (size - h) / 2, w, h);
   }
-  async function drawPng() {
+  async function drawPng(lite) {
     const ids = [];
     state.rows.forEach((row) => row.forEach((id) => { if (!ids.includes(id)) ids.push(id); }));
     const icons = {};
-    await Promise.all(ids.map(async (id) => { icons[id] = await loadIcon(id, 1, true); }));
+    await Promise.all(ids.map(async (id) => { icons[id] = await loadIcon(id, 1, !lite); }));
     const dark = matchMedia("(prefers-color-scheme: dark)").matches;
     const bg = dark ? "#0e1116" : "#f4f6f8";
     const card = dark ? "#171c24" : "#ffffff";
@@ -322,7 +323,7 @@
     });
     const height = pad + 78 + blocks.reduce((s, b) => s + b.h + 10, 0) + 72;
     const canvas = document.createElement("canvas");
-    const scale = 2;
+    const scale = lite ? 1 : 2;
     canvas.width = Math.round(width * scale);
     canvas.height = Math.round(height * scale);
     const g = canvas.getContext("2d");
@@ -371,7 +372,29 @@
     const left = T.poolIndices(state, roster.length).length;
     g.fillText("未配置 " + left + "人", pad, height - 40);
     g.fillText("画像: 大乱闘スマッシュブラザーズ SPECIAL 公式サイトの切り抜きを縮小", pad, height - 18);
+    if (lite) return canvas;
     return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob), "image/png"));
+  }
+  let thumbTimer = 0;
+  let thumbGen = 0;
+  function scheduleThumb() {
+    if (!$("pngThumb")) return;
+    clearTimeout(thumbTimer);
+    thumbTimer = setTimeout(drawThumb, 280);
+  }
+  async function drawThumb() {
+    const gen = ++thumbGen;
+    const canvas = await drawPng(true);
+    if (gen !== thumbGen || !canvas || !canvas.getContext) return;
+    const shot = $("pngThumb");
+    if (!shot) return;
+    const w = 320;
+    const h = Math.max(72, Math.round(w * canvas.height / canvas.width));
+    shot.width = w;
+    shot.height = Math.min(h, 360);
+    const g = shot.getContext("2d");
+    g.imageSmoothingEnabled = true;
+    g.drawImage(canvas, 0, 0, shot.width, shot.height);
   }
   function roundRect(g, x, y, w, h, r) {
     const rad = Math.min(r, w / 2, h / 2);
@@ -414,15 +437,18 @@
         toast(ok ? "共有リンクをコピーしました" : "コピーできなかったので、アドレス欄のリンクを使ってください");
       }
     };
-    $("png").onclick = async () => {
-      const blob = await drawPng();
+    async function openPng() {
+      const blob = await drawPng(false);
       if (!blob) { toast("画像を作れませんでした"); return; }
       try {
         await ImagePreview.open({ title: "ティア表", source: blob, filename: "smash-tier.png" });
       } catch (e) {
         toast("プレビューを開けませんでした");
       }
-    };
+    }
+    $("png").onclick = openPng;
+    if ($("dockPng")) $("dockPng").onclick = openPng;
+    scheduleThumb();
     $("selclear").onclick = () => { selected = null; render(); };
     $("selpool").onclick = () => {
       if (selected == null) return;

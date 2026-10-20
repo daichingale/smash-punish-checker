@@ -18,7 +18,7 @@
     <a class="back" href="index.html">反撃チェック</a>
   </nav>
 </header>
-<p class="hint">大会名と順位、選手、使用キャラを入れます。画像はリザルトと Top8 の2種類で、ボタンを押すとプレビューが開きます。アイコンをタップすると別のキャラに差し替えられます。</p>
+<p class="hint">大会名と順位、選手、使用キャラを入れます。下のカードをタップすると、今の入力から画像を作って編集できます。アイコンをタップすると別のキャラに差し替えられます。</p>
 <section class="card" aria-label="大会">
   <label>大会名<input id="evName" maxlength="80" autocomplete="off" placeholder="TournamentName" enterkeyhint="done"></label>
   <div class="split">
@@ -40,9 +40,17 @@
   <div role="group" aria-label="Top8の型" id="top8templates"></div>
   <label>テーマ色<input type="color" id="top8color" value="#e23b4a" aria-label="Top8のテーマ色"></label>
 </div>
+<div class="make-row">
+  <button type="button" class="make-card" id="png">
+    <canvas id="pngThumb" width="320" height="180" aria-hidden="true"></canvas>
+    <span class="make-copy"><b>リザルト画像を作る</b><small>今の順位表から。タップで編集</small></span>
+  </button>
+  <button type="button" class="make-card accent" id="top8">
+    <canvas id="top8Thumb" width="320" height="180" aria-hidden="true"></canvas>
+    <span class="make-copy"><b>Top8画像を作る</b><small id="top8MakeLabel">選択中の型 · タップで編集</small></span>
+  </button>
+</div>
 <div class="toolbtns">
-  <button type="button" id="png">リザルト画像</button>
-  <button type="button" id="top8">Top8画像</button>
   <button type="button" id="share">共有リンク</button>
   <button type="button" id="toLib">この大会を集計に加える</button>
   <button type="button" id="export">JSONで書き出す</button>
@@ -73,6 +81,10 @@
   <p class="fine" id="pickerHint">アイコンを選んでください。</p>
   <div id="pickerGrid" class="picker-grid"></div>
 </dialog>
+<div class="make-dock">
+  <button type="button" id="dockResult">リザルト画像を作る</button>
+  <button type="button" id="dockTop8">Top8画像を作る</button>
+</div>
 <p id="toast" hidden role="status"></p>
 <footer>
   <a href="index.html">反撃チェック</a> · <a href="table.html">全技のフレーム表</a> · <a href="tier.html">ティア表</a><br>
@@ -81,6 +93,7 @@
   このページは個人が作った非公式の試作です。任天堂・HAL研究所・検証窓とは関係ありません。表示内容の正確さは保証しません。
 </footer>
 <!--DATA--><script>window.__ROSTER__=[];</script><!--/DATA-->
-<!--SCRIPTS--><script src="names.js"></script><script src="result.js"></script><script src="tier.js"></script><script src="preview.js"></script><script src="result-page.js"></script><!--/SCRIPTS-->
+<!--FOCUS--><script>window.__FOCUS__=null;</script><!--/FOCUS-->
+<!--SCRIPTS--><script src="names.js"></script><script src="result.js"></script><script src="tier.js"></script><script src="frame.js"></script><script src="preview.js"></script><script src="result-page.js"></script><!--/SCRIPTS-->
 </body>
 </html>
