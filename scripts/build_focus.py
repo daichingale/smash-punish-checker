@@ -4,15 +4,14 @@
 顔は、体の上側にある不透明ピクセルを上にあるほど重くした重心。
 横に大きいキャラは、その重心が翼や殻に寄るので個別に上書きする。
 
-複数体が1枚に写るキャラは、体ごとの枠と顔を bodies に書く。
-ポケモントレーナーとホムラ／ヒカリは、途中で切った画像を集合のまま作り直す。
+複数体が1枚に写るキャラのうち、体が離れているものは体ごとの枠を bodies に書く。
+ポケモントレーナーとホムラ／ヒカリは体が重なるので bodies にしない。
 """
 import json
 import pathlib
-import shutil
 from PIL import Image
 
-from fetch_fighters import CACHE, to_hires, to_webp
+from fetch_fighters import CACHE
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / "fighters"
@@ -32,29 +31,11 @@ OVERRIDE = {
 # 元PNGに対する割合。(left, top, right, bottom, faceX, faceY)。体は重なってよい。
 # 枠は各体の大部分を覆い、顔の点はその体の頭に置く。
 GROUPS = {
-    "pokemon_trainer": {
-        "ids": [37, 38, 39],
-        "rewrite": True,
-        "bodies": [
-            (0.00, 0.00, 0.40, 0.98, 0.20, 0.16),  # トレーナー
-            (0.16, 0.32, 0.50, 0.98, 0.34, 0.50),  # ゼニガメ
-            (0.30, 0.10, 0.68, 0.98, 0.50, 0.28),  # フシギソウ
-            (0.48, 0.00, 1.00, 0.98, 0.67, 0.20),  # リザードン
-        ],
-    },
     "ice_climber": {
         "ids": [16],
         "bodies": [
             (0.00, 0.00, 0.62, 0.99, 0.42, 0.12),
             (0.40, 0.00, 1.00, 0.99, 0.72, 0.12),
-        ],
-    },
-    "homura": {
-        "ids": [85, 86],
-        "rewrite": True,
-        "bodies": [
-            (0.00, 0.00, 0.58, 0.99, 0.37, 0.12),  # ホムラ
-            (0.40, 0.00, 1.00, 0.99, 0.58, 0.12),  # ヒカリ
         ],
     },
     "duck_hunt": {
@@ -157,35 +138,10 @@ def map_bodies(im, bodies):
     return out
 
 
-def rewrite_group(file, ids):
-    """集合画像を切らず、画面用と書き出し用の両方を作り直す。"""
-    for color in range(1, 9):
-        src = CACHE / file / f"{color}.png"
-        if not src.exists():
-            raise SystemExit(f"missing {src}")
-        im = Image.open(src)
-        first = ids[0]
-        small = SRC / str(first) / f"{color}.webp"
-        hi = SRC / "hires" / str(first) / f"{color}.webp"
-        to_webp(im.copy(), small)
-        to_hires(im.copy(), hi)
-        im.close()
-        for i in ids[1:]:
-            dest_s = SRC / str(i) / f"{color}.webp"
-            dest_h = SRC / "hires" / str(i) / f"{color}.webp"
-            dest_s.parent.mkdir(parents=True, exist_ok=True)
-            dest_h.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(small, dest_s)
-            shutil.copyfile(hi, dest_h)
-    print("rewrite", file, ids)
-
-
 def main():
     names = [c["name"] for c in json.loads((ROOT / "data" / "data.json").read_text(encoding="utf-8"))["chars"]]
     by_id = {}
     for file, spec in GROUPS.items():
-        if spec.get("rewrite"):
-            rewrite_group(file, spec["ids"])
         for i in spec["ids"]:
             by_id[i] = (file, spec["bodies"])
 

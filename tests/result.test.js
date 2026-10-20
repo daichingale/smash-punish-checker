@@ -41,6 +41,26 @@ test("大会をまたいでも同じ名前は1人。空の名前は行ごとに�
   assert.equal(u.rows.find((r) => r.id === 1).count, 2);
 });
 
+test("ポケモン3体とホムラ／ヒカリは、同じ人なら1人としてまとめて数える", () => {
+  const u = R.countUsage([ev("大会", "2026-10-20", [
+    row(1, "たろう", [ch(37, 1), ch(39, 2), ch(85, 1), ch(86, 3)]),
+    row(2, "はなこ", [ch(38, 1)]),
+    row(3, "じろう", [ch(86, 1)]),
+  ])]);
+  assert.equal(u.rows.find((r) => r.id === 37).count, 2);
+  assert.equal(u.rows.find((r) => r.id === 85).count, 2);
+  assert.equal(u.rows.find((r) => r.id === 38), undefined);
+  assert.equal(u.rows.find((r) => r.id === 39), undefined);
+  assert.equal(u.rows.find((r) => r.id === 86), undefined);
+  assert.equal(R.usageName(39, () => "リザードン"), "ポケモントレーナー");
+  assert.equal(R.usageName(86, () => "ヒカリ"), "ホムラ／ヒカリ");
+  assert.equal(R.usageName(55, (id) => "格闘Mii"), "格闘Mii");
+  const back = R.decode(R.encode(R.normalizeEvent(ev("大会", "2026-10-20", [
+    row(1, "たろう", [ch(37, 1), ch(39, 2)]),
+  ]), 89)), 89);
+  assert.deepEqual(back.rows[0].chars.map((c) => c.id), [37, 39]);
+});
+
 test("使っていないキャラはランキングに出ない。人数と名前で並べ替えられる", () => {
   const u = R.countUsage([ev("大会", "2026-01-01", [
     row(1, "A", [ch(2, 1)]),

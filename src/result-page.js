@@ -142,13 +142,13 @@
   }
   function renderRank() {
     const usage = R.countUsage(library);
-    const nameOf = (id) => (roster[id] ? roster[id].name : "");
+    const nameOf = (id) => R.usageName(id, (i) => (roster[i] ? roster[i].name : ""));
     const rows = R.sortUsage(usage.rows, sortKey, sortDir, nameOf);
     $("playerCount").textContent = "選手 " + usage.players + "人";
     $("sortCount").setAttribute("aria-pressed", sortKey === "count" ? "true" : "false");
     $("sortName").setAttribute("aria-pressed", sortKey === "name" ? "true" : "false");
     $("rankList").innerHTML = rows.length
-      ? rows.map((r) => `<li><img src="${iconSrc(r.id, 1)}" alt="" width="48" height="48" loading="lazy" decoding="async"><span>${r.count}人</span><span>${esc(R.formatPercent(r.ratio))}</span></li>`).join("")
+      ? rows.map((r) => `<li><img src="${iconSrc(r.id, 1)}" alt="" width="48" height="48" loading="lazy" decoding="async"><b class="rank-name">${esc(nameOf(r.id))}</b><span>${r.count}人</span><span>${esc(R.formatPercent(r.ratio))}</span></li>`).join("")
       : `<li class="empty">まだ集計がありません。</li>`;
   }
   function renderPicker() {
@@ -156,7 +156,10 @@
     const all = roster.map((_, i) => i);
     const shown = T.filterPool(all, roster, q, N.haystack, N.norm, N.charNo);
     $("pickerGrid").innerHTML = shown.length
-      ? shown.map((i) => `<button type="button" class="pick" data-id="${i}" aria-label="${esc(roster[i].name)}"><img src="${iconSrc(i, 1)}" alt="" width="64" height="64" loading="lazy" decoding="async"></button>`).join("")
+      ? shown.map((i) => {
+        const shared = i === 37 || i === 38 || i === 39 || i === 85 || i === 86;
+        return `<button type="button" class="pick${shared ? " named" : ""}" data-id="${i}" aria-label="${esc(roster[i].name)}"><img src="${iconSrc(i, 1)}" alt="" width="64" height="64" loading="lazy" decoding="async">${shared ? `<small>${esc(roster[i].name)}</small>` : ""}</button>`;
+      }).join("")
       : `<p class="empty">該当するファイターはいません。</p>`;
   }
   function openPicker(rowIndex, slotIndex) {

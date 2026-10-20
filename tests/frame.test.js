@@ -44,7 +44,26 @@ test("横長キャラの1位枠でも可視率が基準以上", () => {
   }
 });
 
-const GROUPS = [16, 37, 38, 39, 44, 52, 63, 79, 85, 86];
+const GROUPS = [16, 44, 52, 63, 79];
+const CONTAIN = [37, 38, 39, 85, 86];
+
+test("単体に分けられない集合画像は、枠の中に全体が入る", () => {
+  for (const id of CONTAIN) {
+    assert.equal(focus.bodies && focus.bodies[String(id)], undefined);
+    for (let color = 1; color <= 8; color++) {
+      const meta = F.metaFor(id, color);
+      assert.equal(meta.contain, true);
+      assert.equal(meta.bodies, null);
+      for (const template of TEMPLATES) {
+        for (const index of [0, 4]) {
+          const placed = check(id, color, template, index);
+          assert.ok(placed.visible + 1e-9 >= 1, id + " " + template + " " + placed.visible);
+          assert.equal(placed.focusIn, true);
+        }
+      }
+    }
+  }
+});
 
 test("集合画像は各体の顔が入り、各体が7割以上見える", () => {
   const misses = [];

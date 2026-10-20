@@ -5,6 +5,8 @@
 
   const MIN_VISIBLE = 0.6;
   const GROUP_MIN_VISIBLE = 0.7;
+  // 公式に単体切り抜きが無く、集合から重なりなく分けられないキャラ。画像全体を枠に収める。
+  const CONTAIN = { 37: true, 38: true, 39: true, 85: true, 86: true };
 
   const CARDS = {
     slash: [
@@ -69,11 +71,13 @@
       fx: row[4] / 1000, fy: row[5] / 1000,
       iw: row[6], ih: row[7],
       minVisible: MIN_VISIBLE,
-      bodies: bodiesFor(id, c),
+      contain: !!CONTAIN[id],
+      bodies: CONTAIN[id] ? null : bodiesFor(id, c),
     };
   }
 
   function bodiesFor(id, color) {
+    if (CONTAIN[id]) return null;
     if (!table || !table.bodies || !table.bodies[id]) return null;
     const list = table.bodies[id][color - 1];
     if (!list || list.length < 2) return null;
@@ -179,6 +183,12 @@
       const dw = iw * s;
       const dh = ih * s;
       return { x: (slotW - dw) * 0.5, y: (slotH - dh) * focusY, w: dw, h: dh, visible: 1, focusIn: true };
+    }
+    if (meta.contain) {
+      const s = Math.min(slotW / iw, slotH / ih);
+      const dw = iw * s;
+      const dh = ih * s;
+      return { x: (slotW - dw) * 0.5, y: (slotH - dh) * 0.5, w: dw, h: dh, visible: 1, focusIn: true, bodyVisible: [1] };
     }
     const bodies = (meta.bodies || []).map((b) => ({
       l: b.l * iw, t: b.t * ih, r: b.r * iw, b: b.b * ih,

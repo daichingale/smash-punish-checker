@@ -14,6 +14,24 @@
   const MAX_PLAYER = 40;
   const MAX_ROWS = 128;
   const MAX_CHARS = 8;
+  // 公式ロスターでは1枠のキャラ。使用人数は代表idにまとめる。共有JSONのidはそのまま。
+  const USAGE_GROUPS = [
+    { id: 37, name: "ポケモントレーナー", members: [37, 38, 39] },
+    { id: 85, name: "ホムラ／ヒカリ", members: [85, 86] },
+  ];
+
+  function usageKey(id) {
+    for (const g of USAGE_GROUPS) {
+      if (g.members.indexOf(id) >= 0) return g.id;
+    }
+    return id;
+  }
+  function usageName(id, nameOf) {
+    for (const g of USAGE_GROUPS) {
+      if (g.id === id || g.members.indexOf(id) >= 0) return g.name;
+    }
+    return nameOf ? nameOf(id) : "";
+  }
 
   function playerKey(name) {
     return String(name == null ? "" : name).normalize("NFKC").trim().toLowerCase();
@@ -168,11 +186,13 @@
         let used = false;
         const seen = new Set();
         for (const ch of row.chars || []) {
-          if (!ch || !Number.isInteger(ch.id) || seen.has(ch.id)) continue;
-          seen.add(ch.id);
+          if (!ch || !Number.isInteger(ch.id)) continue;
+          const key = usageKey(ch.id);
+          if (seen.has(key)) continue;
+          seen.add(key);
           used = true;
-          if (!byChar.has(ch.id)) byChar.set(ch.id, new Set());
-          byChar.get(ch.id).add(who);
+          if (!byChar.has(key)) byChar.set(key, new Set());
+          byChar.get(key).add(who);
         }
         if (used || playerKey(row.player)) players.add(who);
       });
@@ -220,6 +240,7 @@
   const api = {
     TIER_SPEC, MAX_CHARS, playerKey, validSlot, normalizeEvent, defaultEvent, cloneEvent,
     encode, decode, parseBundle, exportBundle, upsertEvent, countUsage, sortUsage, formatPercent, rankingToTiers,
+    usageKey, usageName,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.ResultBoard = api;
