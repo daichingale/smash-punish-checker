@@ -1,0 +1,814 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0e1116" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f3f5f7" media="(prefers-color-scheme: light)">
+<title>ティア表 — スマブラSP 確定反撃チェッカー</title>
+<style>:root{
+  --bg:#0e1116;--card:#171c24;--line:#313846;--text:#f2f5f8;--sub:#c5ced8;
+  --accent:#6cb4ff;--on-accent:#04121f;color-scheme:dark
+}
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#f3f5f7;--card:#fff;--line:#d5dbe3;--text:#14181f;--sub:#3d4754;
+    --accent:#0b6bcb;--on-accent:#fff;color-scheme:light
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;font-size:16px;line-height:1.4}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.headbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:max(8px,env(safe-area-inset-top)) 12px 8px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px)}
+.headbar h1{font-size:16px;margin:0;font-weight:750}
+.headbar h1 small{display:block;color:var(--sub);font-weight:500;font-size:12px}
+.headlinks{display:flex;gap:6px;flex-wrap:wrap}
+.back{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--text);text-decoration:none;font-weight:750;white-space:nowrap}
+.tools{padding:8px 12px 0;display:flex;flex-direction:column;gap:8px}
+#q{width:100%;min-height:44px;font-size:16px;border-radius:12px;border:1px solid var(--line);background:var(--card);padding:0 12px}
+.toolbtns{display:flex;flex-wrap:wrap;gap:6px}
+.toolbtns button{min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-weight:750}
+.hint{margin:8px 12px;color:var(--sub);font-size:13px}
+.board{padding:0 12px}
+.tier{display:flex;gap:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card);margin:0 0 8px;min-width:0}
+.tier-side{width:92px;flex:none;display:flex;flex-direction:column;align-items:stretch;gap:4px;padding:8px 6px}
+.tier-side .name{font-weight:800;font-size:20px;text-align:center;border:0;background:transparent;min-height:40px;width:100%;padding:0}
+.side-row{display:flex;gap:4px;justify-content:center}
+.tier-side button,.tier-side input[type=color]{min-height:36px;min-width:36px;border-radius:8px;border:1px solid color-mix(in srgb,currentColor 35%,transparent);background:color-mix(in srgb,#fff 18%,transparent);padding:0}
+.tier-side input[type=color]{padding:0;width:36px}
+.tier-body{flex:1;min-width:0;min-height:60px;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;padding:8px}
+.tier.drop,.pool.drop{outline:2px solid var(--accent);outline-offset:-2px}
+.pool{margin:8px 12px 16px;padding:8px;border:1px solid var(--line);border-radius:14px;background:var(--card);min-width:0}
+.pool h2{font-size:14px;margin:0 0 8px;color:var(--sub)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;min-height:52px}
+.chipwrap{display:flex;flex-direction:column;max-width:100%}
+.chip{display:flex;align-items:center;gap:6px;min-height:44px;padding:4px 10px 4px 8px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-weight:750;touch-action:pan-y;max-width:100%}
+.chip i{width:8px;align-self:stretch;border-radius:99px;flex:none}
+.chip b{min-width:0;overflow-wrap:anywhere;text-align:left}
+.chip small{color:var(--sub);font-weight:650;font-size:11px;flex:none}
+.chipwrap.on .chip{box-shadow:0 0 0 2px var(--accent)}
+.chipwrap.dragging{opacity:.35}
+.go{font-size:12px;font-weight:750;text-align:center;min-height:36px;display:flex;align-items:center;justify-content:center}
+#ghost{position:fixed;z-index:40;pointer-events:none;transform:translate(-50%,-60%);box-shadow:0 8px 24px rgba(0,0,0,.35);touch-action:none}
+body.has-sel{padding-bottom:72px}
+#selbar{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;align-items:center;gap:6px;margin:0;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--card) 94%,transparent);border-top:1px solid var(--line)}
+#selbar[hidden]{display:none}
+#selbar b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+#selbar span{flex:none;color:var(--sub);font-size:13px;font-weight:650}
+#selbar button,#selbar a{min-height:44px;flex:none;display:inline-flex;align-items:center;padding:0 10px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--text);text-decoration:none;font-weight:750}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:8px 14px;border-radius:999px;font-weight:750;z-index:30}
+#toast[hidden]{display:none}
+.empty{color:var(--sub);font-size:14px;margin:4px}
+footer{padding:8px 12px calc(16px + env(safe-area-inset-bottom));color:var(--sub);font-size:12px;border-top:1px solid var(--line)}
+@media (min-width:900px){
+  .layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:12px;align-items:start;padding-right:12px}
+  .board{padding-right:0}
+  .pool{position:sticky;top:76px;max-height:calc(100vh - 96px);overflow:auto;margin-top:0}
+}
+</style>
+</head>
+<body>
+<header class="headbar">
+  <h1>ティア表<small>スマブラSP・試作版</small></h1>
+  <nav class="headlinks" aria-label="ページ">
+    <a class="back" href="table.html">フレーム表</a>
+    <a class="back" href="index.html">反撃チェック</a>
+  </nav>
+</header>
+<div class="tools">
+  <input id="q" type="search" placeholder="未配置を検索（まりお / mario / 1）" autocomplete="off" enterkeyhint="search" aria-label="未配置のファイターを検索">
+  <div class="toolbtns">
+    <button type="button" id="add">段を追加</button>
+    <button type="button" id="share">共有リンク</button>
+    <button type="button" id="png">画像で保存</button>
+    <button type="button" id="reset">初期化</button>
+  </div>
+</div>
+<p class="hint">ドラッグで移動できます。スマホは少し長押ししてから動かします。タップしてから、置きたい段の色の部分をタップしても置けます。</p>
+<div class="layout">
+  <div class="board" id="board"></div>
+  <section class="pool" id="pool">
+    <h2 id="poolTitle">未配置</h2>
+    <div class="chips" id="poolChips"></div>
+  </section>
+</div>
+<div id="selbar" hidden>
+  <b id="selname"></b><span id="selhint">段をタップ</span>
+  <a id="selgo" href="index.html">反撃</a>
+  <button type="button" id="selpool">未配置へ</button>
+  <button type="button" id="selclear">やめる</button>
+</div>
+<p id="toast" hidden role="status"></p>
+<footer>
+  <a href="index.html">反撃チェック</a> · <a href="table.html">全技のフレーム表</a><br>
+  ファイター名の区分は、フレームシートの並び（<a href="https://docs.google.com/spreadsheets/d/15SClMwvDIqovtO3DJnf1GGIteH35UX3IM7-mnbdG6eE/edit" target="_blank" rel="noopener">スマブラSP検証窓</a>）に合わせています。公式の絵は使っていません。<br>
+  このページは個人が作った非公式の試作です。検証窓・任天堂とは関係ありません。表示内容の正確さは保証しません。
+</footer>
+<script>window.__ROSTER__=[{"name":"マリオ","sheetTab":"1. マリオ"},{"name":"ドンキーコング","sheetTab":"2. ドンキーコング"},{"name":"リンク","sheetTab":"3. リンク"},{"name":"サムス","sheetTab":"4. サムス"},{"name":"ダークサムス","sheetTab":"4'. ダークサムス"},{"name":"ヨッシー","sheetTab":"5. ヨッシー"},{"name":"カービィ","sheetTab":"6. カービィ"},{"name":"フォックス","sheetTab":"7. フォックス"},{"name":"ピカチュウ","sheetTab":"8. ピカチュウ"},{"name":"ルイージ","sheetTab":"9. ルイージ"},{"name":"ネス","sheetTab":"10. ネス"},{"name":"キャプテン・ファルコン","sheetTab":"11. キャプテン・ファルコン"},{"name":"プリン","sheetTab":"12. プリン"},{"name":"ピーチ","sheetTab":"13. ピーチ"},{"name":"デイジー","sheetTab":"13'. デイジー"},{"name":"クッパ","sheetTab":"14. クッパ"},{"name":"アイスクライマー","sheetTab":"15. アイスクライマー"},{"name":"シーク","sheetTab":"16. シーク"},{"name":"ゼルダ","sheetTab":"17. ゼルダ"},{"name":"ドクターマリオ","sheetTab":"18. ドクターマリオ"},{"name":"ピチュー","sheetTab":"19. ピチュー"},{"name":"ファルコ","sheetTab":"20. ファルコ"},{"name":"マルス","sheetTab":"21. マルス"},{"name":"ルキナ","sheetTab":"21'. ルキナ"},{"name":"こどもリンク","sheetTab":"22. こどもリンク"},{"name":"ガノンドロフ","sheetTab":"23. ガノンドロフ"},{"name":"ミュウツー","sheetTab":"24. ミュウツー"},{"name":"ロイ","sheetTab":"25. ロイ"},{"name":"クロム","sheetTab":"25'. クロム"},{"name":"Mr.ゲーム&ウォッチ","sheetTab":"26. Mr.ゲーム&ウォッチ"},{"name":"メタナイト","sheetTab":"27. メタナイト"},{"name":"ピット","sheetTab":"28. ピット"},{"name":"ブラックピット","sheetTab":"28'. ブラックピット"},{"name":"ゼロスーツサムス","sheetTab":"29. ゼロスーツサムス"},{"name":"ワリオ","sheetTab":"30. ワリオ"},{"name":"スネーク","sheetTab":"31. スネーク"},{"name":"アイク","sheetTab":"32. アイク"},{"name":"ゼニガメ","sheetTab":"33. ゼニガメ"},{"name":"フシギソウ","sheetTab":"34. フシギソウ"},{"name":"リザードン","sheetTab":"35. リザードン"},{"name":"ディディーコング","sheetTab":"36. ディディーコング"},{"name":"リュカ","sheetTab":"37. リュカ"},{"name":"ソニック","sheetTab":"38. ソニック"},{"name":"デデデ","sheetTab":"39. デデデ"},{"name":"ピクミン&オリマー","sheetTab":"40. ピクミン&オリマー"},{"name":"ルカリオ","sheetTab":"41. ルカリオ"},{"name":"ロボット","sheetTab":"42. ロボット"},{"name":"トゥーンリンク","sheetTab":"43. トゥーンリンク"},{"name":"ウルフ","sheetTab":"44. ウルフ"},{"name":"むらびと","sheetTab":"45. むらびと"},{"name":"ロックマン","sheetTab":"46. ロックマン"},{"name":"Wii Fit トレーナー","sheetTab":"47. Wii Fit トレーナー"},{"name":"ロゼッタ&チコ","sheetTab":"48. ロゼッタ&チコ"},{"name":"リトル・マック","sheetTab":"49. リトル・マック"},{"name":"ゲッコウガ","sheetTab":"50. ゲッコウガ"},{"name":"格闘Mii","sheetTab":"51. 格闘Mii"},{"name":"剣術Mii","sheetTab":"52. 剣術Mii"},{"name":"射撃Mii","sheetTab":"53. 射撃Mii"},{"name":"パルテナ","sheetTab":"54. パルテナ"},{"name":"パックマン","sheetTab":"55. パックマン"},{"name":"ルフレ","sheetTab":"56. ルフレ"},{"name":"シュルク","sheetTab":"57. シュルク"},{"name":"クッパ Jr.","sheetTab":"58. クッパ Jr."},{"name":"ダックハント","sheetTab":"59. ダックハント"},{"name":"リュウ","sheetTab":"60. リュウ"},{"name":"ケン","sheetTab":"60'. ケン"},{"name":"クラウド","sheetTab":"61. クラウド"},{"name":"カムイ","sheetTab":"62. カムイ"},{"name":"ベヨネッタ","sheetTab":"63. ベヨネッタ"},{"name":"インクリング","sheetTab":"64. インクリング"},{"name":"リドリー","sheetTab":"65. リドリー"},{"name":"シモン","sheetTab":"66. シモン"},{"name":"リヒター","sheetTab":"66'. リヒター"},{"name":"キングクルール","sheetTab":"67. キングクルール"},{"name":"しずえ","sheetTab":"68. しずえ"},{"name":"ガオガエン","sheetTab":"69. ガオガエン"},{"name":"パックンフラワー","sheetTab":"70. パックンフラワー"},{"name":"ジョーカー","sheetTab":"71. ジョーカー"},{"name":"勇者","sheetTab":"72. 勇者"},{"name":"バンジョー&カズーイ","sheetTab":"73. バンジョー&カズーイ"},{"name":"テリー","sheetTab":"74. テリー"},{"name":"ベレト／ベレス","sheetTab":"75. ベレト／ベレス"},{"name":"ミェンミェン","sheetTab":"76. ミェンミェン"},{"name":"スティーブ／アレックス","sheetTab":"77. スティーブ／アレックス"},{"name":"セフィロス","sheetTab":"78. セフィロス"},{"name":"ホムラ","sheetTab":"79. ホムラ"},{"name":"ヒカリ","sheetTab":"80. ヒカリ"},{"name":"カズヤ","sheetTab":"81. カズヤ"},{"name":"ソラ","sheetTab":"82. ソラ"}];</script>
+<script>/* キャラ検索用の正規化と読み。表示名は変えない */
+(function (root) {
+  "use strict";
+const toKata = (s) => s.replace(/[\u3041-\u3096]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 0x60));
+const norm = (s) => toKata(String(s).normalize("NFKC").toLowerCase()).replace(/[\s・&＆.．ー\-'’／/]/g, "");
+const charNo = (c) => (c.sheetTab.match(/^(\d+'?)/) || [])[1] || "";
+const ALIAS = { "Mii": "ミイ ミー mii", "ドンキーコング": "dk", "Mr.ゲーム&ウォッチ": "ゲムヲ ゲーム&ウォッチ", "Wii Fit トレーナー": "ウィーフィット wiifit",
+  "キャプテン・ファルコン": "cf", "ピクミン&オリマー": "オリマー", "ロゼッタ&チコ": "ロゼチコ", "バンジョー&カズーイ": "バンカズ",
+  "ゼロスーツサムス": "ゼロサム", "パックンフラワー": "パックン", "トゥーンリンク": "トゥーン", "こどもリンク": "こどリン", "ガノンドロフ": "ガノン" };
+// 検索用の読み。表示名は変えない
+const READ = { "マリオ": "まりお mario", "ドンキーコング": "どんきーこんぐ donkeykong", "リンク": "りんく link", "サムス": "さむす samus", "ダークサムス": "だーくさむす darksamus",
+  "ヨッシー": "よっしー yoshi", "カービィ": "かーびぃ kirby", "フォックス": "ふぉっくす fox", "ピカチュウ": "ぴかちゅう pikachu", "ルイージ": "るいーじ luigi", "ネス": "ねす ness",
+  "キャプテン・ファルコン": "きゃぷてんふぁるこん captainfalcon falcon", "プリン": "ぷりん jigglypuff purin", "ピーチ": "ぴーち peach", "デイジー": "でいじー daisy", "クッパ": "くっぱ bowser koopa",
+  "アイスクライマー": "あいすくらいまー icies iceclimber", "シーク": "しーく sheik", "ゼルダ": "ぜるだ zelda", "ドクターマリオ": "どくたーまりお drmario doc", "ピチュー": "ぴちゅー pichu",
+  "ファルコ": "ふぁるこ falco", "マルス": "まるす marth", "ルキナ": "るきな lucina", "こどもリンク": "こどもりんく younglink", "ガノンドロフ": "がのんどろふ ganondorf",
+  "ミュウツー": "みゅうつー mewtwo", "ロイ": "ろい roy", "クロム": "くろむ chrom", "Mr.ゲーム&ウォッチ": "みすたーげーむ gamewatch gnw", "メタナイト": "めたないと metaknight",
+  "ピット": "ぴっと pit", "ブラックピット": "ぶらっくぴっと darkpit", "ゼロスーツサムス": "ぜろすーつさむす zerosuit zss", "ワリオ": "わりお wario", "スネーク": "すねーく snake",
+  "アイク": "あいく ike", "ゼニガメ": "ぜにがめ squirtle", "フシギソウ": "ふしぎそう ivysaur", "リザードン": "りざーどん charizard", "ディディーコング": "でぃでぃーこんぐ diddykong diddy",
+  "リュカ": "りゅか lucas", "ソニック": "そにっく sonic", "デデデ": "ででで dedede", "ピクミン&オリマー": "ぴくみんおりまー olimar pikmin", "ルカリオ": "るかリオ lucario",
+  "ロボット": "ろぼっと rob roboto", "トゥーンリンク": "とぅーんりんく toonlink", "ウルフ": "うるふ wolf", "むらびと": "むらびと villager", "ロックマン": "ろっくまん megaman rockman",
+  "Wii Fit トレーナー": "うぃーふぃっと wiifittrainer", "ロゼッタ&チコ": "ろぜったちこ rosalina", "リトル・マック": "りとるまっく littlemac", "ゲッコウガ": "げっこうが greninja",
+  "格闘Mii": "かくとうみい brawler", "剣術Mii": "けんじゅつみい swordfighter", "射撃Mii": "しゃげきみい gunner", "パルテナ": "ぱるてな palutena", "パックマン": "ぱっくまん pacman",
+  "ルフレ": "るふれ robin", "シュルク": "しゅるく shulk", "クッパ Jr.": "くっぱじゅにあ bowserjr", "ダックハント": "だっくはんと duckhunt", "リュウ": "りゅう ryu", "ケン": "けん ken",
+  "クラウド": "くらうど cloud", "カムイ": "かむい corrin", "ベヨネッタ": "べよねった bayonetta bayo", "インクリング": "いんくりんぐ inkling", "リドリー": "りどりー ridley",
+  "シモン": "しもん simon", "リヒター": "りひたー richter", "キングクルール": "きんぐくるーる kingkrool kkr", "しずえ": "しずえ isabelle", "ガオガエン": "がおがえん incineroar",
+  "パックンフラワー": "ぱっくんふらわー piranha plant", "ジョーカー": "じょーかー joker", "勇者": "ゆうしゃ hero", "バンジョー&カズーイ": "ばんじょーかずーい banjo", "テリー": "てりー terry",
+  "ベレト／ベレス": "べれとべれす byleth", "ミェンミェン": "みぇんみぇん minmin", "スティーブ／アレックス": "すてぃーぶあれっくす steve alex", "セフィロス": "せふぃろす sephiroth",
+  "ホムラ": "ほむら pyra homura", "ヒカリ": "ひかり mythra hikari", "カズヤ": "かずや kazuya", "ソラ": "そら sora" };
+const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || "") + " " + Object.keys(ALIAS).filter((k) => c.name.includes(k)).map((k) => ALIAS[k]).join(" "));
+
+  const api = { norm, charNo, haystack };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else root.Names = api;
+})(typeof window !== "undefined" ? window : globalThis);
+</script><script>/* ティア表の状態。ブラウザ / Node 共通。フレームデータは読まない */
+(function (root) {
+  "use strict";
+  const DEFAULT_COLORS = ["#d64545", "#e07a2f", "#e0b030", "#3aaa5a", "#3b82d6", "#8b5cf6", "#db2777", "#0f766e"];
+  const DEFAULT_NAMES = ["S", "A", "B", "C", "D"];
+  const MAX_TIERS = 24;
+  const MAX_NAME = 16;
+
+  function validColor(c) {
+    const m = /^#([0-9a-fA-F]{6})$/.exec(String(c || "").trim());
+    return m ? "#" + m[1].toLowerCase() : "";
+  }
+  function defaultTiers() {
+    return DEFAULT_NAMES.map((name, i) => ({ name: name, color: DEFAULT_COLORS[i] }));
+  }
+  function defaultState() {
+    const tiers = defaultTiers();
+    return { tiers: tiers, rows: tiers.map(() => []) };
+  }
+  function cloneState(s) {
+    return {
+      tiers: s.tiers.map((t) => ({ name: t.name, color: t.color })),
+      rows: s.rows.map((r) => r.slice()),
+    };
+  }
+
+  function poolIndices(state, count) {
+    const used = new Set();
+    for (const row of state.rows) for (const i of row) used.add(i);
+    const out = [];
+    for (let i = 0; i < count; i++) if (!used.has(i)) out.push(i);
+    return out;
+  }
+
+  function removeIndex(state, index) {
+    for (const row of state.rows) {
+      const at = row.indexOf(index);
+      if (at >= 0) row.splice(at, 1);
+    }
+  }
+
+  /** at は「今の並び」での挿入位置。同じ段の中で後ろへ動かすときは、抜いた分を戻す */
+  function moveFighter(state, index, tierIndex, at) {
+    if (!Number.isInteger(index) || tierIndex < 0 || tierIndex >= state.rows.length) return false;
+    const srcTier = state.rows.findIndex((r) => r.indexOf(index) >= 0);
+    const srcPos = srcTier < 0 ? -1 : state.rows[srcTier].indexOf(index);
+    removeIndex(state, index);
+    const row = state.rows[tierIndex];
+    let pos = at == null ? row.length : at;
+    if (srcTier === tierIndex && srcPos >= 0 && srcPos < pos) pos -= 1;
+    if (pos < 0) pos = 0;
+    if (pos > row.length) pos = row.length;
+    row.splice(pos, 0, index);
+    return true;
+  }
+  function toPool(state, index) {
+    removeIndex(state, index);
+  }
+
+  function addTier(state, name, color) {
+    if (state.tiers.length >= MAX_TIERS) return false;
+    const n = state.tiers.length;
+    const label = String(name || "").trim().slice(0, MAX_NAME) || ("段" + (n + 1));
+    state.tiers.push({ name: label, color: validColor(color) || DEFAULT_COLORS[n % DEFAULT_COLORS.length] });
+    state.rows.push([]);
+    return true;
+  }
+  function removeTier(state, tierIndex) {
+    if (state.tiers.length <= 1) return false;
+    if (tierIndex < 0 || tierIndex >= state.tiers.length) return false;
+    state.tiers.splice(tierIndex, 1);
+    state.rows.splice(tierIndex, 1);
+    return true;
+  }
+  function moveTier(state, from, to) {
+    if (from === to || from < 0 || to < 0 || from >= state.tiers.length || to >= state.tiers.length) return false;
+    const t = state.tiers.splice(from, 1)[0];
+    const r = state.rows.splice(from, 1)[0];
+    state.tiers.splice(to, 0, t);
+    state.rows.splice(to, 0, r);
+    return true;
+  }
+  function renameTier(state, tierIndex, name) {
+    const next = String(name == null ? "" : name).trim().slice(0, MAX_NAME);
+    if (!next || tierIndex < 0 || tierIndex >= state.tiers.length) return false;
+    state.tiers[tierIndex].name = next;
+    return true;
+  }
+  function recolorTier(state, tierIndex, color) {
+    const c = validColor(color);
+    if (!c || tierIndex < 0 || tierIndex >= state.tiers.length) return false;
+    state.tiers[tierIndex].color = c;
+    return true;
+  }
+
+  function compact(state) {
+    return {
+      v: 1,
+      t: state.tiers.map((t) => [t.name, t.color]),
+      r: state.rows.map((row) => row.slice()),
+    };
+  }
+  function encode(state) {
+    return encodeURIComponent(JSON.stringify(compact(state)));
+  }
+  function parsePayload(text) {
+    const tries = [];
+    const s = String(text);
+    try {
+      const d = decodeURIComponent(s);
+      if (d !== s) tries.push(d);
+    } catch (e) { /* すでに展開済み、または壊れた % */ }
+    tries.push(s);
+    for (const raw of tries) {
+      try { return JSON.parse(raw); } catch (e) { /* 次の候補 */ }
+    }
+    return null;
+  }
+  function decode(text, count) {
+    if (text == null || text === "") return null;
+    if (!Number.isInteger(count) || count < 1) return null;
+    const data = parsePayload(text);
+    if (!data || data.v !== 1 || !Array.isArray(data.t) || !Array.isArray(data.r)) return null;
+    if (data.t.length !== data.r.length || data.t.length < 1 || data.t.length > MAX_TIERS) return null;
+    const tiers = [];
+    const rows = [];
+    const seen = new Set();
+    for (let i = 0; i < data.t.length; i++) {
+      const pair = data.t[i];
+      if (!Array.isArray(pair) || pair.length < 2) return null;
+      const name = String(pair[0] == null ? "" : pair[0]).trim().slice(0, MAX_NAME);
+      const color = validColor(pair[1]);
+      if (!name || !color) return null;
+      tiers.push({ name: name, color: color });
+      const src = data.r[i];
+      if (!Array.isArray(src)) return null;
+      const row = [];
+      for (const n of src) {
+        if (!Number.isInteger(n) || n < 0 || n >= count || seen.has(n)) continue;
+        seen.add(n);
+        row.push(n);
+      }
+      rows.push(row);
+    }
+    return { tiers: tiers, rows: rows };
+  }
+
+  /** 未配置の検索。読み・ローマ字・ファイター番号は Names と同じ条件 */
+  function filterPool(indices, roster, query, haystack, norm, charNo) {
+    const qv = norm(String(query || ""));
+    if (!qv) return indices.slice();
+    return indices.filter((i) => {
+      const c = roster[i];
+      if (!c) return false;
+      return haystack(c).includes(qv) || String(charNo(c)).replace("'", "") === qv;
+    });
+  }
+
+  function ink(hex) {
+    const n = parseInt(String(hex).slice(1), 16);
+    const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+    const l = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+    return l > 0.62 ? "#14181f" : "#ffffff";
+  }
+
+  const api = {
+    DEFAULT_COLORS, DEFAULT_NAMES, MAX_TIERS, MAX_NAME,
+    validColor, defaultState, cloneState, poolIndices,
+    moveFighter, toPool, addTier, removeTier, moveTier, renameTier, recolorTier,
+    compact, encode, decode, filterPool, ink,
+  };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else root.TierList = api;
+})(typeof window !== "undefined" ? window : globalThis);
+</script><script>/* ティア表の画面。数値データは読まない。名前とシリーズ色のチップだけ */
+(function () {
+  "use strict";
+  const T = window.TierList;
+  const N = window.Names;
+  const roster = window.__ROSTER__ || [];
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const SERIES = [
+    [["マリオ", "ルイージ", "ピーチ", "デイジー", "クッパ", "ドクターマリオ", "ロゼッタ&チコ", "クッパ Jr.", "パックンフラワー"], "#e23d3d"],
+    [["ドンキーコング", "ディディーコング", "キングクルール"], "#f08a24"],
+    [["リンク", "シーク", "ゼルダ", "こどもリンク", "ガノンドロフ", "トゥーンリンク"], "#2f9e4a"],
+    [["サムス", "ダークサムス", "ゼロスーツサムス", "リドリー"], "#d4a24a"],
+    [["ヨッシー"], "#7dcc4a"],
+    [["カービィ", "メタナイト", "デデデ"], "#e7a0c0"],
+    [["フォックス", "ファルコ", "ウルフ"], "#4c6fe0"],
+    [["ピカチュウ", "プリン", "ピチュー", "ミュウツー", "ゼニガメ", "フシギソウ", "リザードン", "ルカリオ", "ゲッコウガ", "ガオガエン"], "#e6b325"],
+    [["ネス", "リュカ"], "#d4533a"],
+    [["キャプテン・ファルコン"], "#3a4a9a"],
+    [["アイスクライマー"], "#7ec8e3"],
+    [["マルス", "ルキナ", "ロイ", "クロム", "アイク", "ルフレ", "カムイ", "ベレト／ベレス"], "#8c3040"],
+    [["Mr.ゲーム&ウォッチ"], "#555555"],
+    [["ピット", "ブラックピット", "パルテナ"], "#e6c35c"],
+    [["ワリオ"], "#e6d34a"],
+    [["スネーク"], "#8a9099"],
+    [["ソニック"], "#2f6fe0"],
+    [["ピクミン&オリマー"], "#e6c36a"],
+    [["ロボット"], "#9aa3ad"],
+    [["むらびと", "しずえ"], "#6fbf73"],
+    [["ロックマン"], "#3a78c2"],
+    [["Wii Fit トレーナー"], "#4dbdb8"],
+    [["リトル・マック"], "#c46a32"],
+    [["格闘Mii", "剣術Mii", "射撃Mii"], "#9a9a9a"],
+    [["シュルク", "ホムラ", "ヒカリ"], "#c6a15a"],
+    [["パックマン"], "#f0d000"],
+    [["リュウ", "ケン"], "#2a4f9a"],
+    [["クラウド", "セフィロス"], "#4aa3df"],
+    [["ベヨネッタ"], "#8b2448"],
+    [["インクリング"], "#ef5a2a"],
+    [["ダックハント"], "#8d6239"],
+    [["シモン", "リヒター"], "#6b2d5b"],
+    [["ジョーカー"], "#c81e2e"],
+    [["勇者"], "#1d4e9c"],
+    [["バンジョー&カズーイ"], "#e6b325"],
+    [["テリー"], "#c0392b"],
+    [["ミェンミェン"], "#e45b9a"],
+    [["スティーブ／アレックス"], "#6a8f4e"],
+    [["カズヤ"], "#8b1e1e"],
+    [["ソラ"], "#4a7ebf"],
+  ];
+  const seriesColor = {};
+  SERIES.forEach(([names, color]) => names.forEach((n) => { seriesColor[n] = color; }));
+
+  const KEY = "punish.tier";
+  let state = T.defaultState();
+  let selected = null;
+  let drag = null;
+  let suppressClick = false;
+  let dirty = false;
+  let toastTimer = 0;
+
+  function toast(msg) {
+    const el = $("toast");
+    el.hidden = false;
+    el.textContent = msg;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.hidden = true; }, 1600);
+  }
+  function inTier(index) {
+    return state.rows.some((r) => r.indexOf(index) >= 0);
+  }
+  function chipHtml(index, picked) {
+    const c = roster[index];
+    const no = N.charNo(c);
+    const col = seriesColor[c.name] || "#6b7280";
+    const go = picked && inTier(index)
+      ? `<a class="go" href="index.html#me=${index}&mode=A">反撃チェック</a>`
+      : "";
+    return `<div class="chipwrap${picked ? " on" : ""}" data-i="${index}"><button type="button" class="chip" aria-pressed="${picked ? "true" : "false"}"><i style="background:${col}"></i><b>${esc(c.name)}</b><small>${esc(no)}</small></button>${go}</div>`;
+  }
+  function renderTiers() {
+    $("board").innerHTML = state.tiers.map((tier, i) => {
+      const ink = T.ink(tier.color);
+      const chips = state.rows[i].map((n) => chipHtml(n, n === selected)).join("");
+      return `<section class="tier" data-tier="${i}"><div class="tier-side" style="background:${tier.color};color:${ink}">` +
+        `<input class="name" value="${esc(tier.name)}" maxlength="16" aria-label="段の名前" enterkeyhint="done">` +
+        `<div class="side-row"><button type="button" data-act="up" aria-label="この段を上へ">↑</button><button type="button" data-act="down" aria-label="この段を下へ">↓</button></div>` +
+        `<div class="side-row"><input type="color" value="${tier.color}" aria-label="段の色"><button type="button" data-act="del" aria-label="この段を削除">×</button></div>` +
+        `</div><div class="tier-body" data-drop="tier">${chips || ""}</div></section>`;
+    }).join("");
+    $("board").querySelectorAll(".tier").forEach((tierEl) => {
+      const i = +tierEl.dataset.tier;
+      const side = tierEl.querySelector(".tier-side");
+      const name = tierEl.querySelector(".name");
+      name.addEventListener("change", () => {
+        if (!T.renameTier(state, i, name.value)) name.value = state.tiers[i].name;
+        persist(true);
+      });
+      const color = tierEl.querySelector('input[type="color"]');
+      color.addEventListener("input", () => {
+        const c = T.validColor(color.value);
+        if (!c) return;
+        side.style.background = c;
+        side.style.color = T.ink(c);
+      });
+      color.addEventListener("change", () => {
+        if (T.recolorTier(state, i, color.value)) persist(true);
+      });
+      tierEl.querySelector('[data-act="up"]').onclick = () => { if (T.moveTier(state, i, i - 1)) commit(); };
+      tierEl.querySelector('[data-act="down"]').onclick = () => { if (T.moveTier(state, i, i + 1)) commit(); };
+      tierEl.querySelector('[data-act="del"]').onclick = () => {
+        if (!T.removeTier(state, i)) { toast("段は1つ残します"); return; }
+        commit();
+      };
+      side.addEventListener("click", (e) => {
+        if (suppressClick || e.target.closest("button, input")) return;
+        placeSelected(i);
+      });
+      tierEl.querySelector(".tier-body").addEventListener("click", (e) => {
+        if (suppressClick || e.target.closest(".chipwrap")) return;
+        placeSelected(i);
+      });
+    });
+    bindChips($("board"));
+  }
+  function renderPool() {
+    const all = T.poolIndices(state, roster.length);
+    const shown = T.filterPool(all, roster, $("q").value, N.haystack, N.norm, N.charNo);
+    $("poolTitle").textContent = shown.length === all.length ? `未配置 ${all.length}` : `未配置 ${shown.length} / ${all.length}`;
+    $("poolChips").innerHTML = shown.length
+      ? shown.map((n) => chipHtml(n, n === selected)).join("")
+      : `<p class="empty">${all.length ? "該当するファイターはいません。" : "全員を段に入れました。"}</p>`;
+    bindChips($("pool"));
+  }
+  function renderBar() {
+    const bar = $("selbar");
+    if (selected == null || !roster[selected]) { bar.hidden = true; document.body.classList.remove("has-sel"); return; }
+    document.body.classList.add("has-sel");
+    bar.hidden = false;
+    $("selname").textContent = roster[selected].name;
+    const go = $("selgo");
+    const placed = inTier(selected);
+    $("selhint").hidden = placed;
+    if (placed) {
+      go.hidden = false;
+      go.href = "index.html#me=" + selected + "&mode=A";
+    } else go.hidden = true;
+    $("selpool").hidden = !inTier(selected);
+  }
+  function render() {
+    renderTiers();
+    renderPool();
+    renderBar();
+  }
+  function placeSelected(tierIndex) {
+    if (selected == null) return;
+    T.moveFighter(state, selected, tierIndex, null);
+    selected = null;
+    commit();
+  }
+  function bindChips(root) {
+    root.querySelectorAll(".chipwrap").forEach((wrap) => {
+      wrap.querySelector(".chip").addEventListener("pointerdown", onDown);
+      const go = wrap.querySelector(".go");
+      if (go) go.addEventListener("pointerdown", (e) => e.stopPropagation());
+    });
+  }
+  function armDrag() {
+    window.addEventListener("pointermove", onMove, { passive: false });
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onCancel);
+  }
+  function disarmDrag() {
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("pointerup", onUp);
+    window.removeEventListener("pointercancel", onCancel);
+  }
+  function onCancel(e) {
+    if (!drag || e.pointerId !== drag.pid) return;
+    endDrag();
+  }
+  function clearHold() {
+    if (drag && drag.hold) clearTimeout(drag.hold);
+  }
+  function startDrag(x, y) {
+    if (!drag || drag.started) return;
+    drag.started = true;
+    drag.wrap.classList.add("dragging");
+    const g = document.createElement("div");
+    g.id = "ghost";
+    g.className = "chip";
+    g.innerHTML = drag.wrap.querySelector(".chip").innerHTML;
+    document.body.appendChild(g);
+    moveGhost(x, y);
+  }
+  function moveGhost(x, y) {
+    const g = $("ghost");
+    if (!g) return;
+    g.style.left = x + "px";
+    g.style.top = y + "px";
+  }
+  function insertAt(body, x, y) {
+    const chips = [...body.querySelectorAll(".chipwrap")];
+    let at = chips.length;
+    for (let i = 0; i < chips.length; i++) {
+      const r = chips[i].getBoundingClientRect();
+      if (y < r.top - 6) return i;
+      if (y <= r.bottom + 8) {
+        if (x < r.left + r.width / 2) return i;
+        at = i + 1;
+      }
+    }
+    return at;
+  }
+  function markDrop(x, y) {
+    document.querySelectorAll(".drop").forEach((el) => el.classList.remove("drop"));
+    const el = document.elementFromPoint(x, y);
+    if (!el) return;
+    const pool = el.closest("#pool");
+    if (pool) { pool.classList.add("drop"); return; }
+    const tier = el.closest(".tier");
+    if (tier) tier.classList.add("drop");
+  }
+  function endDrag() {
+    clearHold();
+    disarmDrag();
+    const g = $("ghost");
+    if (g) g.remove();
+    document.querySelectorAll(".dragging,.drop").forEach((el) => el.classList.remove("dragging", "drop"));
+    drag = null;
+  }
+  function onDown(e) {
+    if (e.button != null && e.button !== 0) return;
+    if (drag) return;
+    const wrap = e.currentTarget.closest(".chipwrap");
+    drag = {
+      index: +wrap.dataset.i, x: e.clientX, y: e.clientY, pid: e.pointerId,
+      started: false, wrap: wrap, touch: e.pointerType === "touch", hold: null,
+    };
+    armDrag();
+    if (drag.touch) drag.hold = setTimeout(() => startDrag(drag.x, drag.y), 220);
+  }
+  function onMove(e) {
+    if (!drag || e.pointerId !== drag.pid) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (!drag.started) {
+      const dist = Math.hypot(dx, dy);
+      if (drag.touch) {
+        if (dist > 12) clearHold();
+        return;
+      }
+      if (dist < 8) return;
+      startDrag(e.clientX, e.clientY);
+    }
+    if (!drag.started) return;
+    e.preventDefault();
+    moveGhost(e.clientX, e.clientY);
+    markDrop(e.clientX, e.clientY);
+  }
+  function onUp(e) {
+    if (!drag || e.pointerId !== drag.pid) return;
+    const started = drag.started;
+    const index = drag.index;
+    const ox = drag.x, oy = drag.y;
+    const x = e.clientX, y = e.clientY;
+    const moved = Math.hypot(x - ox, y - oy) > 12;
+    endDrag();
+    if (!started || !moved) {
+      if (moved) return;
+      selected = selected === index ? null : index;
+      render();
+      return;
+    }
+    suppressClick = true;
+    setTimeout(() => { suppressClick = false; }, 0);
+    const el = document.elementFromPoint(x, y);
+    if (!el) return;
+    if (el.closest("#pool")) T.toPool(state, index);
+    else {
+      const tier = el.closest(".tier");
+      if (!tier) return;
+      const body = tier.querySelector(".tier-body");
+      T.moveFighter(state, index, +tier.dataset.tier, insertAt(body, x, y));
+    }
+    selected = null;
+    commit();
+  }
+  function persist(forceHash) {
+    const enc = T.encode(state);
+    try { localStorage.setItem(KEY, enc); } catch (e) {}
+    if (forceHash || dirty) {
+      dirty = true;
+      const next = "#t=" + enc;
+      if (location.hash !== next) history.replaceState(null, "", next);
+    }
+  }
+  function commit() {
+    dirty = true;
+    render();
+    persist(true);
+  }
+  function readHash() {
+    return new URLSearchParams(location.hash.replace(/^#/, "")).get("t");
+  }
+  function load() {
+    const fromUrl = readHash();
+    if (fromUrl) {
+      const s = T.decode(fromUrl, roster.length);
+      if (s) { dirty = true; return s; }
+      toast("共有リンクを読めなかったので、保存済みの表を開きました");
+    }
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (raw) {
+        const s = T.decode(raw, roster.length);
+        if (s) return s;
+      }
+    } catch (e) {}
+    return T.defaultState();
+  }
+  function drawPng() {
+    const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    const bg = dark ? "#0e1116" : "#f4f6f8";
+    const card = dark ? "#171c24" : "#ffffff";
+    const text = dark ? "#f2f5f8" : "#14181f";
+    const sub = dark ? "#c5ced8" : "#3d4754";
+    const width = 1080;
+    const pad = 28;
+    const labelW = 132;
+    const chipH = 48;
+    const gap = 8;
+    const font = "700 22px \"Hiragino Sans\",\"Noto Sans JP\",\"Yu Gothic\",sans-serif";
+    const small = "650 14px \"Hiragino Sans\",\"Noto Sans JP\",\"Yu Gothic\",sans-serif";
+    const measure = document.createElement("canvas").getContext("2d");
+    measure.font = font;
+    function chipW(i) {
+      const name = roster[i].name;
+      const no = N.charNo(roster[i]);
+      measure.font = font;
+      const nw = measure.measureText(name).width;
+      measure.font = small;
+      return Math.ceil(18 + 8 + nw + 10 + measure.measureText(no).width + 16);
+    }
+    const inner = width - pad * 2 - labelW - 16;
+    const blocks = state.tiers.map((tier, ti) => {
+      const widths = state.rows[ti].map(chipW);
+      let rows = 1, x = 0;
+      if (!widths.length) rows = 1;
+      else {
+        rows = 1; x = 0;
+        for (const w of widths) {
+          if (x > 0 && x + w > inner) { rows++; x = 0; }
+          x += w + gap;
+        }
+      }
+      const h = Math.max(64, rows * chipH + (rows - 1) * gap + 20);
+      return { tier, widths, h };
+    });
+    const height = pad + 64 + blocks.reduce((s, b) => s + b.h + 10, 0) + 48;
+    const canvas = document.createElement("canvas");
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
+    const g = canvas.getContext("2d");
+    g.scale(dpr, dpr);
+    g.fillStyle = bg;
+    g.fillRect(0, 0, width, height);
+    g.fillStyle = text;
+    g.font = "750 32px \"Hiragino Sans\",\"Noto Sans JP\",\"Yu Gothic\",sans-serif";
+    g.fillText("スマブラSP ティア表", pad, pad + 34);
+    g.font = small;
+    g.fillStyle = sub;
+    g.fillText("非公式の試作。公式の絵は使っていません。", pad, pad + 58);
+    let y = pad + 74;
+    blocks.forEach((b, ti) => {
+      g.fillStyle = card;
+      roundRect(g, pad, y, width - pad * 2, b.h, 16);
+      g.fill();
+      g.fillStyle = b.tier.color;
+      roundRect(g, pad, y, labelW, b.h, 16);
+      g.fill();
+      g.fillStyle = T.ink(b.tier.color);
+      g.font = "800 28px \"Hiragino Sans\",\"Noto Sans JP\",\"Yu Gothic\",sans-serif";
+      g.fillText(b.tier.name, pad + 16, y + b.h / 2 + 10);
+      let cx = pad + labelW + 12;
+      let cy = y + 10;
+      state.rows[ti].forEach((fi, k) => {
+        const w = b.widths[k];
+        if (cx > pad + labelW + 12 && cx + w > width - pad - 8) { cx = pad + labelW + 12; cy += chipH + gap; }
+        g.fillStyle = dark ? "#0e1116" : "#f3f5f7";
+        roundRect(g, cx, cy, w, chipH, 12);
+        g.fill();
+        g.fillStyle = seriesColor[roster[fi].name] || "#6b7280";
+        roundRect(g, cx + 8, cy + 10, 8, chipH - 20, 4);
+        g.fill();
+        g.fillStyle = text;
+        g.font = font;
+        g.fillText(roster[fi].name, cx + 24, cy + 32);
+        g.font = small;
+        g.fillStyle = sub;
+        const no = N.charNo(roster[fi]);
+        g.fillText(no, cx + w - 12 - g.measureText(no).width, cy + 31);
+        cx += w + gap;
+      });
+      y += b.h + 10;
+    });
+    g.fillStyle = sub;
+    g.font = small;
+    const left = T.poolIndices(state, roster.length).length;
+    g.fillText("未配置 " + left + "人", pad, height - 18);
+    return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob), "image/png"));
+  }
+  function roundRect(g, x, y, w, h, r) {
+    const rad = Math.min(r, w / 2, h / 2);
+    g.beginPath();
+    g.moveTo(x + rad, y);
+    g.arcTo(x + w, y, x + w, y + h, rad);
+    g.arcTo(x + w, y + h, x, y + h, rad);
+    g.arcTo(x, y + h, x, y, rad);
+    g.arcTo(x, y, x + w, y, rad);
+    g.closePath();
+  }
+  function init() {
+    if (!roster.length) {
+      $("board").innerHTML = `<p class="empty">ファイター一覧がありません。</p>`;
+      return;
+    }
+    state = load();
+    $("q").addEventListener("input", renderPool);
+    $("add").onclick = () => { if (T.addTier(state)) commit(); else toast("段はこれ以上増やせません"); };
+    $("reset").onclick = () => {
+      if (!confirm("配置と段の名前・色を最初の状態に戻しますか？")) return;
+      state = T.defaultState();
+      selected = null;
+      $("q").value = "";
+      commit();
+    };
+    $("share").onclick = async () => {
+      persist(true);
+      const url = location.href;
+      try {
+        await navigator.clipboard.writeText(url);
+        toast("共有リンクをコピーしました");
+      } catch (e) {
+        const ta = document.createElement("textarea");
+        ta.value = url;
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand("copy");
+        ta.remove();
+        toast(ok ? "共有リンクをコピーしました" : "コピーできなかったので、アドレス欄のリンクを使ってください");
+      }
+    };
+    $("png").onclick = async () => {
+      const blob = await drawPng();
+      if (!blob) { toast("画像を作れませんでした"); return; }
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "smash-tier.png";
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      toast("画像を保存しました");
+    };
+    $("selclear").onclick = () => { selected = null; render(); };
+    $("selpool").onclick = () => {
+      if (selected == null) return;
+      T.toPool(state, selected);
+      selected = null;
+      commit();
+    };
+    $("pool").addEventListener("click", (e) => {
+      if (suppressClick || e.target.closest(".chipwrap")) return;
+      if (selected == null || !inTier(selected)) return;
+      T.toPool(state, selected);
+      selected = null;
+      commit();
+    });
+    window.addEventListener("hashchange", () => {
+      const raw = readHash();
+      if (!raw) return;
+      const s = T.decode(raw, roster.length);
+      if (!s) return;
+      state = s;
+      selected = null;
+      dirty = true;
+      render();
+    });
+    render();
+    try { localStorage.setItem(KEY, T.encode(state)); } catch (e) {}
+  }
+  init();
+})();
+</script>
+</body>
+</html>
