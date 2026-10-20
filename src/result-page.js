@@ -478,8 +478,13 @@
     async function savePng(kind) {
       const blob = kind === "top8" ? await drawTop8() : await drawResult();
       if (!blob) { toast("画像を作れませんでした"); return; }
-      download(kind === "top8" ? "smash-top8.png" : "smash-result.png", blob);
-      toast(kind === "top8" ? "Top8画像を保存しました" : "リザルト画像を保存しました");
+      const filename = kind === "top8" ? "smash-top8.png" : "smash-result.png";
+      const title = kind === "top8" ? "Top8画像" : "リザルト画像";
+      try {
+        await ImagePreview.open({ title: title, source: blob, filename: filename });
+      } catch (e) {
+        toast("プレビューを開けませんでした");
+      }
     }
     $("png").onclick = () => savePng("result");
     $("top8").onclick = () => savePng("top8");

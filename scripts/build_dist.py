@@ -43,7 +43,8 @@ roster = json.dumps([{"name": c["name"], "sheetTab": c["sheetTab"]} for c in d["
 tier = (src / "tier.html").read_text(encoding="utf-8")
 tier = re.sub(r"<!--STYLE-->.*?<!--/STYLE-->", lambda m: f"<style>{tier_css}</style>", tier, flags=re.S)
 tier = re.sub(r"<!--DATA-->.*?<!--/DATA-->", lambda m: f"<script>window.__ROSTER__={roster};</script>", tier, flags=re.S)
-tier = re.sub(r"<!--SCRIPTS-->.*?<!--/SCRIPTS-->", lambda m: f"<script>{names}</script><script>{tier_js}</script><script>{tier_page}</script>", tier, flags=re.S)
+preview_js = (src / "preview.js").read_text(encoding="utf-8")
+tier = re.sub(r"<!--SCRIPTS-->.*?<!--/SCRIPTS-->", lambda m: f"<script>{names}</script><script>{tier_js}</script><script>{preview_js}</script><script>{tier_page}</script>", tier, flags=re.S)
 (dist / "tier.html").write_text(tier, encoding="utf-8")
 result_css = (src / "result.css").read_text(encoding="utf-8")
 result_js = (src / "result.js").read_text(encoding="utf-8")
@@ -51,7 +52,7 @@ result_page = (src / "result-page.js").read_text(encoding="utf-8")
 result = (src / "result.html").read_text(encoding="utf-8")
 result = re.sub(r"<!--STYLE-->.*?<!--/STYLE-->", lambda m: f"<style>{result_css}</style>", result, flags=re.S)
 result = re.sub(r"<!--DATA-->.*?<!--/DATA-->", lambda m: f"<script>window.__ROSTER__={roster};</script>", result, flags=re.S)
-result = re.sub(r"<!--SCRIPTS-->.*?<!--/SCRIPTS-->", lambda m: f"<script>{names}</script><script>{result_js}</script><script>{tier_js}</script><script>{result_page}</script>", result, flags=re.S)
+result = re.sub(r"<!--SCRIPTS-->.*?<!--/SCRIPTS-->", lambda m: f"<script>{names}</script><script>{result_js}</script><script>{tier_js}</script><script>{preview_js}</script><script>{result_page}</script>", result, flags=re.S)
 (dist / "result.html").write_text(result, encoding="utf-8")
 fighters = ROOT / "fighters"
 if fighters.is_dir():
