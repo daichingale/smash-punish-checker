@@ -91,6 +91,7 @@
       const next = "#r=" + enc;
       if (location.hash !== next) history.replaceState(null, "", next);
     }, 180);
+    scheduleThumbs();
   }
   function fillMeta() {
     $("evName").value = current.event.name;
@@ -237,19 +238,20 @@
     const suf = (v >= 11 && v <= 13) ? "th" : ({ 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th");
     return n + suf;
   }
-  async function preload(pairs) {
+  async function preload(pairs, hires) {
+    const hi = hires !== false;
     const icons = {};
     await Promise.all(pairs.map(async (pair) => {
       const key = pair.id + ":" + pair.color;
       if (icons[key] !== undefined) return;
       icons[key] = null;
-      icons[key] = await loadIcon(pair.id, pair.color, true);
+      icons[key] = await loadIcon(pair.id, pair.color, hi);
     }));
     return icons;
   }
-  function sharpCanvas(w, h) {
+  function sharpCanvas(w, h, scale) {
     const canvas = document.createElement("canvas");
-    const scale = 2;
+    scale = scale || 2;
     canvas.width = Math.round(w * scale);
     canvas.height = Math.round(h * scale);
     const g = canvas.getContext("2d");
@@ -258,9 +260,7 @@
     g.imageSmoothingQuality = "high";
     return { canvas: canvas, g: g };
   }
-  async function drawResult() {
-    const ev = R.normalizeEvent(current, roster.length) || current;
-    const icons = await preload(ev.rows.flatMap((row) => row.chars));
+  function renderResult(ev, icons, scale) {
     const width = 760;
     const icon = 64;
     const gap = 8;
@@ -290,7 +290,7 @@
       return { row: row, name: name, nation: nation, nationW: nationW, nameX: nameX, lines: lines, h: h };
     });
     const height = 150 + layouts.reduce((s, b) => s + b.h, 0) + 36;
-    const made = sharpCanvas(width, height);
+    const made = sharpCanvas(width, height, scale);
     const canvas = made.canvas;
     const g = made.g;
     g.fillStyle = "#ffffff";
@@ -343,6 +343,12 @@
     g.font = small;
     g.textAlign = "center";
     g.fillText("非公式  © Nintendo / HAL Laboratory, Inc.", width / 2, height - 16);
+    return canvas;
+  }
+  async function drawResult() {
+    const ev = R.normalizeEvent(current, roster.length) || current;
+    const icons = await preload(ev.rows.flatMap((row) => row.chars), true);
+    const canvas = renderResult(ev, icons, 2);
     return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob), "image/png"));
   }
   function hexOk(c) {
@@ -463,19 +469,14 @@
     g.fillStyle = color;
     g.fillText(text, x, y);
   }
-  function drawCover(g, img, x, y, w, h, ax, ay, zoom) {
-    if (!img || w < 4 || h < 4) return;
-    const s = Math.max(w / img.naturalWidth, h / img.naturalHeight) * (zoom || 1);
-    const dw = img.naturalWidth * s;
-    const dh = img.naturalHeight * s;
-    g.drawImage(img, x + (w - dw) * ax, y + (h - dh) * ay, dw, dh);
-  }
-  function paintHero(g, box, slot, icons, cover) {
+  function paintHero(g, box, slot, icons, prefer) {
     const main = slot.row && slot.row.chars[0];
-    if (!main) return;
+    if (!main || !window.FighterFrame) return;
     const img = icons[main.id + ":" + main.color];
-    const c = cover || { ax: 0.5, ay: 0.2, zoom: 1.12 };
-    drawCover(g, img, box.x, box.y, box.w, box.h, c.ax, c.ay, c.zoom);
+    if (!img) return;
+    const meta = FighterFrame.metaFor(main.id, main.color);
+    const placed = FighterFrame.place(meta, img.naturalWidth, img.naturalHeight, box.w, box.h, prefer || {});
+    g.drawImage(img, box.x + placed.x, box.y + placed.y, placed.w, placed.h);
   }
   function paintGhost(g, text, box, o) {
     g.save();
@@ -521,9 +522,9 @@
       if (o.ghost) paintGhost(g, o.ghost, box, o);
       if (hasMain) {
         paintHero(g, box, slot, icons, {
-          ax: o.ghost ? 0.82 : 0.5,
-          ay: 0.2,
           zoom: o.zoom || 1.14,
+          focusX: o.focusX,
+          focusY: o.focusY,
         });
       }
       if (o.scrim) scrimBottom(g, box, o.scrim);
@@ -579,7 +580,7 @@
     const start = o.heroStart == null ? 0.2 : o.heroStart;
     const hero = { x: box.x + box.w * start, y: box.y - 8, w: box.w * (1 - start) + 12, h: box.h + 16 };
     if (o.glow) paintGlow(g, hero, o.glow);
-    paintHero(g, hero, slot, icons, { ax: 0.02, ay: 0.16, zoom: o.zoom || 1.2 });
+    paintHero(g, hero, slot, icons, { zoom: o.zoom || 1.2, focusX: o.focusX, focusY: o.focusY });
     if (o.scrim) scrimLeft(g, box, o.scrim);
     const textW = Math.max(120, Math.round(box.w * (o.textRatio || 0.6)));
     paintStacked(g, { x: box.x, y: box.y, w: textW, h: box.h }, slot, icons, Object.assign({}, o, { hero: false, ghost: "" }));
@@ -610,16 +611,7 @@
     g.fillStyle = "#9aa6b5";
     g.font = face(650, 16);
     g.fillText(captionOf(ev.event, true), 44, 76, 1100);
-    const cards = [
-      { x: 20, y: 96, w: 800, h: 512, lean: 44, split: true },
-      { x: 844, y: 96, w: 736, h: 244, lean: 26, split: true },
-      { x: 844, y: 352, w: 360, h: 256, lean: 18, split: false },
-      { x: 1216, y: 352, w: 364, h: 256, lean: 18, split: false },
-      { x: 20, y: 624, w: 381, h: 244, lean: 16, split: false },
-      { x: 413, y: 624, w: 381, h: 244, lean: 16, split: false },
-      { x: 806, y: 624, w: 381, h: 244, lean: 16, split: false },
-      { x: 1199, y: 624, w: 381, h: 244, lean: 16, split: false },
-    ];
+    const cards = FighterFrame.cards("slash");
     cards.forEach((card, i) => {
       const slot = slots[i];
       g.save();
@@ -630,13 +622,8 @@
       g.strokeStyle = i === 0 ? theme : "rgba(255,255,255,.14)";
       g.stroke();
       g.clip();
-      const inner = {
-        x: card.x + Math.round(card.lean * 0.55) + 14,
-        y: card.y + 14,
-        w: card.w - Math.round(card.lean * 0.95) - 24,
-        h: card.h - 28,
-      };
-      const opt = {
+      const inner = FighterFrame.innerBox("slash", card);
+      const opt = Object.assign({
         placeText: ordinal,
         placeColor: theme,
         placeSize: i === 0 ? 84 : (i === 1 ? 48 : 36),
@@ -652,9 +639,7 @@
         ghostColor: theme,
         scrim: "dark",
         textRatio: i === 0 ? 0.62 : 0.58,
-        heroStart: 0.18,
-        zoom: i === 0 ? 1.22 : 1.16,
-      };
+      }, FighterFrame.prefer("slash", i));
       if (card.split) paintSplit(g, inner, slot, icons, opt);
       else paintStacked(g, inner, slot, icons, opt);
       g.restore();
@@ -699,23 +684,14 @@
     g.moveTo(1189, 656);
     g.lineTo(1189, 868);
     g.stroke();
-    const cards = [
-      { x: 40, y: 124, w: 700, h: 500, place: 78, name: 58, sub: 72 },
-      { x: 784, y: 124, w: 752, h: 230, place: 46, name: 38, sub: 52 },
-      { x: 784, y: 386, w: 360, h: 238, place: 40, name: 32, sub: 48 },
-      { x: 1184, y: 386, w: 360, h: 238, place: 40, name: 32, sub: 48 },
-      { x: 40, y: 656, w: 371, h: 200, place: 34, name: 28, sub: 44 },
-      { x: 423, y: 656, w: 371, h: 200, place: 34, name: 28, sub: 44 },
-      { x: 806, y: 656, w: 371, h: 200, place: 34, name: 28, sub: 44 },
-      { x: 1189, y: 656, w: 371, h: 200, place: 34, name: 28, sub: 44 },
-    ];
+    const cards = FighterFrame.cards("minimal");
     cards.forEach((card, i) => {
-      const box = { x: card.x + 12, y: card.y + 8, w: card.w - 24, h: card.h - 16 };
+      const box = FighterFrame.innerBox("minimal", card);
       g.save();
       g.beginPath();
       g.rect(card.x, card.y, card.w, card.h);
       g.clip();
-      paintStacked(g, box, slots[i], icons, {
+      paintStacked(g, box, slots[i], icons, Object.assign({
         placeText: function (n) { return n === 1 ? "WINNER" : enRank(n); },
         placeColor: theme,
         placeSize: card.place,
@@ -730,8 +706,7 @@
         ghostAlpha: 0.16,
         ghostColor: theme,
         scrim: "light",
-        zoom: i === 0 ? 1.2 : 1.12,
-      });
+      }, FighterFrame.prefer("minimal", i)));
       g.restore();
     });
     paintCredit(g, W - 40, H - 16, "#8a8478");
@@ -763,16 +738,7 @@
     g.fillStyle = "#9aa3b8";
     g.font = face(650, 16);
     g.fillText(captionOf(ev.event, true), 44, 76, 1100);
-    const cards = [
-      { x: 24, y: 100, w: 940, h: 508, r: 18, split: true },
-      { x: 980, y: 100, w: 596, h: 240, r: 16, split: true },
-      { x: 980, y: 356, w: 290, h: 252, r: 14, split: false },
-      { x: 1286, y: 356, w: 290, h: 252, r: 14, split: false },
-      { x: 24, y: 624, w: 379, h: 244, r: 14, split: false },
-      { x: 415, y: 624, w: 379, h: 244, r: 14, split: false },
-      { x: 806, y: 624, w: 379, h: 244, r: 14, split: false },
-      { x: 1197, y: 624, w: 379, h: 244, r: 14, split: false },
-    ];
+    const cards = FighterFrame.cards("neon");
     cards.forEach((card, i) => {
       const slot = slots[i];
       g.save();
@@ -783,7 +749,7 @@
       g.strokeStyle = i === 0 ? theme : rgbaOf(theme, 0.72);
       g.stroke();
       g.clip();
-      const opt = {
+      const opt = Object.assign({
         placeText: ordinal,
         placeColor: theme,
         placeSize: i === 0 ? 86 : (i === 1 ? 48 : 36),
@@ -799,12 +765,9 @@
         ghostColor: theme,
         scrim: "dark",
         textRatio: 0.64,
-        heroStart: 0.16,
-        zoom: i === 0 ? 1.26 : 1.16,
         glow: card.split ? theme : "",
-      };
-      const pad = 16;
-      const inner = { x: card.x + pad, y: card.y + 12, w: card.w - pad * 2, h: card.h - 24 };
+      }, FighterFrame.prefer("neon", i));
+      const inner = FighterFrame.innerBox("neon", card);
       if (!card.split) paintGlow(g, inner, theme);
       if (card.split) paintSplit(g, inner, slot, icons, opt);
       else paintStacked(g, inner, slot, icons, opt);
@@ -875,16 +838,7 @@
     g.moveTo(884, 78);
     g.lineTo(884, 570);
     g.stroke();
-    const cards = [
-      { x: 908, y: 78, w: 644, h: 492, r: 52, big: true },
-      { x: 108, y: 78, w: 752, h: 156, r: 28, big: false },
-      { x: 108, y: 246, w: 752, h: 156, r: 28, big: false },
-      { x: 108, y: 414, w: 752, h: 156, r: 28, big: false },
-      { x: 108, y: 604, w: 349, h: 220, r: 26, big: false },
-      { x: 473, y: 604, w: 349, h: 220, r: 26, big: false },
-      { x: 838, y: 604, w: 349, h: 220, r: 26, big: false },
-      { x: 1203, y: 604, w: 349, h: 220, r: 26, big: false },
-    ];
+    const cards = FighterFrame.cards("wa");
     cards.forEach((card, index) => {
       const slot = slots[index];
       g.save();
@@ -892,9 +846,8 @@
       g.rect(card.x, card.y, card.w, card.h);
       g.clip();
       const r = card.r;
-      const left = card.x + r * 2 + 16;
-      const box = { x: left, y: card.y + 6, w: card.x + card.w - left - 8, h: card.h - 12 };
-      paintStacked(g, box, slot, icons, {
+      const box = FighterFrame.innerBox("wa", card);
+      paintStacked(g, box, slot, icons, Object.assign({
         hidePlace: true,
         placeText: enRank,
         placeColor: theme,
@@ -911,8 +864,7 @@
         ghostColor: theme,
         ghostFace: WA_FACE,
         scrim: "dark",
-        zoom: card.big ? 1.24 : 1.14,
-      });
+      }, FighterFrame.prefer("wa", index)));
       if (slot.place != null) {
         paintSeal(g, card.x + r + 4, card.y + r + 4, r, enRank(slot.place), theme, WA_FACE);
       }
@@ -938,11 +890,52 @@
     paint(g, ev, slots, icons, theme);
     return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob), "image/png"));
   }
+  let thumbTimer = 0;
+  let thumbGen = 0;
+  function scheduleThumbs() {
+    if (!$("top8Thumb") && !$("pngThumb")) return;
+    clearTimeout(thumbTimer);
+    thumbTimer = setTimeout(drawThumbs, 280);
+  }
+  async function drawThumbs() {
+    const gen = ++thumbGen;
+    const ev = R.normalizeEvent(current, roster.length) || current;
+    const icons = await preload(ev.rows.flatMap((row) => row.chars), false);
+    if (gen !== thumbGen) return;
+    const top = $("top8Thumb");
+    if (top) {
+      top.width = 320;
+      top.height = 180;
+      const g = top.getContext("2d");
+      g.setTransform(320 / 1600, 0, 0, 180 / 900, 0, 0);
+      g.imageSmoothingEnabled = true;
+      const slots = top8Slots(ev);
+      const theme = hexOk(top8Look.color);
+      const id = knownTemplate(top8Look.template);
+      const paint = id === "minimal" ? paintMinimal : id === "neon" ? paintNeon : id === "wa" ? paintWa : paintSlash;
+      paint(g, ev, slots, icons, theme);
+    }
+    const label = $("top8MakeLabel");
+    if (label) {
+      const tpl = TOP8_TEMPLATES.find((t) => t.id === knownTemplate(top8Look.template));
+      label.textContent = (tpl ? tpl.label : "Top8") + " · タップで編集";
+    }
+    const shot = $("pngThumb");
+    if (shot) {
+      const full = renderResult(ev, icons, 1);
+      shot.width = 320;
+      shot.height = Math.max(72, Math.round(320 * full.height / full.width));
+      const g = shot.getContext("2d");
+      g.imageSmoothingEnabled = true;
+      g.drawImage(full, 0, 0, shot.width, shot.height);
+    }
+  }
   function init() {
     if (!roster.length) {
       $("rows").innerHTML = `<p class="hint">ファイター一覧がありません。</p>`;
       return;
     }
+    if (window.__FOCUS__ && window.FighterFrame) FighterFrame.load(window.__FOCUS__);
     current = loadCurrent();
     library = loadLibrary();
     top8Look = readLook();
@@ -954,6 +947,7 @@
       top8Look.template = knownTemplate(btn.dataset.tpl);
       writeLook();
       syncLook();
+      scheduleThumbs();
       if (window.ImagePreview && ImagePreview.applyLook) ImagePreview.applyLook(top8Look.template, top8Look.color);
     });
     $("top8color").addEventListener("input", () => {
@@ -961,11 +955,17 @@
       writeLook();
       clearTimeout(lookTimer);
       lookTimer = setTimeout(() => {
+        scheduleThumbs();
         if (window.ImagePreview && ImagePreview.applyLook) ImagePreview.applyLook(top8Look.template, top8Look.color);
       }, 120);
     });
     fillMeta();
     renderRows();
+    scheduleThumbs();
+    const dockResult = $("dockResult");
+    const dockTop8 = $("dockTop8");
+    if (dockResult) dockResult.onclick = () => savePng("result");
+    if (dockTop8) dockTop8.onclick = () => savePng("top8");
     renderLibrary();
     renderRank();
     persist();
