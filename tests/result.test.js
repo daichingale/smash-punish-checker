@@ -56,9 +56,9 @@ test("ポケモン3体とホムラ／ヒカリは、同じ人なら1人として
   assert.equal(R.usageName(86, () => "ヒカリ"), "ホムラ／ヒカリ");
   assert.equal(R.usageName(55, (id) => "格闘Mii"), "格闘Mii");
   const back = R.decode(R.encode(R.normalizeEvent(ev("大会", "2026-10-20", [
-    row(1, "たろう", [ch(37, 1), ch(39, 2)]),
+    row(1, "たろう", [ch(39, 2), ch(37, 1), ch(86, 4), ch(85, 1)]),
   ]), 89)), 89);
-  assert.deepEqual(back.rows[0].chars.map((c) => c.id), [37, 39]);
+  assert.deepEqual(back.rows[0].chars, [{ id: 37, color: 2 }, { id: 85, color: 4 }]);
 });
 
 test("使っていないキャラはランキングに出ない。人数と名前で並べ替えられる", () => {

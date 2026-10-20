@@ -14,7 +14,7 @@
   const MAX_PLAYER = 40;
   const MAX_ROWS = 128;
   const MAX_CHARS = 8;
-  // 公式ロスターでは1枠のキャラ。使用人数は代表idにまとめる。共有JSONのidはそのまま。
+  // 公式ロスターでは1枠。リザルトでは代表idだけを選び、読み込み時に個別番号をそこへ寄せる。
   const USAGE_GROUPS = [
     { id: 37, name: "ポケモントレーナー", members: [37, 38, 39] },
     { id: 85, name: "ホムラ／ヒカリ", members: [85, 86] },
@@ -49,9 +49,10 @@
       if (!item || !Number.isInteger(item.id) || item.id < 0) continue;
       if (Number.isInteger(rosterCount) && item.id >= rosterCount) continue;
       if (!validSlot(item.color)) continue;
-      if (seen.has(item.id)) continue;
-      seen.add(item.id);
-      out.push({ id: item.id, color: item.color });
+      const id = usageKey(item.id);
+      if (seen.has(id)) continue;
+      seen.add(id);
+      out.push({ id: id, color: item.color });
       if (out.length >= MAX_CHARS) break;
     }
     return out;

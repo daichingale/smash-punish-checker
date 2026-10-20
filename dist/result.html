@@ -224,8 +224,16 @@ const READ = { "マリオ": "まりお mario", "ドンキーコング": "どん�
   "ベレト／ベレス": "べれとべれす byleth", "ミェンミェン": "みぇんみぇん minmin", "スティーブ／アレックス": "すてぃーぶあれっくす steve alex", "セフィロス": "せふぃろす sephiroth",
   "ホムラ": "ほむら pyra homura", "ヒカリ": "ひかり mythra hikari", "カズヤ": "かずや kazuya", "ソラ": "そら sora" };
 const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || "") + " " + Object.keys(ALIAS).filter((k) => c.name.includes(k)).map((k) => ALIAS[k]).join(" "));
+// リザルトとティアの選択だけ、集合画像の代表に仲間の名前でも辿り着けるようにする
+const groupHaystack = (c) => {
+  const extra = c.name === "ゼニガメ" ? "ポケモントレーナー フシギソウ リザードン ふしぎそう りざーどん ivysaur charizard pokemontrainer 34 35"
+    : c.name === "ホムラ" ? "ホムラ／ヒカリ ヒカリ ひかり mythra 80"
+    : "";
+  return haystack(c) + norm(extra);
+};
+const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナー" : name === "ホムラ" ? "ホムラ／ヒカリ" : name;
 
-  const api = { norm, charNo, haystack };
+  const api = { norm, charNo, haystack, groupHaystack, faceName };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.Names = api;
 })(typeof window !== "undefined" ? window : globalThis);
@@ -245,7 +253,7 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
   const MAX_PLAYER = 40;
   const MAX_ROWS = 128;
   const MAX_CHARS = 8;
-  // 公式ロスターでは1枠のキャラ。使用人数は代表idにまとめる。共有JSONのidはそのまま。
+  // 公式ロスターでは1枠。リザルトでは代表idだけを選び、読み込み時に個別番号をそこへ寄せる。
   const USAGE_GROUPS = [
     { id: 37, name: "ポケモントレーナー", members: [37, 38, 39] },
     { id: 85, name: "ホムラ／ヒカリ", members: [85, 86] },
@@ -280,9 +288,10 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
       if (!item || !Number.isInteger(item.id) || item.id < 0) continue;
       if (Number.isInteger(rosterCount) && item.id >= rosterCount) continue;
       if (!validSlot(item.color)) continue;
-      if (seen.has(item.id)) continue;
-      seen.add(item.id);
-      out.push({ id: item.id, color: item.color });
+      const id = usageKey(item.id);
+      if (seen.has(id)) continue;
+      seen.add(id);
+      out.push({ id: id, color: item.color });
       if (out.length >= MAX_CHARS) break;
     }
     return out;
@@ -502,11 +511,20 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     };
   }
 
+  // リザルト／ティアの選択に出さない。読み込み時は代表idへ寄せる。
+  function portraitId(n) {
+    if (n === 38 || n === 39) return 37;
+    if (n === 86) return 85;
+    return n;
+  }
+  function hiddenPortrait(n) {
+    return n === 38 || n === 39 || n === 86;
+  }
   function poolIndices(state, count) {
     const used = new Set();
-    for (const row of state.rows) for (const i of row) used.add(i);
+    for (const row of state.rows) for (const i of row) used.add(portraitId(i));
     const out = [];
-    for (let i = 0; i < count; i++) if (!used.has(i)) out.push(i);
+    for (let i = 0; i < count; i++) if (!hiddenPortrait(i) && !used.has(i)) out.push(i);
     return out;
   }
 
@@ -614,9 +632,11 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
       if (!Array.isArray(src)) return null;
       const row = [];
       for (const n of src) {
-        if (!Number.isInteger(n) || n < 0 || n >= count || seen.has(n)) continue;
-        seen.add(n);
-        row.push(n);
+        if (!Number.isInteger(n) || n < 0 || n >= count) continue;
+        const id = portraitId(n);
+        if (id < 0 || id >= count || seen.has(id)) continue;
+        seen.add(id);
+        row.push(id);
       }
       rows.push(row);
     }
@@ -645,6 +665,7 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     DEFAULT_COLORS, DEFAULT_NAMES, MAX_TIERS, MAX_NAME,
     validColor, defaultState, cloneState, poolIndices,
     moveFighter, toPool, addTier, removeTier, moveTier, renameTier, recolorTier,
+    portraitId, hiddenPortrait,
     compact, encode, decode, filterPool, ink,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
@@ -2546,7 +2567,7 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     return row.sponsor || name;
   }
   function slotHtml(slotIndex, slot) {
-    const label = roster[slot.id] ? roster[slot.id].name : "";
+    const label = roster[slot.id] ? N.faceName(roster[slot.id].name) : "";
     const colors = [1, 2, 3, 4, 5, 6, 7, 8].map((c) =>
       `<button type="button" class="swatch${c === slot.color ? " on" : ""}" data-act="color" data-c="${c}" aria-label="色${c}"><img src="${iconSrc(slot.id, c)}" alt="" width="36" height="36" loading="lazy" decoding="async"></button>`
     ).join("");
@@ -2592,12 +2613,13 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
   }
   function renderPicker() {
     const q = $("pq").value;
-    const all = roster.map((_, i) => i);
-    const shown = T.filterPool(all, roster, q, N.haystack, N.norm, N.charNo);
+    const all = roster.map((_, i) => i).filter((i) => !T.hiddenPortrait(i));
+    const shown = T.filterPool(all, roster, q, N.groupHaystack, N.norm, N.charNo);
     $("pickerGrid").innerHTML = shown.length
       ? shown.map((i) => {
-        const shared = i === 37 || i === 38 || i === 39 || i === 85 || i === 86;
-        return `<button type="button" class="pick${shared ? " named" : ""}" data-id="${i}" aria-label="${esc(roster[i].name)}"><img src="${iconSrc(i, 1)}" alt="" width="64" height="64" loading="lazy" decoding="async">${shared ? `<small>${esc(roster[i].name)}</small>` : ""}</button>`;
+        const name = N.faceName(roster[i].name);
+        const grouped = name !== roster[i].name;
+        return `<button type="button" class="pick${grouped ? " named" : ""}" data-id="${i}" aria-label="${esc(name)}"><img src="${iconSrc(i, 1)}" alt="" width="64" height="64" loading="lazy" decoding="async">${grouped ? `<small>${esc(name)}</small>` : ""}</button>`;
       }).join("")
       : `<p class="empty">該当するファイターはいません。</p>`;
   }

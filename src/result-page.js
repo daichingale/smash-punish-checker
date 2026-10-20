@@ -107,7 +107,7 @@
     return row.sponsor || name;
   }
   function slotHtml(slotIndex, slot) {
-    const label = roster[slot.id] ? roster[slot.id].name : "";
+    const label = roster[slot.id] ? N.faceName(roster[slot.id].name) : "";
     const colors = [1, 2, 3, 4, 5, 6, 7, 8].map((c) =>
       `<button type="button" class="swatch${c === slot.color ? " on" : ""}" data-act="color" data-c="${c}" aria-label="色${c}"><img src="${iconSrc(slot.id, c)}" alt="" width="36" height="36" loading="lazy" decoding="async"></button>`
     ).join("");
@@ -153,12 +153,13 @@
   }
   function renderPicker() {
     const q = $("pq").value;
-    const all = roster.map((_, i) => i);
-    const shown = T.filterPool(all, roster, q, N.haystack, N.norm, N.charNo);
+    const all = roster.map((_, i) => i).filter((i) => !T.hiddenPortrait(i));
+    const shown = T.filterPool(all, roster, q, N.groupHaystack, N.norm, N.charNo);
     $("pickerGrid").innerHTML = shown.length
       ? shown.map((i) => {
-        const shared = i === 37 || i === 38 || i === 39 || i === 85 || i === 86;
-        return `<button type="button" class="pick${shared ? " named" : ""}" data-id="${i}" aria-label="${esc(roster[i].name)}"><img src="${iconSrc(i, 1)}" alt="" width="64" height="64" loading="lazy" decoding="async">${shared ? `<small>${esc(roster[i].name)}</small>` : ""}</button>`;
+        const name = N.faceName(roster[i].name);
+        const grouped = name !== roster[i].name;
+        return `<button type="button" class="pick${grouped ? " named" : ""}" data-id="${i}" aria-label="${esc(name)}"><img src="${iconSrc(i, 1)}" alt="" width="64" height="64" loading="lazy" decoding="async">${grouped ? `<small>${esc(name)}</small>` : ""}</button>`;
       }).join("")
       : `<p class="empty">該当するファイターはいません。</p>`;
   }
