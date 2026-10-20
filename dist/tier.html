@@ -52,7 +52,6 @@ a{color:var(--accent)}
 .chip small{color:var(--sub);font-weight:650;font-size:9px;line-height:1.1}
 .chipwrap.on .chip{box-shadow:0 0 0 2px var(--accent)}
 .chipwrap.dragging{opacity:.35}
-.go{font-size:12px;font-weight:750;text-align:center;min-height:36px;display:flex;align-items:center;justify-content:center}
 #ghost{position:fixed;z-index:40;pointer-events:none;transform:translate(-50%,-60%);box-shadow:0 8px 24px rgba(0,0,0,.35);touch-action:none}
 body.has-sel{padding-bottom:72px}
 #selbar{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;align-items:center;gap:6px;margin:0;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--card) 94%,transparent);border-top:1px solid var(--line)}
@@ -101,7 +100,6 @@ footer{padding:8px 12px calc(16px + env(safe-area-inset-bottom));color:var(--sub
 <div id="selbar" hidden>
   <img id="selimg" alt="" width="36" height="36">
   <b id="selname"></b><span id="selhint">段をタップ</span>
-  <a id="selgo" href="index.html">反撃</a>
   <button type="button" id="selpool">未配置へ</button>
   <button type="button" id="selclear">やめる</button>
 </div>
@@ -355,10 +353,7 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
   function chipHtml(index, picked) {
     const c = roster[index];
     const no = N.charNo(c);
-    const go = picked && inTier(index)
-      ? `<a class="go" href="index.html#me=${index}&mode=A">反撃チェック</a>`
-      : "";
-    return `<div class="chipwrap${picked ? " on" : ""}" data-i="${index}"><button type="button" class="chip" aria-pressed="${picked ? "true" : "false"}"><img src="${iconSrc(index, 1)}" alt="" width="72" height="72" loading="lazy" decoding="async"><b>${esc(c.name)}</b><small>${esc(no)}</small></button>${go}</div>`;
+    return `<div class="chipwrap${picked ? " on" : ""}" data-i="${index}"><button type="button" class="chip" aria-pressed="${picked ? "true" : "false"}"><img src="${iconSrc(index, 1)}" alt="" width="72" height="72" loading="lazy" decoding="async"><b>${esc(c.name)}</b><small>${esc(no)}</small></button></div>`;
   }
   function renderTiers() {
     $("board").innerHTML = state.tiers.map((tier, i) => {
@@ -423,14 +418,9 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
     const img = $("selimg");
     img.src = iconSrc(selected, 1);
     img.alt = "";
-    const go = $("selgo");
     const placed = inTier(selected);
     $("selhint").hidden = placed;
-    if (placed) {
-      go.hidden = false;
-      go.href = "index.html#me=" + selected + "&mode=A";
-    } else go.hidden = true;
-    $("selpool").hidden = !inTier(selected);
+    $("selpool").hidden = !placed;
   }
   function render() {
     renderTiers();
@@ -446,8 +436,6 @@ const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || 
   function bindChips(root) {
     root.querySelectorAll(".chipwrap").forEach((wrap) => {
       wrap.querySelector(".chip").addEventListener("pointerdown", onDown);
-      const go = wrap.querySelector(".go");
-      if (go) go.addEventListener("pointerdown", (e) => e.stopPropagation());
     });
   }
   function armDrag() {
