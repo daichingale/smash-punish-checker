@@ -1,0 +1,988 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0e1116" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f3f5f7" media="(prefers-color-scheme: light)">
+<title>リザルト — スマブラSP 確定反撃チェッカー</title>
+<style>:root{
+  --bg:#0e1116;--card:#171c24;--line:#313846;--text:#f2f5f8;--sub:#c5ced8;
+  --accent:#6cb4ff;--on-accent:#04121f;color-scheme:dark
+}
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#f3f5f7;--card:#fff;--line:#d5dbe3;--text:#14181f;--sub:#3d4754;
+    --accent:#0b6bcb;--on-accent:#fff;color-scheme:light
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;font-size:16px;line-height:1.4}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--accent)}
+img{max-width:100%}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.headbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:max(8px,env(safe-area-inset-top)) 12px 8px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px)}
+.headbar h1{font-size:16px;margin:0;font-weight:750}
+.headbar h1 small{display:block;color:var(--sub);font-weight:500;font-size:12px}
+.headlinks{display:flex;gap:6px;flex-wrap:wrap}
+.back{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--text);text-decoration:none;font-weight:750;white-space:nowrap}
+.hint,.fine{margin:8px 12px;color:var(--sub);font-size:13px}
+.card{margin:8px 12px;padding:10px;border:1px solid var(--line);border-radius:14px;background:var(--card);min-width:0}
+.card h2{font-size:15px;margin:0 0 8px}
+.card label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:700;color:var(--sub);margin:0 0 8px}
+.card input{min-height:44px;font-size:16px;border-radius:12px;border:1px solid var(--line);background:var(--bg);padding:0 12px;width:100%;max-width:100%}
+.toolbtns{padding:0 12px 8px;display:flex;flex-wrap:wrap;gap:6px}
+.card .toolbtns{padding:0}
+.toolbtns button{min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-weight:750}
+.card .toolbtns button{background:var(--bg)}
+.place{margin:0 12px 8px;padding:8px;border:1px solid var(--line);border-radius:14px;background:var(--card);min-width:0;display:flex;flex-wrap:wrap;gap:6px;align-items:flex-end}
+.place label{display:flex;flex-direction:column;gap:2px;font-size:12px;font-weight:700;color:var(--sub);min-width:0}
+.place input{min-height:44px;font-size:16px;border-radius:12px;border:1px solid var(--line);background:var(--bg);padding:0 10px}
+.place-in{width:76px}
+.player-lab{flex:1 1 140px}
+.player-in{width:100%}
+.place > button{min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--bg);font-weight:750}
+.slots{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:8px;min-width:0}
+.slot{width:176px;max-width:100%;border:1px solid var(--line);border-radius:12px;background:var(--bg);padding:6px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.slot .portrait{width:72px;height:72px;object-fit:contain}
+.slot b{font-size:11px;text-align:center;line-height:1.2;overflow-wrap:anywhere}
+.swatches{display:flex;flex-wrap:wrap;gap:3px;justify-content:center}
+.swatch{width:40px;height:40px;padding:2px;border-radius:8px;border:1px solid var(--line);background:var(--card)}
+.swatch img{width:100%;height:100%;object-fit:contain;pointer-events:none}
+.swatch.on{box-shadow:0 0 0 2px var(--accent)}
+.slot [data-act="rmchar"]{min-height:44px;padding:0 8px;border:0;background:transparent;color:var(--sub);font-size:12px;font-weight:700}
+.lib,.rank{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.rank{list-style:decimal;padding-left:28px}
+.lib li,.rank li{display:flex;align-items:center;gap:8px;min-width:0;min-height:44px}
+.lib li span{flex:1;min-width:0;overflow-wrap:anywhere}
+.lib small{color:var(--sub);font-weight:650}
+.lib button{min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--bg);font-weight:750;flex:none}
+.rank img{width:48px;height:48px;object-fit:contain;flex:none}
+.rank b{flex:1;min-width:0;overflow-wrap:anywhere;font-size:14px}
+.rank span{flex:none;font-variant-numeric:tabular-nums;font-weight:750;font-size:14px}
+.empty{color:var(--sub);font-size:14px}
+dialog{width:min(640px,calc(100vw - 16px));max-height:min(86vh,760px);border:1px solid var(--line);border-radius:16px;padding:12px;background:var(--card);color:var(--text)}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+.picker-head{display:flex;gap:6px;margin-bottom:8px}
+.picker-head input{flex:1;min-width:0;min-height:44px;font-size:16px;border-radius:12px;border:1px solid var(--line);background:var(--bg);padding:0 12px}
+.picker-head button{min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--bg);font-weight:750;flex:none}
+.picker-grid{display:flex;flex-wrap:wrap;gap:6px;max-height:62vh;overflow:auto}
+.pick{display:flex;flex-direction:column;align-items:center;width:76px;min-height:100px;padding:4px 2px;border-radius:12px;border:1px solid var(--line);background:var(--bg);font-weight:650}
+.pick img{width:64px;height:64px;object-fit:contain;pointer-events:none}
+.pick b{font-size:10px;line-height:1.15;text-align:center;overflow-wrap:anywhere}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:8px 14px;border-radius:999px;font-weight:750;z-index:30;max-width:calc(100vw - 24px);text-align:center}
+#toast[hidden]{display:none}
+footer{padding:8px 12px calc(16px + env(safe-area-inset-bottom));color:var(--sub);font-size:12px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<header class="headbar">
+  <h1>リザルト<small>スマブラSP・試作版</small></h1>
+  <nav class="headlinks" aria-label="ページ">
+    <a class="back" href="table.html">フレーム表</a>
+    <a class="back" href="tier.html">ティア</a>
+    <a class="back" href="index.html">反撃チェック</a>
+  </nav>
+</header>
+<p class="hint">順位ごとに選手名と使用キャラ（色1〜8）を入れます。同じキャラの色違いは、集計では1人です。</p>
+<section class="card" aria-label="大会">
+  <label>大会名<input id="evName" maxlength="80" autocomplete="off" enterkeyhint="done"></label>
+  <label>日付<input id="evDate" type="date"></label>
+  <label>参加人数<input id="evEntrants" inputmode="numeric" maxlength="4" placeholder="任意"></label>
+</section>
+<div id="rows"></div>
+<div class="toolbtns">
+  <button type="button" id="addRow">順位を追加</button>
+  <button type="button" id="share">共有リンク</button>
+  <button type="button" id="png">画像で保存</button>
+  <button type="button" id="toLib">この大会を集計に加える</button>
+  <button type="button" id="export">JSONで書き出す</button>
+  <button type="button" id="importBtn">JSONを読み込む</button>
+  <input id="importFile" type="file" accept="application/json,.json" hidden>
+</div>
+<section class="card" aria-label="保存した大会">
+  <h2>集計に入っている大会</h2>
+  <ul id="libList" class="lib"></ul>
+</section>
+<section class="card" aria-label="使用人数">
+  <div class="rankhead">
+    <h2>キャラ使用人数 <span id="playerCount"></span></h2>
+    <div class="toolbtns">
+      <button type="button" id="sortCount">人数順</button>
+      <button type="button" id="sortName">名前順</button>
+      <button type="button" id="toTier">この順でティア表に並べる</button>
+    </div>
+  </div>
+  <p class="fine">同じ選手が同じキャラを色違いで何回出しても1人です。別キャラはそれぞれ1人です。名前が空の行は、行ごとに別の人として数えます。集計は「この大会を集計に加える」か JSON の読み込みで足した大会だけを見ます。</p>
+  <ol id="rankList" class="rank"></ol>
+</section>
+<dialog id="picker">
+  <div class="picker-head">
+    <input id="pq" type="search" placeholder="キャラを検索（まりお / mario）" autocomplete="off" aria-label="追加するキャラを検索">
+    <button type="button" id="pickerClose">閉じる</button>
+  </div>
+  <div id="pickerGrid" class="picker-grid"></div>
+</dialog>
+<p id="toast" hidden role="status"></p>
+<footer>
+  <a href="index.html">反撃チェック</a> · <a href="table.html">全技のフレーム表</a> · <a href="tier.html">ティア表</a><br>
+  ファイター画像は <a href="https://www.smashbros.com/ja_JP/fighter/index.html" target="_blank" rel="noopener">大乱闘スマッシュブラザーズ SPECIAL 公式サイト</a>の切り抜きを、表示用に縮小して同梱しています。ポケモントレーナー（ゼニガメ・フシギソウ・リザードン）、Miiファイター、ホムラ／ヒカリは公式の集合画像から切り出しています。出どころは fighters/SOURCES.json に記録しています。<br>
+  © Nintendo / HAL Laboratory, Inc. 画像・キャラクターの権利は各権利者に帰属します。<br>
+  このページは個人が作った非公式の試作です。任天堂・HAL研究所・検証窓とは関係ありません。表示内容の正確さは保証しません。
+</footer>
+<script>window.__ROSTER__=[{"name":"マリオ","sheetTab":"1. マリオ"},{"name":"ドンキーコング","sheetTab":"2. ドンキーコング"},{"name":"リンク","sheetTab":"3. リンク"},{"name":"サムス","sheetTab":"4. サムス"},{"name":"ダークサムス","sheetTab":"4'. ダークサムス"},{"name":"ヨッシー","sheetTab":"5. ヨッシー"},{"name":"カービィ","sheetTab":"6. カービィ"},{"name":"フォックス","sheetTab":"7. フォックス"},{"name":"ピカチュウ","sheetTab":"8. ピカチュウ"},{"name":"ルイージ","sheetTab":"9. ルイージ"},{"name":"ネス","sheetTab":"10. ネス"},{"name":"キャプテン・ファルコン","sheetTab":"11. キャプテン・ファルコン"},{"name":"プリン","sheetTab":"12. プリン"},{"name":"ピーチ","sheetTab":"13. ピーチ"},{"name":"デイジー","sheetTab":"13'. デイジー"},{"name":"クッパ","sheetTab":"14. クッパ"},{"name":"アイスクライマー","sheetTab":"15. アイスクライマー"},{"name":"シーク","sheetTab":"16. シーク"},{"name":"ゼルダ","sheetTab":"17. ゼルダ"},{"name":"ドクターマリオ","sheetTab":"18. ドクターマリオ"},{"name":"ピチュー","sheetTab":"19. ピチュー"},{"name":"ファルコ","sheetTab":"20. ファルコ"},{"name":"マルス","sheetTab":"21. マルス"},{"name":"ルキナ","sheetTab":"21'. ルキナ"},{"name":"こどもリンク","sheetTab":"22. こどもリンク"},{"name":"ガノンドロフ","sheetTab":"23. ガノンドロフ"},{"name":"ミュウツー","sheetTab":"24. ミュウツー"},{"name":"ロイ","sheetTab":"25. ロイ"},{"name":"クロム","sheetTab":"25'. クロム"},{"name":"Mr.ゲーム&ウォッチ","sheetTab":"26. Mr.ゲーム&ウォッチ"},{"name":"メタナイト","sheetTab":"27. メタナイト"},{"name":"ピット","sheetTab":"28. ピット"},{"name":"ブラックピット","sheetTab":"28'. ブラックピット"},{"name":"ゼロスーツサムス","sheetTab":"29. ゼロスーツサムス"},{"name":"ワリオ","sheetTab":"30. ワリオ"},{"name":"スネーク","sheetTab":"31. スネーク"},{"name":"アイク","sheetTab":"32. アイク"},{"name":"ゼニガメ","sheetTab":"33. ゼニガメ"},{"name":"フシギソウ","sheetTab":"34. フシギソウ"},{"name":"リザードン","sheetTab":"35. リザードン"},{"name":"ディディーコング","sheetTab":"36. ディディーコング"},{"name":"リュカ","sheetTab":"37. リュカ"},{"name":"ソニック","sheetTab":"38. ソニック"},{"name":"デデデ","sheetTab":"39. デデデ"},{"name":"ピクミン&オリマー","sheetTab":"40. ピクミン&オリマー"},{"name":"ルカリオ","sheetTab":"41. ルカリオ"},{"name":"ロボット","sheetTab":"42. ロボット"},{"name":"トゥーンリンク","sheetTab":"43. トゥーンリンク"},{"name":"ウルフ","sheetTab":"44. ウルフ"},{"name":"むらびと","sheetTab":"45. むらびと"},{"name":"ロックマン","sheetTab":"46. ロックマン"},{"name":"Wii Fit トレーナー","sheetTab":"47. Wii Fit トレーナー"},{"name":"ロゼッタ&チコ","sheetTab":"48. ロゼッタ&チコ"},{"name":"リトル・マック","sheetTab":"49. リトル・マック"},{"name":"ゲッコウガ","sheetTab":"50. ゲッコウガ"},{"name":"格闘Mii","sheetTab":"51. 格闘Mii"},{"name":"剣術Mii","sheetTab":"52. 剣術Mii"},{"name":"射撃Mii","sheetTab":"53. 射撃Mii"},{"name":"パルテナ","sheetTab":"54. パルテナ"},{"name":"パックマン","sheetTab":"55. パックマン"},{"name":"ルフレ","sheetTab":"56. ルフレ"},{"name":"シュルク","sheetTab":"57. シュルク"},{"name":"クッパ Jr.","sheetTab":"58. クッパ Jr."},{"name":"ダックハント","sheetTab":"59. ダックハント"},{"name":"リュウ","sheetTab":"60. リュウ"},{"name":"ケン","sheetTab":"60'. ケン"},{"name":"クラウド","sheetTab":"61. クラウド"},{"name":"カムイ","sheetTab":"62. カムイ"},{"name":"ベヨネッタ","sheetTab":"63. ベヨネッタ"},{"name":"インクリング","sheetTab":"64. インクリング"},{"name":"リドリー","sheetTab":"65. リドリー"},{"name":"シモン","sheetTab":"66. シモン"},{"name":"リヒター","sheetTab":"66'. リヒター"},{"name":"キングクルール","sheetTab":"67. キングクルール"},{"name":"しずえ","sheetTab":"68. しずえ"},{"name":"ガオガエン","sheetTab":"69. ガオガエン"},{"name":"パックンフラワー","sheetTab":"70. パックンフラワー"},{"name":"ジョーカー","sheetTab":"71. ジョーカー"},{"name":"勇者","sheetTab":"72. 勇者"},{"name":"バンジョー&カズーイ","sheetTab":"73. バンジョー&カズーイ"},{"name":"テリー","sheetTab":"74. テリー"},{"name":"ベレト／ベレス","sheetTab":"75. ベレト／ベレス"},{"name":"ミェンミェン","sheetTab":"76. ミェンミェン"},{"name":"スティーブ／アレックス","sheetTab":"77. スティーブ／アレックス"},{"name":"セフィロス","sheetTab":"78. セフィロス"},{"name":"ホムラ","sheetTab":"79. ホムラ"},{"name":"ヒカリ","sheetTab":"80. ヒカリ"},{"name":"カズヤ","sheetTab":"81. カズヤ"},{"name":"ソラ","sheetTab":"82. ソラ"}];</script>
+<script>/* キャラ検索用の正規化と読み。表示名は変えない */
+(function (root) {
+  "use strict";
+const toKata = (s) => s.replace(/[\u3041-\u3096]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 0x60));
+const norm = (s) => toKata(String(s).normalize("NFKC").toLowerCase()).replace(/[\s・&＆.．ー\-'’／/]/g, "");
+const charNo = (c) => (c.sheetTab.match(/^(\d+'?)/) || [])[1] || "";
+const ALIAS = { "Mii": "ミイ ミー mii", "ドンキーコング": "dk", "Mr.ゲーム&ウォッチ": "ゲムヲ ゲーム&ウォッチ", "Wii Fit トレーナー": "ウィーフィット wiifit",
+  "キャプテン・ファルコン": "cf", "ピクミン&オリマー": "オリマー", "ロゼッタ&チコ": "ロゼチコ", "バンジョー&カズーイ": "バンカズ",
+  "ゼロスーツサムス": "ゼロサム", "パックンフラワー": "パックン", "トゥーンリンク": "トゥーン", "こどもリンク": "こどリン", "ガノンドロフ": "ガノン" };
+// 検索用の読み。表示名は変えない
+const READ = { "マリオ": "まりお mario", "ドンキーコング": "どんきーこんぐ donkeykong", "リンク": "りんく link", "サムス": "さむす samus", "ダークサムス": "だーくさむす darksamus",
+  "ヨッシー": "よっしー yoshi", "カービィ": "かーびぃ kirby", "フォックス": "ふぉっくす fox", "ピカチュウ": "ぴかちゅう pikachu", "ルイージ": "るいーじ luigi", "ネス": "ねす ness",
+  "キャプテン・ファルコン": "きゃぷてんふぁるこん captainfalcon falcon", "プリン": "ぷりん jigglypuff purin", "ピーチ": "ぴーち peach", "デイジー": "でいじー daisy", "クッパ": "くっぱ bowser koopa",
+  "アイスクライマー": "あいすくらいまー icies iceclimber", "シーク": "しーく sheik", "ゼルダ": "ぜるだ zelda", "ドクターマリオ": "どくたーまりお drmario doc", "ピチュー": "ぴちゅー pichu",
+  "ファルコ": "ふぁるこ falco", "マルス": "まるす marth", "ルキナ": "るきな lucina", "こどもリンク": "こどもりんく younglink", "ガノンドロフ": "がのんどろふ ganondorf",
+  "ミュウツー": "みゅうつー mewtwo", "ロイ": "ろい roy", "クロム": "くろむ chrom", "Mr.ゲーム&ウォッチ": "みすたーげーむ gamewatch gnw", "メタナイト": "めたないと metaknight",
+  "ピット": "ぴっと pit", "ブラックピット": "ぶらっくぴっと darkpit", "ゼロスーツサムス": "ぜろすーつさむす zerosuit zss", "ワリオ": "わりお wario", "スネーク": "すねーく snake",
+  "アイク": "あいく ike", "ゼニガメ": "ぜにがめ squirtle", "フシギソウ": "ふしぎそう ivysaur", "リザードン": "りざーどん charizard", "ディディーコング": "でぃでぃーこんぐ diddykong diddy",
+  "リュカ": "りゅか lucas", "ソニック": "そにっく sonic", "デデデ": "ででで dedede", "ピクミン&オリマー": "ぴくみんおりまー olimar pikmin", "ルカリオ": "るかリオ lucario",
+  "ロボット": "ろぼっと rob roboto", "トゥーンリンク": "とぅーんりんく toonlink", "ウルフ": "うるふ wolf", "むらびと": "むらびと villager", "ロックマン": "ろっくまん megaman rockman",
+  "Wii Fit トレーナー": "うぃーふぃっと wiifittrainer", "ロゼッタ&チコ": "ろぜったちこ rosalina", "リトル・マック": "りとるまっく littlemac", "ゲッコウガ": "げっこうが greninja",
+  "格闘Mii": "かくとうみい brawler", "剣術Mii": "けんじゅつみい swordfighter", "射撃Mii": "しゃげきみい gunner", "パルテナ": "ぱるてな palutena", "パックマン": "ぱっくまん pacman",
+  "ルフレ": "るふれ robin", "シュルク": "しゅるく shulk", "クッパ Jr.": "くっぱじゅにあ bowserjr", "ダックハント": "だっくはんと duckhunt", "リュウ": "りゅう ryu", "ケン": "けん ken",
+  "クラウド": "くらうど cloud", "カムイ": "かむい corrin", "ベヨネッタ": "べよねった bayonetta bayo", "インクリング": "いんくりんぐ inkling", "リドリー": "りどりー ridley",
+  "シモン": "しもん simon", "リヒター": "りひたー richter", "キングクルール": "きんぐくるーる kingkrool kkr", "しずえ": "しずえ isabelle", "ガオガエン": "がおがえん incineroar",
+  "パックンフラワー": "ぱっくんふらわー piranha plant", "ジョーカー": "じょーかー joker", "勇者": "ゆうしゃ hero", "バンジョー&カズーイ": "ばんじょーかずーい banjo", "テリー": "てりー terry",
+  "ベレト／ベレス": "べれとべれす byleth", "ミェンミェン": "みぇんみぇん minmin", "スティーブ／アレックス": "すてぃーぶあれっくす steve alex", "セフィロス": "せふぃろす sephiroth",
+  "ホムラ": "ほむら pyra homura", "ヒカリ": "ひかり mythra hikari", "カズヤ": "かずや kazuya", "ソラ": "そら sora" };
+const haystack = (c) => norm(c.name + " " + c.sheetTab + " " + (READ[c.name] || "") + " " + Object.keys(ALIAS).filter((k) => c.name.includes(k)).map((k) => ALIAS[k]).join(" "));
+
+  const api = { norm, charNo, haystack };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else root.Names = api;
+})(typeof window !== "undefined" ? window : globalThis);
+</script><script>/* 大会リザルトとキャラ使用人数。ブラウザ / Node 共通。フレームデータは読まない。
+ * 数え方: 選手名が同じ人は1人。その人が同じキャラを色違いで何回入れても1。
+ * 別キャラはキャラごとに1。名前が空の行は、行ごとに別の人として数える。 */
+(function (root) {
+  "use strict";
+  const TIER_SPEC = [
+    { name: "S", color: "#d64545" },
+    { name: "A", color: "#e07a2f" },
+    { name: "B", color: "#e0b030" },
+    { name: "C", color: "#3aaa5a" },
+    { name: "D", color: "#3b82d6" },
+  ];
+  const MAX_NAME = 80;
+  const MAX_PLAYER = 40;
+  const MAX_ROWS = 128;
+  const MAX_CHARS = 8;
+
+  function playerKey(name) {
+    return String(name == null ? "" : name).normalize("NFKC").trim().toLowerCase();
+  }
+  function cleanText(s, max) {
+    return String(s == null ? "" : s).normalize("NFKC").trim().slice(0, max);
+  }
+  function validSlot(n) {
+    return Number.isInteger(n) && n >= 1 && n <= 8;
+  }
+  function cleanChars(list, rosterCount) {
+    const out = [];
+    const seen = new Set();
+    for (const item of list || []) {
+      if (!item || !Number.isInteger(item.id) || item.id < 0) continue;
+      if (Number.isInteger(rosterCount) && item.id >= rosterCount) continue;
+      if (!validSlot(item.color)) continue;
+      if (seen.has(item.id)) continue;
+      seen.add(item.id);
+      out.push({ id: item.id, color: item.color });
+      if (out.length >= MAX_CHARS) break;
+    }
+    return out;
+  }
+  function cleanEntrants(n) {
+    if (n == null || n === "") return null;
+    const v = typeof n === "number" ? n : Number(String(n).trim());
+    if (!Number.isInteger(v) || v < 1 || v > 9999) return null;
+    return v;
+  }
+  function cleanPlace(n) {
+    const v = typeof n === "number" ? n : Number(String(n == null ? "" : n).trim());
+    if (!Number.isInteger(v) || v < 1 || v > 9999) return null;
+    return v;
+  }
+  function normalizeEvent(raw, rosterCount) {
+    if (!raw || typeof raw !== "object") return null;
+    const src = raw.event && typeof raw.event === "object" ? raw.event : raw;
+    const rowsSrc = Array.isArray(raw.rows) ? raw.rows : [];
+    const rows = [];
+    for (const row of rowsSrc) {
+      if (!row || typeof row !== "object") continue;
+      const place = cleanPlace(row.place);
+      if (place == null) continue;
+      rows.push({
+        place: place,
+        player: cleanText(row.player, MAX_PLAYER),
+        chars: cleanChars(row.chars, rosterCount),
+      });
+      if (rows.length >= MAX_ROWS) break;
+    }
+    return {
+      event: {
+        name: cleanText(src.name, MAX_NAME),
+        date: cleanText(src.date, 32),
+        entrants: cleanEntrants(src.entrants),
+      },
+      rows: rows,
+    };
+  }
+  function defaultEvent() {
+    const rows = [];
+    for (let i = 1; i <= 8; i++) rows.push({ place: i, player: "", chars: [] });
+    return { event: { name: "", date: "", entrants: null }, rows: rows };
+  }
+  function cloneEvent(ev) {
+    return {
+      event: { name: ev.event.name, date: ev.event.date, entrants: ev.event.entrants },
+      rows: ev.rows.map((r) => ({ place: r.place, player: r.player, chars: r.chars.map((c) => ({ id: c.id, color: c.color })) })),
+    };
+  }
+
+  function encode(ev) {
+    return encodeURIComponent(JSON.stringify({ v: 1, event: ev.event, rows: ev.rows }));
+  }
+  function parsePayload(text) {
+    const tries = [];
+    const s = String(text);
+    try {
+      const d = decodeURIComponent(s);
+      if (d !== s) tries.push(d);
+    } catch (e) { /* 展開できない */ }
+    tries.push(s);
+    for (const raw of tries) {
+      try { return JSON.parse(raw); } catch (e) { /* 次 */ }
+    }
+    return null;
+  }
+  function decode(text, rosterCount) {
+    if (text == null || text === "") return null;
+    const data = parsePayload(text);
+    if (!data || data.v !== 1) return null;
+    return normalizeEvent(data, rosterCount);
+  }
+
+  /** 1大会、配列、{ events: [] } のいずれも読む。読めなければ null */
+  function parseBundle(text, rosterCount) {
+    const data = typeof text === "string" ? parsePayload(text) : text;
+    if (!data) return null;
+    let list = null;
+    if (Array.isArray(data)) list = data;
+    else if (Array.isArray(data.events)) list = data.events;
+    else if (data.v === 1 && (data.event || data.rows)) list = [data];
+    else return null;
+    const events = [];
+    for (const item of list) {
+      const ev = normalizeEvent(item, rosterCount);
+      if (ev) events.push(ev);
+    }
+    return events.length ? events : null;
+  }
+  function exportBundle(events) {
+    return { v: 1, events: (events || []).map(cloneEvent) };
+  }
+
+  /** 同じ大会名と日付は上書きする。どちらも空なら別大会として足す */
+  function upsertEvent(library, ev) {
+    const next = cloneEvent(ev);
+    const name = next.event.name;
+    const date = next.event.date;
+    if (name || date) {
+      const i = library.findIndex((e) => e.event.name === name && e.event.date === date);
+      if (i >= 0) { library[i] = next; return library; }
+    }
+    library.push(next);
+    return library;
+  }
+
+  function rowIdentity(evIndex, row, rowIndex) {
+    const key = playerKey(row.player);
+    if (key) return key;
+    return "\0" + evIndex + ":" + rowIndex;
+  }
+
+  /** キャラごとの使用人数。同じ選手×同じキャラは1 */
+  function countUsage(events) {
+    const byChar = new Map();
+    const players = new Set();
+    (events || []).forEach((ev, ei) => {
+      (ev.rows || []).forEach((row, ri) => {
+        const who = rowIdentity(ei, row, ri);
+        let used = false;
+        const seen = new Set();
+        for (const ch of row.chars || []) {
+          if (!ch || !Number.isInteger(ch.id) || seen.has(ch.id)) continue;
+          seen.add(ch.id);
+          used = true;
+          if (!byChar.has(ch.id)) byChar.set(ch.id, new Set());
+          byChar.get(ch.id).add(who);
+        }
+        if (used || playerKey(row.player)) players.add(who);
+      });
+    });
+    const n = players.size;
+    const rows = [];
+    byChar.forEach((set, id) => {
+      rows.push({ id: id, count: set.size, ratio: n ? set.size / n : 0 });
+    });
+    rows.sort((a, b) => b.count - a.count || a.id - b.id);
+    return { players: n, rows: rows };
+  }
+
+  function sortUsage(rows, key, dir, nameOf) {
+    const sign = dir === "asc" ? 1 : -1;
+    const out = (rows || []).slice();
+    out.sort((a, b) => {
+      if (key === "name") {
+        const c = String(nameOf ? nameOf(a.id) : a.id).localeCompare(String(nameOf ? nameOf(b.id) : b.id), "ja");
+        if (c) return c * sign;
+      } else if (a.count !== b.count) return a.count < b.count ? -sign : sign;
+      return a.id - b.id;
+    });
+    return out;
+  }
+  function formatPercent(ratio) {
+    if (ratio == null || Number.isNaN(ratio)) return "—";
+    const p = Math.round(ratio * 1000) / 10;
+    return (p % 1 === 0 ? String(p) : p.toFixed(1)) + "%";
+  }
+
+  /** 使用人数の多い順に S〜D へほぼ均等に入れる。0人のキャラは入れない */
+  function rankingToTiers(rows) {
+    const used = (rows || []).filter((r) => r && r.count > 0).slice().sort((a, b) => b.count - a.count || a.id - b.id);
+    const tiers = TIER_SPEC.map((t) => ({ name: t.name, color: t.color }));
+    const bands = tiers.map(() => []);
+    const n = used.length;
+    used.forEach((item, i) => {
+      const band = n ? Math.min(tiers.length - 1, Math.floor(i * tiers.length / n)) : 0;
+      bands[band].push(item.id);
+    });
+    return { tiers: tiers, rows: bands };
+  }
+
+  const api = {
+    TIER_SPEC, MAX_CHARS, playerKey, validSlot, normalizeEvent, defaultEvent, cloneEvent,
+    encode, decode, parseBundle, exportBundle, upsertEvent, countUsage, sortUsage, formatPercent, rankingToTiers,
+  };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else root.ResultBoard = api;
+})(typeof window !== "undefined" ? window : globalThis);
+</script><script>/* ティア表の状態。ブラウザ / Node 共通。フレームデータは読まない */
+(function (root) {
+  "use strict";
+  const DEFAULT_COLORS = ["#d64545", "#e07a2f", "#e0b030", "#3aaa5a", "#3b82d6", "#8b5cf6", "#db2777", "#0f766e"];
+  const DEFAULT_NAMES = ["S", "A", "B", "C", "D"];
+  const MAX_TIERS = 24;
+  const MAX_NAME = 16;
+
+  function validColor(c) {
+    const m = /^#([0-9a-fA-F]{6})$/.exec(String(c || "").trim());
+    return m ? "#" + m[1].toLowerCase() : "";
+  }
+  function defaultTiers() {
+    return DEFAULT_NAMES.map((name, i) => ({ name: name, color: DEFAULT_COLORS[i] }));
+  }
+  function defaultState() {
+    const tiers = defaultTiers();
+    return { tiers: tiers, rows: tiers.map(() => []) };
+  }
+  function cloneState(s) {
+    return {
+      tiers: s.tiers.map((t) => ({ name: t.name, color: t.color })),
+      rows: s.rows.map((r) => r.slice()),
+    };
+  }
+
+  function poolIndices(state, count) {
+    const used = new Set();
+    for (const row of state.rows) for (const i of row) used.add(i);
+    const out = [];
+    for (let i = 0; i < count; i++) if (!used.has(i)) out.push(i);
+    return out;
+  }
+
+  function removeIndex(state, index) {
+    for (const row of state.rows) {
+      const at = row.indexOf(index);
+      if (at >= 0) row.splice(at, 1);
+    }
+  }
+
+  /** at は「今の並び」での挿入位置。同じ段の中で後ろへ動かすときは、抜いた分を戻す */
+  function moveFighter(state, index, tierIndex, at) {
+    if (!Number.isInteger(index) || tierIndex < 0 || tierIndex >= state.rows.length) return false;
+    const srcTier = state.rows.findIndex((r) => r.indexOf(index) >= 0);
+    const srcPos = srcTier < 0 ? -1 : state.rows[srcTier].indexOf(index);
+    removeIndex(state, index);
+    const row = state.rows[tierIndex];
+    let pos = at == null ? row.length : at;
+    if (srcTier === tierIndex && srcPos >= 0 && srcPos < pos) pos -= 1;
+    if (pos < 0) pos = 0;
+    if (pos > row.length) pos = row.length;
+    row.splice(pos, 0, index);
+    return true;
+  }
+  function toPool(state, index) {
+    removeIndex(state, index);
+  }
+
+  function addTier(state, name, color) {
+    if (state.tiers.length >= MAX_TIERS) return false;
+    const n = state.tiers.length;
+    const label = String(name || "").trim().slice(0, MAX_NAME) || ("段" + (n + 1));
+    state.tiers.push({ name: label, color: validColor(color) || DEFAULT_COLORS[n % DEFAULT_COLORS.length] });
+    state.rows.push([]);
+    return true;
+  }
+  function removeTier(state, tierIndex) {
+    if (state.tiers.length <= 1) return false;
+    if (tierIndex < 0 || tierIndex >= state.tiers.length) return false;
+    state.tiers.splice(tierIndex, 1);
+    state.rows.splice(tierIndex, 1);
+    return true;
+  }
+  function moveTier(state, from, to) {
+    if (from === to || from < 0 || to < 0 || from >= state.tiers.length || to >= state.tiers.length) return false;
+    const t = state.tiers.splice(from, 1)[0];
+    const r = state.rows.splice(from, 1)[0];
+    state.tiers.splice(to, 0, t);
+    state.rows.splice(to, 0, r);
+    return true;
+  }
+  function renameTier(state, tierIndex, name) {
+    const next = String(name == null ? "" : name).trim().slice(0, MAX_NAME);
+    if (!next || tierIndex < 0 || tierIndex >= state.tiers.length) return false;
+    state.tiers[tierIndex].name = next;
+    return true;
+  }
+  function recolorTier(state, tierIndex, color) {
+    const c = validColor(color);
+    if (!c || tierIndex < 0 || tierIndex >= state.tiers.length) return false;
+    state.tiers[tierIndex].color = c;
+    return true;
+  }
+
+  function compact(state) {
+    return {
+      v: 1,
+      t: state.tiers.map((t) => [t.name, t.color]),
+      r: state.rows.map((row) => row.slice()),
+    };
+  }
+  function encode(state) {
+    return encodeURIComponent(JSON.stringify(compact(state)));
+  }
+  function parsePayload(text) {
+    const tries = [];
+    const s = String(text);
+    try {
+      const d = decodeURIComponent(s);
+      if (d !== s) tries.push(d);
+    } catch (e) { /* すでに展開済み、または壊れた % */ }
+    tries.push(s);
+    for (const raw of tries) {
+      try { return JSON.parse(raw); } catch (e) { /* 次の候補 */ }
+    }
+    return null;
+  }
+  function decode(text, count) {
+    if (text == null || text === "") return null;
+    if (!Number.isInteger(count) || count < 1) return null;
+    const data = parsePayload(text);
+    if (!data || data.v !== 1 || !Array.isArray(data.t) || !Array.isArray(data.r)) return null;
+    if (data.t.length !== data.r.length || data.t.length < 1 || data.t.length > MAX_TIERS) return null;
+    const tiers = [];
+    const rows = [];
+    const seen = new Set();
+    for (let i = 0; i < data.t.length; i++) {
+      const pair = data.t[i];
+      if (!Array.isArray(pair) || pair.length < 2) return null;
+      const name = String(pair[0] == null ? "" : pair[0]).trim().slice(0, MAX_NAME);
+      const color = validColor(pair[1]);
+      if (!name || !color) return null;
+      tiers.push({ name: name, color: color });
+      const src = data.r[i];
+      if (!Array.isArray(src)) return null;
+      const row = [];
+      for (const n of src) {
+        if (!Number.isInteger(n) || n < 0 || n >= count || seen.has(n)) continue;
+        seen.add(n);
+        row.push(n);
+      }
+      rows.push(row);
+    }
+    return { tiers: tiers, rows: rows };
+  }
+
+  /** 未配置の検索。読み・ローマ字・ファイター番号は Names と同じ条件 */
+  function filterPool(indices, roster, query, haystack, norm, charNo) {
+    const qv = norm(String(query || ""));
+    if (!qv) return indices.slice();
+    return indices.filter((i) => {
+      const c = roster[i];
+      if (!c) return false;
+      return haystack(c).includes(qv) || String(charNo(c)).replace("'", "") === qv;
+    });
+  }
+
+  function ink(hex) {
+    const n = parseInt(String(hex).slice(1), 16);
+    const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+    const l = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+    return l > 0.62 ? "#14181f" : "#ffffff";
+  }
+
+  const api = {
+    DEFAULT_COLORS, DEFAULT_NAMES, MAX_TIERS, MAX_NAME,
+    validColor, defaultState, cloneState, poolIndices,
+    moveFighter, toPool, addTier, removeTier, moveTier, renameTier, recolorTier,
+    compact, encode, decode, filterPool, ink,
+  };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else root.TierList = api;
+})(typeof window !== "undefined" ? window : globalThis);
+</script><script>/* 大会リザルト。キャラは公式サイトの切り抜き。色1〜8で画像を切り替える */
+(function () {
+  "use strict";
+  const R = window.ResultBoard;
+  const T = window.TierList;
+  const N = window.Names;
+  const roster = window.__ROSTER__ || [];
+  const LIB = "punish.resultLibrary";
+  const CUR = "punish.result";
+  const TIER_KEY = "punish.tier";
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  let current = R.defaultEvent();
+  let library = [];
+  let sortKey = "count";
+  let sortDir = "desc";
+  let pickerRow = -1;
+  let toastTimer = 0;
+  let hashTimer = 0;
+
+  function toast(msg) {
+    const el = $("toast");
+    el.hidden = false;
+    el.textContent = msg;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.hidden = true; }, 1800);
+  }
+  function iconSrc(index, color) {
+    const c = color >= 1 && color <= 8 ? color : 1;
+    return "fighters/" + index + "/" + c + ".webp";
+  }
+  function loadIcon(index, color) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = iconSrc(index, color);
+    });
+  }
+  function readHash() {
+    return new URLSearchParams(location.hash.replace(/^#/, "")).get("r");
+  }
+  function loadLibrary() {
+    try {
+      const raw = localStorage.getItem(LIB);
+      if (!raw) return [];
+      return R.parseBundle(raw, roster.length) || [];
+    } catch (e) { return []; }
+  }
+  function saveLibrary() {
+    try { localStorage.setItem(LIB, JSON.stringify(R.exportBundle(library))); } catch (e) {}
+  }
+  function loadCurrent() {
+    const fromUrl = readHash();
+    if (fromUrl) {
+      const ev = R.decode(fromUrl, roster.length);
+      if (ev) return ev;
+      toast("共有リンクを読めなかったので、保存済みの結果を開きました");
+    }
+    try {
+      const raw = localStorage.getItem(CUR);
+      if (raw) {
+        const ev = R.decode(raw, roster.length);
+        if (ev) return ev;
+      }
+    } catch (e) {}
+    return R.defaultEvent();
+  }
+  function persist() {
+    const enc = R.encode(current);
+    try { localStorage.setItem(CUR, enc); } catch (e) {}
+    clearTimeout(hashTimer);
+    hashTimer = setTimeout(() => {
+      const next = "#r=" + enc;
+      if (location.hash !== next) history.replaceState(null, "", next);
+    }, 180);
+  }
+  function fillMeta() {
+    $("evName").value = current.event.name;
+    $("evDate").value = /^\d{4}-\d{2}-\d{2}$/.test(current.event.date) ? current.event.date : "";
+    $("evEntrants").value = current.event.entrants == null ? "" : String(current.event.entrants);
+  }
+  function slotHtml(rowIndex, slotIndex, slot) {
+    const name = roster[slot.id] ? roster[slot.id].name : "";
+    const colors = [1, 2, 3, 4, 5, 6, 7, 8].map((c) =>
+      `<button type="button" class="swatch${c === slot.color ? " on" : ""}" data-act="color" data-c="${c}" aria-label="${esc(name)} 色${c}"><img src="${iconSrc(slot.id, c)}" alt="" width="28" height="28" loading="lazy" decoding="async"></button>`
+    ).join("");
+    return `<div class="slot" data-s="${slotIndex}"><img class="portrait" src="${iconSrc(slot.id, slot.color)}" alt="" width="72" height="72" decoding="async"><b>${esc(name)}</b><div class="swatches">${colors}</div><button type="button" data-act="rmchar">外す</button></div>`;
+  }
+  function renderRows() {
+    $("rows").innerHTML = current.rows.map((row, i) => {
+      const slots = row.chars.map((slot, s) => slotHtml(i, s, slot)).join("");
+      return `<article class="place" data-i="${i}">` +
+        `<label>順位<input class="place-in" inputmode="numeric" value="${row.place}" aria-label="順位"></label>` +
+        `<label class="player-lab">選手<input class="player-in" maxlength="40" value="${esc(row.player)}" aria-label="選手名" autocomplete="off"></label>` +
+        `<button type="button" data-act="rmrow">この順位を削除</button>` +
+        `<div class="slots">${slots}</div>` +
+        `<button type="button" data-act="addchar">キャラを追加</button>` +
+        `</article>`;
+    }).join("") || `<p class="hint">順位がありません。「順位を追加」から入れてください。</p>`;
+  }
+  function renderLibrary() {
+    $("libList").innerHTML = library.length
+      ? library.map((ev, i) => {
+        const label = ev.event.name || "（無題）";
+        const date = ev.event.date || "日付なし";
+        const n = ev.event.entrants == null ? "" : " · " + ev.event.entrants + "人";
+        return `<li><span>${esc(label)} <small>${esc(date)} · ${ev.rows.length}位${esc(n)}</small></span><button type="button" data-lib="${i}">外す</button></li>`;
+      }).join("")
+      : `<li class="empty">保存された大会はありません。</li>`;
+  }
+  function renderRank() {
+    const usage = R.countUsage(library);
+    const nameOf = (id) => (roster[id] ? roster[id].name : "");
+    const rows = R.sortUsage(usage.rows, sortKey, sortDir, nameOf);
+    $("playerCount").textContent = "選手 " + usage.players + "人";
+    $("sortCount").setAttribute("aria-pressed", sortKey === "count" ? "true" : "false");
+    $("sortName").setAttribute("aria-pressed", sortKey === "name" ? "true" : "false");
+    $("rankList").innerHTML = rows.length
+      ? rows.map((r) => `<li><img src="${iconSrc(r.id, 1)}" alt="" width="48" height="48" loading="lazy" decoding="async"><b>${esc(nameOf(r.id))}</b><span>${r.count}人</span><span>${esc(R.formatPercent(r.ratio))}</span></li>`).join("")
+      : `<li class="empty">まだ集計がありません。</li>`;
+  }
+  function renderPicker() {
+    const q = $("pq").value;
+    const all = roster.map((_, i) => i);
+    const shown = T.filterPool(all, roster, q, N.haystack, N.norm, N.charNo);
+    $("pickerGrid").innerHTML = shown.length
+      ? shown.map((i) => `<button type="button" class="pick" data-id="${i}"><img src="${iconSrc(i, 1)}" alt="" width="64" height="64" loading="lazy" decoding="async"><b>${esc(roster[i].name)}</b></button>`).join("")
+      : `<p class="empty">該当するファイターはいません。</p>`;
+  }
+  function openPicker(rowIndex) {
+    pickerRow = rowIndex;
+    $("pq").value = "";
+    renderPicker();
+    $("picker").showModal();
+    $("pq").focus();
+  }
+  function addChar(id) {
+    const row = current.rows[pickerRow];
+    if (!row) return;
+    if (row.chars.some((c) => c.id === id)) { toast("同じキャラは1人につき1回です"); return; }
+    if (row.chars.length >= R.MAX_CHARS) { toast("キャラは" + R.MAX_CHARS + "人までです"); return; }
+    row.chars.push({ id: id, color: 1 });
+    $("picker").close();
+    renderRows();
+    persist();
+  }
+  function download(filename, blob) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+  function nameLines(g, name, maxW) {
+    if (g.measureText(name).width <= maxW) return [name];
+    const cut = name.indexOf("／");
+    const at = cut > 0 ? cut : Math.ceil(name.length / 2);
+    return [name.slice(0, at), name.slice(at)];
+  }
+  function drawIcon(g, img, x, y, size) {
+    if (!img) return;
+    const s = Math.min(size / img.naturalWidth, size / img.naturalHeight);
+    const w = img.naturalWidth * s;
+    const h = img.naturalHeight * s;
+    g.drawImage(img, x + (size - w) / 2, y + (size - h) / 2, w, h);
+  }
+  async function drawPng() {
+    const ev = R.normalizeEvent(current, roster.length) || current;
+    const icons = {};
+    const jobs = [];
+    ev.rows.forEach((row) => row.chars.forEach((ch) => {
+      const key = ch.id + ":" + ch.color;
+      if (icons[key] !== undefined) return;
+      icons[key] = null;
+      jobs.push(loadIcon(ch.id, ch.color).then((img) => { icons[key] = img; }));
+    }));
+    await Promise.all(jobs);
+    const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    const bg = dark ? "#0e1116" : "#f4f6f8";
+    const card = dark ? "#171c24" : "#ffffff";
+    const text = dark ? "#f2f5f8" : "#14181f";
+    const sub = dark ? "#c5ced8" : "#3d4754";
+    const width = 1080;
+    const pad = 36;
+    const cellW = 120;
+    const cellH = 132;
+    const gap = 10;
+    const imgSize = 84;
+    const nameFont = "650 16px \"Hiragino Sans\",\"Noto Sans JP\",\"Yu Gothic\",sans-serif";
+    const bodyFont = "650 22px \"Hiragino Sans\",\"Noto Sans JP\",\"Yu Gothic\",sans-serif";
+    const rows = ev.rows.filter((row) => row.player || row.chars.length).sort((a, b) => a.place - b.place);
+    const per = Math.max(1, Math.floor((width - pad * 2 + gap) / (cellW + gap)));
+    function rowH(n) {
+      const lines = Math.max(1, Math.ceil(n / per));
+      return 56 + lines * cellH + (lines - 1) * gap;
+    }
+    const blocks = rows.map((row) => rowH(row.chars.length));
+    const height = pad + 96 + blocks.reduce((s, h) => s + h + 12, 0) + 64;
+    const canvas = document.createElement("canvas");
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
+    const g = canvas.getContext("2d");
+    g.scale(dpr, dpr);
+    g.fillStyle = bg;
+    g.fillRect(0, 0, width, height);
+    g.fillStyle = text;
+    g.font = "750 36px \"Hiragino Sans\",\"Noto Sans JP\",\"Yu Gothic\",sans-serif";
+    const title = ev.event.name || "大会リザルト";
+    g.fillText(title, pad, pad + 40);
+    g.font = "650 20px \"Hiragino Sans\",\"Noto Sans JP\",\"Yu Gothic\",sans-serif";
+    g.fillStyle = sub;
+    const meta = [ev.event.date, ev.event.entrants ? ev.event.entrants + "人" : ""].filter(Boolean).join("  ·  ");
+    g.fillText(meta || "スマブラSP", pad, pad + 74);
+    let y = pad + 96;
+    rows.forEach((row, ri) => {
+      const h = blocks[ri];
+      g.fillStyle = card;
+      roundRect(g, pad, y, width - pad * 2, h, 16);
+      g.fill();
+      g.fillStyle = text;
+      g.font = "800 28px \"Hiragino Sans\",\"Noto Sans JP\",\"Yu Gothic\",sans-serif";
+      g.fillText(String(row.place), pad + 16, y + 40);
+      g.font = bodyFont;
+      g.fillText(row.player || "（名無し）", pad + 80, y + 38);
+      row.chars.forEach((ch, k) => {
+        const col = k % per;
+        const line = Math.floor(k / per);
+        const cx = pad + 16 + col * (cellW + gap);
+        const cy = y + 52 + line * (cellH + gap);
+        drawIcon(g, icons[ch.id + ":" + ch.color], cx + (cellW - imgSize) / 2, cy, imgSize);
+        g.fillStyle = text;
+        g.font = nameFont;
+        g.textAlign = "center";
+        const lines = nameLines(g, roster[ch.id] ? roster[ch.id].name : "", cellW - 4);
+        lines.forEach((lineText, li) => g.fillText(lineText, cx + cellW / 2, cy + imgSize + 18 + li * 18));
+        g.textAlign = "left";
+      });
+      y += h + 12;
+    });
+    g.fillStyle = sub;
+    g.font = "650 16px \"Hiragino Sans\",\"Noto Sans JP\",\"Yu Gothic\",sans-serif";
+    g.fillText("非公式。ファイター画像 © Nintendo / HAL Laboratory, Inc.", pad, height - 24);
+    return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob), "image/png"));
+  }
+  function roundRect(g, x, y, w, h, r) {
+    const rad = Math.min(r, w / 2, h / 2);
+    g.beginPath();
+    g.moveTo(x + rad, y);
+    g.arcTo(x + w, y, x + w, y + h, rad);
+    g.arcTo(x + w, y + h, x, y + h, rad);
+    g.arcTo(x, y + h, x, y, rad);
+    g.arcTo(x, y, x + w, y, rad);
+    g.closePath();
+  }
+  function init() {
+    if (!roster.length) {
+      $("rows").innerHTML = `<p class="hint">ファイター一覧がありません。</p>`;
+      return;
+    }
+    current = loadCurrent();
+    library = loadLibrary();
+    fillMeta();
+    renderRows();
+    renderLibrary();
+    renderRank();
+    persist();
+    $("evName").addEventListener("input", () => {
+      current.event.name = $("evName").value.slice(0, 80);
+      persist();
+    });
+    $("evDate").addEventListener("change", () => {
+      current.event.date = $("evDate").value.slice(0, 32);
+      persist();
+    });
+    $("evEntrants").addEventListener("change", () => {
+      const raw = $("evEntrants").value.trim();
+      if (!raw) { current.event.entrants = null; persist(); return; }
+      const v = Number(raw);
+      if (Number.isInteger(v) && v >= 1 && v <= 9999) current.event.entrants = v;
+      else $("evEntrants").value = current.event.entrants == null ? "" : String(current.event.entrants);
+      persist();
+    });
+    $("rows").addEventListener("input", (e) => {
+      const rowEl = e.target.closest(".place");
+      if (!rowEl) return;
+      const ri = +rowEl.dataset.i;
+      if (e.target.classList.contains("player-in")) current.rows[ri].player = e.target.value.slice(0, 40);
+      persist();
+    });
+    $("rows").addEventListener("change", (e) => {
+      if (!e.target.classList.contains("place-in")) return;
+      const ri = +e.target.closest(".place").dataset.i;
+      const v = Number(e.target.value);
+      if (Number.isInteger(v) && v >= 1 && v <= 9999) current.rows[ri].place = v;
+      else e.target.value = String(current.rows[ri].place);
+      persist();
+    });
+    $("rows").addEventListener("click", (e) => {
+      const act = e.target.closest("[data-act]");
+      const rowEl = e.target.closest(".place");
+      if (!act || !rowEl) return;
+      const ri = +rowEl.dataset.i;
+      const action = act.dataset.act;
+      if (action === "rmrow") {
+        current.rows.splice(ri, 1);
+        renderRows();
+        persist();
+      } else if (action === "addchar") openPicker(ri);
+      else if (action === "rmchar") {
+        const si = +act.closest(".slot").dataset.s;
+        current.rows[ri].chars.splice(si, 1);
+        renderRows();
+        persist();
+      } else if (action === "color") {
+        const slotEl = act.closest(".slot");
+        const si = +slotEl.dataset.s;
+        const color = +act.dataset.c;
+        if (!R.validSlot(color)) return;
+        current.rows[ri].chars[si].color = color;
+        slotEl.querySelector(".portrait").src = iconSrc(current.rows[ri].chars[si].id, color);
+        slotEl.querySelectorAll(".swatch").forEach((b) => b.classList.toggle("on", +b.dataset.c === color));
+        persist();
+      }
+    });
+    $("addRow").onclick = () => {
+      if (current.rows.length >= 128) { toast("順位はこれ以上増やせません"); return; }
+      const next = current.rows.reduce((m, r) => Math.max(m, r.place), 0) + 1;
+      current.rows.push({ place: Math.min(9999, next), player: "", chars: [] });
+      renderRows();
+      persist();
+    };
+    $("share").onclick = async () => {
+      persist();
+      const url = location.origin + location.pathname + "#r=" + R.encode(current);
+      try {
+        await navigator.clipboard.writeText(url);
+        toast("共有リンクをコピーしました");
+      } catch (e) {
+        toast("コピーできなかったので、アドレス欄のリンクを使ってください");
+      }
+    };
+    $("png").onclick = async () => {
+      const blob = await drawPng();
+      if (!blob) { toast("画像を作れませんでした"); return; }
+      download("smash-result.png", blob);
+      toast("画像を保存しました");
+    };
+    $("toLib").onclick = () => {
+      const clean = R.normalizeEvent(current, roster.length);
+      if (!clean || !clean.rows.some((r) => r.player || r.chars.length)) {
+        toast("選手名かキャラを入れてから集計してください");
+        return;
+      }
+      R.upsertEvent(library, clean);
+      saveLibrary();
+      renderLibrary();
+      renderRank();
+      toast("集計に加えました");
+    };
+    $("export").onclick = () => {
+      const events = library.slice();
+      const clean = R.normalizeEvent(current, roster.length);
+      if (clean && clean.rows.length) R.upsertEvent(events, clean);
+      const blob = new Blob([JSON.stringify(R.exportBundle(events), null, 2)], { type: "application/json" });
+      download("smash-results.json", blob);
+      toast("JSONを保存しました");
+    };
+    $("importBtn").onclick = () => $("importFile").click();
+    $("importFile").addEventListener("change", async () => {
+      const file = $("importFile").files && $("importFile").files[0];
+      $("importFile").value = "";
+      if (!file) return;
+      let events = null;
+      try { events = R.parseBundle(await file.text(), roster.length); } catch (e) { events = null; }
+      if (!events) { toast("JSONを読めませんでした"); return; }
+      events.forEach((ev) => R.upsertEvent(library, ev));
+      saveLibrary();
+      renderLibrary();
+      renderRank();
+      toast(events.length + "件読み込みました");
+    });
+    $("libList").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-lib]");
+      if (!btn) return;
+      library.splice(+btn.dataset.lib, 1);
+      saveLibrary();
+      renderLibrary();
+      renderRank();
+    });
+    function setSort(key) {
+      if (sortKey === key) sortDir = sortDir === "desc" ? "asc" : "desc";
+      else { sortKey = key; sortDir = key === "name" ? "asc" : "desc"; }
+      renderRank();
+    }
+    $("sortCount").onclick = () => setSort("count");
+    $("sortName").onclick = () => setSort("name");
+    $("toTier").onclick = () => {
+      const usage = R.countUsage(library);
+      if (!usage.rows.some((r) => r.count > 0)) { toast("集計されたキャラがありません"); return; }
+      const state = R.rankingToTiers(usage.rows);
+      const enc = T.encode(state);
+      try { localStorage.setItem(TIER_KEY, enc); } catch (e) {}
+      location.href = "tier.html#t=" + enc;
+    };
+    $("pq").addEventListener("input", renderPicker);
+    $("pickerGrid").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-id]");
+      if (!btn) return;
+      addChar(+btn.dataset.id);
+    });
+    $("pickerClose").onclick = () => $("picker").close();
+    window.addEventListener("hashchange", () => {
+      const raw = readHash();
+      if (!raw) return;
+      const ev = R.decode(raw, roster.length);
+      if (!ev) return;
+      current = ev;
+      fillMeta();
+      renderRows();
+    });
+  }
+  init();
+})();
+</script>
+</body>
+</html>

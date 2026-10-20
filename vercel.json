@@ -6,7 +6,8 @@
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/table", "destination": "/table.html" },
-    { "source": "/tier", "destination": "/tier.html" }
+    { "source": "/tier", "destination": "/tier.html" },
+    { "source": "/result", "destination": "/result.html" }
   ],
   "headers": [
     { "source": "/sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },

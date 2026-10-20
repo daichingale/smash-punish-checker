@@ -1,4 +1,4 @@
-/* ティア表の画面。数値データは読まない。名前とシリーズ色のチップだけ */
+/* ティア表の画面。数値データは読まない。公式サイトの切り抜きアイコンを使う */
 (function () {
   "use strict";
   const T = window.TierList;
@@ -6,51 +6,6 @@
   const roster = window.__ROSTER__ || [];
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const SERIES = [
-    [["マリオ", "ルイージ", "ピーチ", "デイジー", "クッパ", "ドクターマリオ", "ロゼッタ&チコ", "クッパ Jr.", "パックンフラワー"], "#e23d3d"],
-    [["ドンキーコング", "ディディーコング", "キングクルール"], "#f08a24"],
-    [["リンク", "シーク", "ゼルダ", "こどもリンク", "ガノンドロフ", "トゥーンリンク"], "#2f9e4a"],
-    [["サムス", "ダークサムス", "ゼロスーツサムス", "リドリー"], "#d4a24a"],
-    [["ヨッシー"], "#7dcc4a"],
-    [["カービィ", "メタナイト", "デデデ"], "#e7a0c0"],
-    [["フォックス", "ファルコ", "ウルフ"], "#4c6fe0"],
-    [["ピカチュウ", "プリン", "ピチュー", "ミュウツー", "ゼニガメ", "フシギソウ", "リザードン", "ルカリオ", "ゲッコウガ", "ガオガエン"], "#e6b325"],
-    [["ネス", "リュカ"], "#d4533a"],
-    [["キャプテン・ファルコン"], "#3a4a9a"],
-    [["アイスクライマー"], "#7ec8e3"],
-    [["マルス", "ルキナ", "ロイ", "クロム", "アイク", "ルフレ", "カムイ", "ベレト／ベレス"], "#8c3040"],
-    [["Mr.ゲーム&ウォッチ"], "#555555"],
-    [["ピット", "ブラックピット", "パルテナ"], "#e6c35c"],
-    [["ワリオ"], "#e6d34a"],
-    [["スネーク"], "#8a9099"],
-    [["ソニック"], "#2f6fe0"],
-    [["ピクミン&オリマー"], "#e6c36a"],
-    [["ロボット"], "#9aa3ad"],
-    [["むらびと", "しずえ"], "#6fbf73"],
-    [["ロックマン"], "#3a78c2"],
-    [["Wii Fit トレーナー"], "#4dbdb8"],
-    [["リトル・マック"], "#c46a32"],
-    [["格闘Mii", "剣術Mii", "射撃Mii"], "#9a9a9a"],
-    [["シュルク", "ホムラ", "ヒカリ"], "#c6a15a"],
-    [["パックマン"], "#f0d000"],
-    [["リュウ", "ケン"], "#2a4f9a"],
-    [["クラウド", "セフィロス"], "#4aa3df"],
-    [["ベヨネッタ"], "#8b2448"],
-    [["インクリング"], "#ef5a2a"],
-    [["ダックハント"], "#8d6239"],
-    [["シモン", "リヒター"], "#6b2d5b"],
-    [["ジョーカー"], "#c81e2e"],
-    [["勇者"], "#1d4e9c"],
-    [["バンジョー&カズーイ"], "#e6b325"],
-    [["テリー"], "#c0392b"],
-    [["ミェンミェン"], "#e45b9a"],
-    [["スティーブ／アレックス"], "#6a8f4e"],
-    [["カズヤ"], "#8b1e1e"],
-    [["ソラ"], "#4a7ebf"],
-  ];
-  const seriesColor = {};
-  SERIES.forEach(([names, color]) => names.forEach((n) => { seriesColor[n] = color; }));
-
   const KEY = "punish.tier";
   let state = T.defaultState();
   let selected = null;
@@ -69,14 +24,17 @@
   function inTier(index) {
     return state.rows.some((r) => r.indexOf(index) >= 0);
   }
+  function iconSrc(index, color) {
+    const c = color >= 1 && color <= 8 ? color : 1;
+    return "fighters/" + index + "/" + c + ".webp";
+  }
   function chipHtml(index, picked) {
     const c = roster[index];
     const no = N.charNo(c);
-    const col = seriesColor[c.name] || "#6b7280";
     const go = picked && inTier(index)
       ? `<a class="go" href="index.html#me=${index}&mode=A">反撃チェック</a>`
       : "";
-    return `<div class="chipwrap${picked ? " on" : ""}" data-i="${index}"><button type="button" class="chip" aria-pressed="${picked ? "true" : "false"}"><i style="background:${col}"></i><b>${esc(c.name)}</b><small>${esc(no)}</small></button>${go}</div>`;
+    return `<div class="chipwrap${picked ? " on" : ""}" data-i="${index}"><button type="button" class="chip" aria-pressed="${picked ? "true" : "false"}"><img src="${iconSrc(index, 1)}" alt="" width="72" height="72" loading="lazy" decoding="async"><b>${esc(c.name)}</b><small>${esc(no)}</small></button>${go}</div>`;
   }
   function renderTiers() {
     $("board").innerHTML = state.tiers.map((tier, i) => {
@@ -138,6 +96,9 @@
     document.body.classList.add("has-sel");
     bar.hidden = false;
     $("selname").textContent = roster[selected].name;
+    const img = $("selimg");
+    img.src = iconSrc(selected, 1);
+    img.alt = "";
     const go = $("selgo");
     const placed = inTier(selected);
     $("selhint").hidden = placed;
@@ -318,7 +279,32 @@
     } catch (e) {}
     return T.defaultState();
   }
-  function drawPng() {
+  function loadIcon(index, color) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = iconSrc(index, color);
+    });
+  }
+  function nameLines(g, name, maxW) {
+    if (g.measureText(name).width <= maxW) return [name];
+    const cut = name.indexOf("／");
+    const at = cut > 0 ? cut : Math.ceil(name.length / 2);
+    return [name.slice(0, at), name.slice(at)];
+  }
+  function drawIcon(g, img, x, y, size) {
+    if (!img) return;
+    const s = Math.min(size / img.naturalWidth, size / img.naturalHeight);
+    const w = img.naturalWidth * s;
+    const h = img.naturalHeight * s;
+    g.drawImage(img, x + (size - w) / 2, y + (size - h) / 2, w, h);
+  }
+  async function drawPng() {
+    const ids = [];
+    state.rows.forEach((row) => row.forEach((id) => { if (!ids.includes(id)) ids.push(id); }));
+    const icons = {};
+    await Promise.all(ids.map(async (id) => { icons[id] = await loadIcon(id, 1); }));
     const dark = matchMedia("(prefers-color-scheme: dark)").matches;
     const bg = dark ? "#0e1116" : "#f4f6f8";
     const card = dark ? "#171c24" : "#ffffff";
@@ -326,37 +312,22 @@
     const sub = dark ? "#c5ced8" : "#3d4754";
     const width = 1080;
     const pad = 28;
-    const labelW = 132;
-    const chipH = 48;
+    const labelW = 120;
+    const cellW = 108;
+    const cellH = 136;
     const gap = 8;
-    const font = "700 22px \"Hiragino Sans\",\"Noto Sans JP\",\"Yu Gothic\",sans-serif";
-    const small = "650 14px \"Hiragino Sans\",\"Noto Sans JP\",\"Yu Gothic\",sans-serif";
-    const measure = document.createElement("canvas").getContext("2d");
-    measure.font = font;
-    function chipW(i) {
-      const name = roster[i].name;
-      const no = N.charNo(roster[i]);
-      measure.font = font;
-      const nw = measure.measureText(name).width;
-      measure.font = small;
-      return Math.ceil(18 + 8 + nw + 10 + measure.measureText(no).width + 16);
-    }
+    const imgSize = 88;
+    const small = "650 16px \"Hiragino Sans\",\"Noto Sans JP\",\"Yu Gothic\",sans-serif";
+    const nameFont = "650 15px \"Hiragino Sans\",\"Noto Sans JP\",\"Yu Gothic\",sans-serif";
     const inner = width - pad * 2 - labelW - 16;
+    const per = Math.max(1, Math.floor((inner + gap) / (cellW + gap)));
     const blocks = state.tiers.map((tier, ti) => {
-      const widths = state.rows[ti].map(chipW);
-      let rows = 1, x = 0;
-      if (!widths.length) rows = 1;
-      else {
-        rows = 1; x = 0;
-        for (const w of widths) {
-          if (x > 0 && x + w > inner) { rows++; x = 0; }
-          x += w + gap;
-        }
-      }
-      const h = Math.max(64, rows * chipH + (rows - 1) * gap + 20);
-      return { tier, widths, h };
+      const n = state.rows[ti].length;
+      const rows = Math.max(1, Math.ceil(n / per));
+      const h = Math.max(72, rows * cellH + (rows - 1) * gap + 16);
+      return { tier, h, per };
     });
-    const height = pad + 64 + blocks.reduce((s, b) => s + b.h + 10, 0) + 48;
+    const height = pad + 78 + blocks.reduce((s, b) => s + b.h + 10, 0) + 72;
     const canvas = document.createElement("canvas");
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     canvas.width = Math.round(width * dpr);
@@ -370,8 +341,8 @@
     g.fillText("スマブラSP ティア表", pad, pad + 34);
     g.font = small;
     g.fillStyle = sub;
-    g.fillText("非公式の試作。公式の絵は使っていません。", pad, pad + 58);
-    let y = pad + 74;
+    g.fillText("非公式。ファイター画像 © Nintendo / HAL Laboratory, Inc.", pad, pad + 58);
+    let y = pad + 78;
     blocks.forEach((b, ti) => {
       g.fillStyle = card;
       roundRect(g, pad, y, width - pad * 2, b.h, 16);
@@ -382,32 +353,29 @@
       g.fillStyle = T.ink(b.tier.color);
       g.font = "800 28px \"Hiragino Sans\",\"Noto Sans JP\",\"Yu Gothic\",sans-serif";
       g.fillText(b.tier.name, pad + 16, y + b.h / 2 + 10);
-      let cx = pad + labelW + 12;
-      let cy = y + 10;
       state.rows[ti].forEach((fi, k) => {
-        const w = b.widths[k];
-        if (cx > pad + labelW + 12 && cx + w > width - pad - 8) { cx = pad + labelW + 12; cy += chipH + gap; }
+        const col = k % b.per;
+        const row = Math.floor(k / b.per);
+        const cx = pad + labelW + 12 + col * (cellW + gap);
+        const cy = y + 8 + row * (cellH + gap);
         g.fillStyle = dark ? "#0e1116" : "#f3f5f7";
-        roundRect(g, cx, cy, w, chipH, 12);
+        roundRect(g, cx, cy, cellW, cellH, 12);
         g.fill();
-        g.fillStyle = seriesColor[roster[fi].name] || "#6b7280";
-        roundRect(g, cx + 8, cy + 10, 8, chipH - 20, 4);
-        g.fill();
+        drawIcon(g, icons[fi], cx + (cellW - imgSize) / 2, cy + 6, imgSize);
         g.fillStyle = text;
-        g.font = font;
-        g.fillText(roster[fi].name, cx + 24, cy + 32);
-        g.font = small;
-        g.fillStyle = sub;
-        const no = N.charNo(roster[fi]);
-        g.fillText(no, cx + w - 12 - g.measureText(no).width, cy + 31);
-        cx += w + gap;
+        g.font = nameFont;
+        g.textAlign = "center";
+        const lines = nameLines(g, roster[fi].name, cellW - 8);
+        lines.forEach((line, li) => g.fillText(line, cx + cellW / 2, cy + imgSize + 22 + li * 16));
+        g.textAlign = "left";
       });
       y += b.h + 10;
     });
     g.fillStyle = sub;
     g.font = small;
     const left = T.poolIndices(state, roster.length).length;
-    g.fillText("未配置 " + left + "人", pad, height - 18);
+    g.fillText("未配置 " + left + "人", pad, height - 40);
+    g.fillText("画像: 大乱闘スマッシュブラザーズ SPECIAL 公式サイトの切り抜きを縮小", pad, height - 18);
     return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob), "image/png"));
   }
   function roundRect(g, x, y, w, h, r) {

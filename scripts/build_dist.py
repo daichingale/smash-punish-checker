@@ -3,8 +3,10 @@
 - dist/index.html: CSS・JS・データをすべて埋め込んだ単体HTML（スマホでファイルを開くだけで動く／そのまま静的公開できる）
 - dist/table.html: 全技表。データは dist/data.json を別リクエストで読む（index.html のサイズは増やさない）
 - dist/tier.html: ティア表。ファイター名だけを埋め込み、data.json は読まない
+- dist/result.html: リザルト。ファイター名だけを埋め込み、data.json は読まない
+- dist/fighters/: 公式サイトの切り抜き WebP（HTML には埋め込まない）
 - dist/manifest.webmanifest, icon.svg, sw.js: ホーム画面追加とオフライン用（ネットワーク優先）"""
-import hashlib, json, pathlib, re
+import hashlib, json, pathlib, re, shutil
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 src, data, dist = ROOT / "src", ROOT / "data", ROOT / "dist"
 dist.mkdir(exist_ok=True)
@@ -43,6 +45,20 @@ tier = re.sub(r"<!--STYLE-->.*?<!--/STYLE-->", lambda m: f"<style>{tier_css}</st
 tier = re.sub(r"<!--DATA-->.*?<!--/DATA-->", lambda m: f"<script>window.__ROSTER__={roster};</script>", tier, flags=re.S)
 tier = re.sub(r"<!--SCRIPTS-->.*?<!--/SCRIPTS-->", lambda m: f"<script>{names}</script><script>{tier_js}</script><script>{tier_page}</script>", tier, flags=re.S)
 (dist / "tier.html").write_text(tier, encoding="utf-8")
+result_css = (src / "result.css").read_text(encoding="utf-8")
+result_js = (src / "result.js").read_text(encoding="utf-8")
+result_page = (src / "result-page.js").read_text(encoding="utf-8")
+result = (src / "result.html").read_text(encoding="utf-8")
+result = re.sub(r"<!--STYLE-->.*?<!--/STYLE-->", lambda m: f"<style>{result_css}</style>", result, flags=re.S)
+result = re.sub(r"<!--DATA-->.*?<!--/DATA-->", lambda m: f"<script>window.__ROSTER__={roster};</script>", result, flags=re.S)
+result = re.sub(r"<!--SCRIPTS-->.*?<!--/SCRIPTS-->", lambda m: f"<script>{names}</script><script>{result_js}</script><script>{tier_js}</script><script>{result_page}</script>", result, flags=re.S)
+(dist / "result.html").write_text(result, encoding="utf-8")
+fighters = ROOT / "fighters"
+if fighters.is_dir():
+    dest_f = dist / "fighters"
+    if dest_f.exists():
+        shutil.rmtree(dest_f)
+    shutil.copytree(fighters, dest_f)
 stamp = hashlib.sha256(html.encode()).hexdigest()[:10]
 (dist / "manifest.webmanifest").write_text(json.dumps({
     "name": "スマブラSP 確定反撃チェッカー",
@@ -65,4 +81,4 @@ stamp = hashlib.sha256(html.encode()).hexdigest()[:10]
     'self.addEventListener("activate",e=>e.waitUntil((async()=>{const ks=await caches.keys();await Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)));await self.clients.claim();})()));\n'
     'self.addEventListener("fetch",e=>{if(e.request.method!=="GET")return;e.respondWith((async()=>{try{const res=await fetch(e.request);if(res.ok){const c=await caches.open(CACHE);c.put(e.request,res.clone());}return res;}catch(err){const hit=await caches.match(e.request);if(hit)return hit;throw err;}})());});\n',
     encoding="utf-8")
-print("dist/index.html", len(html.encode()) // 1024, "KB", "/ table.html", len(table.encode()) // 1024, "KB", "/ tier.html", len(tier.encode()) // 1024, "KB", "/ data.json", len(blob.encode()) // 1024, "KB")
+print("dist/index.html", len(html.encode()) // 1024, "KB", "/ table.html", len(table.encode()) // 1024, "KB", "/ tier.html", len(tier.encode()) // 1024, "KB", "/ result.html", len(result.encode()) // 1024, "KB", "/ data.json", len(blob.encode()) // 1024, "KB")
