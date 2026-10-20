@@ -278,6 +278,21 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
   function validSlot(n) {
     return Number.isInteger(n) && n >= 1 && n <= 8;
   }
+  // 単体画像が1枚しか無い。色2以降の保存データは色1として描く。
+  const ONE_COLOR = [55, 56, 57];
+  function colorCount(id) {
+    return ONE_COLOR.indexOf(id) >= 0 ? 1 : 8;
+  }
+  function colorChoices(id) {
+    const n = colorCount(id);
+    const out = [];
+    for (let c = 1; c <= n; c++) out.push(c);
+    return out;
+  }
+  function paintColor(id, color) {
+    const n = colorCount(id);
+    return Number.isInteger(color) && color >= 1 && color <= n ? color : 1;
+  }
   function cleanChars(list, rosterCount) {
     const out = [];
     const seen = new Set();
@@ -288,7 +303,7 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
       const id = usageKey(item.id);
       if (seen.has(id)) continue;
       seen.add(id);
-      out.push({ id: id, color: item.color });
+      out.push({ id: id, color: paintColor(id, item.color) });
       if (out.length >= MAX_CHARS) break;
     }
     return out;
@@ -475,7 +490,8 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
   }
 
   const api = {
-    TIER_SPEC, MAX_CHARS, playerKey, validSlot, normalizeEvent, defaultEvent, cloneEvent,
+    TIER_SPEC, MAX_CHARS, playerKey, validSlot, colorCount, colorChoices, paintColor,
+    normalizeEvent, defaultEvent, cloneEvent,
     encode, decode, parseBundle, exportBundle, upsertEvent, countUsage, sortUsage, formatPercent, rankingToTiers,
     usageKey, usageName,
   };
@@ -2494,7 +2510,7 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     toastTimer = setTimeout(() => { el.hidden = true; }, 1800);
   }
   function iconSrc(index, color, hires) {
-    const c = color >= 1 && color <= 8 ? color : 1;
+    const c = R.paintColor(index, color);
     return (hires ? "fighters/hires/" : "fighters/") + index + "/" + c + ".webp";
   }
   function loadIcon(index, color, hires) {
@@ -2565,8 +2581,9 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
   }
   function slotHtml(slotIndex, slot) {
     const label = roster[slot.id] ? N.faceName(roster[slot.id].name) : "";
-    const colors = [1, 2, 3, 4, 5, 6, 7, 8].map((c) =>
-      `<button type="button" class="swatch${c === slot.color ? " on" : ""}" data-act="color" data-c="${c}" aria-label="色${c}"><img src="${iconSrc(slot.id, c)}" alt="" width="36" height="36" loading="lazy" decoding="async"></button>`
+    const shown = R.paintColor(slot.id, slot.color);
+    const colors = R.colorChoices(slot.id).map((c) =>
+      `<button type="button" class="swatch${c === shown ? " on" : ""}" data-act="color" data-c="${c}" aria-label="色${c}"><img src="${iconSrc(slot.id, c)}" alt="" width="36" height="36" loading="lazy" decoding="async"></button>`
     ).join("");
     return `<div class="slot" data-s="${slotIndex}">` +
       `<button type="button" class="portrait-btn" data-act="replace" aria-label="${esc(label)}を別のキャラに差し替える"><img class="portrait" src="${iconSrc(slot.id, slot.color)}" alt="" width="72" height="72" decoding="async"></button>` +
@@ -3488,7 +3505,8 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
         const slotEl = act.closest(".slot");
         const si = +slotEl.dataset.s;
         const color = +act.dataset.c;
-        if (!R.validSlot(color)) return;
+        const id = current.rows[ri].chars[si].id;
+        if (R.colorChoices(id).indexOf(color) < 0) return;
         current.rows[ri].chars[si].color = color;
         slotEl.querySelector(".portrait").src = iconSrc(current.rows[ri].chars[si].id, color);
         slotEl.querySelectorAll(".swatch").forEach((b) => b.classList.toggle("on", +b.dataset.c === color));

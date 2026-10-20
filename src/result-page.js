@@ -37,7 +37,7 @@
     toastTimer = setTimeout(() => { el.hidden = true; }, 1800);
   }
   function iconSrc(index, color, hires) {
-    const c = color >= 1 && color <= 8 ? color : 1;
+    const c = R.paintColor(index, color);
     return (hires ? "fighters/hires/" : "fighters/") + index + "/" + c + ".webp";
   }
   function loadIcon(index, color, hires) {
@@ -108,8 +108,9 @@
   }
   function slotHtml(slotIndex, slot) {
     const label = roster[slot.id] ? N.faceName(roster[slot.id].name) : "";
-    const colors = [1, 2, 3, 4, 5, 6, 7, 8].map((c) =>
-      `<button type="button" class="swatch${c === slot.color ? " on" : ""}" data-act="color" data-c="${c}" aria-label="色${c}"><img src="${iconSrc(slot.id, c)}" alt="" width="36" height="36" loading="lazy" decoding="async"></button>`
+    const shown = R.paintColor(slot.id, slot.color);
+    const colors = R.colorChoices(slot.id).map((c) =>
+      `<button type="button" class="swatch${c === shown ? " on" : ""}" data-act="color" data-c="${c}" aria-label="色${c}"><img src="${iconSrc(slot.id, c)}" alt="" width="36" height="36" loading="lazy" decoding="async"></button>`
     ).join("");
     return `<div class="slot" data-s="${slotIndex}">` +
       `<button type="button" class="portrait-btn" data-act="replace" aria-label="${esc(label)}を別のキャラに差し替える"><img class="portrait" src="${iconSrc(slot.id, slot.color)}" alt="" width="72" height="72" decoding="async"></button>` +
@@ -1031,7 +1032,8 @@
         const slotEl = act.closest(".slot");
         const si = +slotEl.dataset.s;
         const color = +act.dataset.c;
-        if (!R.validSlot(color)) return;
+        const id = current.rows[ri].chars[si].id;
+        if (R.colorChoices(id).indexOf(color) < 0) return;
         current.rows[ri].chars[si].color = color;
         slotEl.querySelector(".portrait").src = iconSrc(current.rows[ri].chars[si].id, color);
         slotEl.querySelectorAll(".swatch").forEach((b) => b.classList.toggle("on", +b.dataset.c === color));

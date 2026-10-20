@@ -42,6 +42,21 @@
   function validSlot(n) {
     return Number.isInteger(n) && n >= 1 && n <= 8;
   }
+  // 単体画像が1枚しか無い。色2以降の保存データは色1として描く。
+  const ONE_COLOR = [55, 56, 57];
+  function colorCount(id) {
+    return ONE_COLOR.indexOf(id) >= 0 ? 1 : 8;
+  }
+  function colorChoices(id) {
+    const n = colorCount(id);
+    const out = [];
+    for (let c = 1; c <= n; c++) out.push(c);
+    return out;
+  }
+  function paintColor(id, color) {
+    const n = colorCount(id);
+    return Number.isInteger(color) && color >= 1 && color <= n ? color : 1;
+  }
   function cleanChars(list, rosterCount) {
     const out = [];
     const seen = new Set();
@@ -52,7 +67,7 @@
       const id = usageKey(item.id);
       if (seen.has(id)) continue;
       seen.add(id);
-      out.push({ id: id, color: item.color });
+      out.push({ id: id, color: paintColor(id, item.color) });
       if (out.length >= MAX_CHARS) break;
     }
     return out;
@@ -239,7 +254,8 @@
   }
 
   const api = {
-    TIER_SPEC, MAX_CHARS, playerKey, validSlot, normalizeEvent, defaultEvent, cloneEvent,
+    TIER_SPEC, MAX_CHARS, playerKey, validSlot, colorCount, colorChoices, paintColor,
+    normalizeEvent, defaultEvent, cloneEvent,
     encode, decode, parseBundle, exportBundle, upsertEvent, countUsage, sortUsage, formatPercent, rankingToTiers,
     usageKey, usageName,
   };
