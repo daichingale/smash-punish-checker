@@ -89,6 +89,24 @@ test("使用人数の多い順を S〜D に分け、0人は入れない", () => 
   assert.equal(R.rankingToTiers([{ id: 3, count: 1 }]).rows[0][0], 3);
 });
 
+test("Miiは色が1つ。保存済みの色2以降は色1として残る", () => {
+  assert.deepEqual(R.colorChoices(55), [1]);
+  assert.deepEqual(R.colorChoices(56), [1]);
+  assert.deepEqual(R.colorChoices(57), [1]);
+  assert.equal(R.colorChoices(0).length, 8);
+  assert.equal(R.paintColor(57, 6), 1);
+  assert.equal(R.paintColor(0, 6), 6);
+  const back = R.decode(R.encode(R.normalizeEvent(ev("大会", "2026-10-20", [
+    row(1, "たろう", [ch(55, 8), ch(56, 3), ch(57, 1), ch(0, 4)]),
+  ]), 89)), 89);
+  assert.deepEqual(back.rows[0].chars, [
+    { id: 55, color: 1 },
+    { id: 56, color: 1 },
+    { id: 57, color: 1 },
+    { id: 0, color: 4 },
+  ]);
+});
+
 test("共有文字列と JSON は往復でき、壊れた色番号は捨てる", () => {
   const src = ev("月例", "2026-10-20", [
     row(1, "たろう", [ch(0, 1), ch(0, 9), ch(22, 0), { id: 4, color: 8 }]),
