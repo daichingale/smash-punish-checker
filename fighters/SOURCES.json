@@ -4,8 +4,8 @@
   "urlPattern": "https://www.smashbros.com/assets_v2/img/fighter/{file}/main.png （色1）および main2.png〜main8.png（色2〜8）",
   "fighterList": "https://www.smashbros.com/assets_v2/data/fighter.json",
   "fetched": "2026-10-20",
-  "format": "WebP quality 62, longest side 200px, alpha trimmed. Original PNGs are not committed.",
-  "layout": "fighters/{rosterIndex}/{color}.webp  color is 1-8",
+  "format": "画面用は WebP quality 62・最長辺200px。書き出し用は fighters/hires/ に quality 84・最長辺1000px。どちらも透過を詰めた WebP。元PNGは同梱しない。",
+  "layout": "fighters/{rosterIndex}/{color}.webp と fighters/hires/{rosterIndex}/{color}.webp。color は 1-8",
   "crops": {
     "37-39": "ポケモントレーナーの公式集合画像（pokemon_trainer）から ゼニガメ / フシギソウ / リザードン を切り出し",
     "55-57": "Miiファイターの公式集合画像（mii_fighter）から 格闘 / 剣術 / 射撃 を切り出し。公式サイトに色違いの切り抜きが無いため色2〜8は色1と同じ",
