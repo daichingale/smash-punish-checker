@@ -158,8 +158,7 @@
     $("pickerGrid").innerHTML = shown.length
       ? shown.map((i) => {
         const name = N.faceName(roster[i].name);
-        const grouped = name !== roster[i].name;
-        return `<button type="button" class="pick${grouped ? " named" : ""}" data-id="${i}" aria-label="${esc(name)}"><img src="${iconSrc(i, 1)}" alt="" width="64" height="64" loading="lazy" decoding="async">${grouped ? `<small>${esc(name)}</small>` : ""}</button>`;
+        return `<button type="button" class="pick" data-id="${i}" aria-label="${esc(name)}"><img src="${iconSrc(i, 1)}" alt="" width="64" height="64" loading="lazy" decoding="async"></button>`;
       }).join("")
       : `<p class="empty">該当するファイターはいません。</p>`;
   }

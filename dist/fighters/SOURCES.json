@@ -8,7 +8,7 @@
   "layout": "fighters/{rosterIndex}/{color}.webp と fighters/hires/{rosterIndex}/{color}.webp。color は 1-8",
   "crops": {
     "37-39": "ポケモントレーナーは公式集合画像（pokemon_trainer/main.png と main2〜main8）を3キャラ共通でそのまま使う。単体の切り抜きは公式サイトに無い",
-    "55-57": "Miiファイターは公式集合画像（mii_fighter/main.png）を重ならない横範囲で 格闘 0–50% / 剣術 50–77% / 射撃 77–100% に切り出し。公式サイトに1体ずつ・色違いの切り抜きが無いため色2〜8は色1と同じ",
+    "55-57": "Miiファイターは公式サイト（ja/en の fighter/51-53、各言語の main_*.png、Miiコスチューム告知）に1体ずつのレンダーが無い。集合画像 mii_fighter/main.png から、色の境目を辿って格闘・剣術・射撃を1体ずつ抜いた。隣の体が重なる部分は補わず、境界に残った隣の色は落としている。画像の並びは左が射撃・中央が剣術・右が格闘。色違いは公式に無いので色2〜8は色1と同じ",
     "85-86": "ホムラ／ヒカリは公式集合画像（homura/main.png、英語ページの pyra と同一、main2〜main8）を2キャラ共通でそのまま使う。単体の切り抜きは公式サイトに無い"
   },
   "copyright": "© Nintendo / HAL Laboratory, Inc. 画像の権利は権利者に帰属します。この同梱は非公式のファン制作です。",
@@ -347,19 +347,19 @@
       "id": 55,
       "name": "格闘Mii",
       "file": "mii_fighter",
-      "crop": true
+      "crop": false
     },
     {
       "id": 56,
       "name": "剣術Mii",
       "file": "mii_fighter",
-      "crop": true
+      "crop": false
     },
     {
       "id": 57,
       "name": "射撃Mii",
       "file": "mii_fighter",
-      "crop": true
+      "crop": false
     },
     {
       "id": 58,
