@@ -319,6 +319,17 @@
 
   function fmtAdv(v) { return v > 0 ? `+${v}` : `${v}`; }
   function fmtM(v) { return `${v >= 0 ? "+" : ""}${v}F`; }
+  function dmgText(n) {
+    const v = C.scaleDamage(n, state.oo);
+    return String(Math.round(v * 100) / 100);
+  }
+  /** 同じ段で有利が変わるときだけ、判定ごとの内訳。1判定・個数不一致は空 */
+  function hitboxBreakdown(a) {
+    const hs = a.hitboxes;
+    if (!hs || hs.length < 2 || a.advMin === a.advMax) return "";
+    const bonus = state.ps ? C.PERFECT_SHIELD_BONUS : 0;
+    return hs.map((h) => `<li>${esc(h.name)}　ダメージ ${esc(dmgText(h.damage))}　ガード硬直 ${h.stun}F　ガード有利 ${fmtAdv(h.adv + bonus)}F</li>`).join("");
+  }
 
   function renderResult() {
     const att = attackerChar(), def = defenderChar();
@@ -348,6 +359,8 @@
     }
     const cls = a.primaryEff > 0 ? "pos" : a.primaryEff < 0 ? "neg" : "zero";
     h += `<div class="big ${cls}">${fmtAdv(a.primaryEff)}<span>F</span></div>`;
+    const boxes = hitboxBreakdown(a);
+    if (boxes) h += `<div class="late">判定によって ${fmtAdv(a.advMin + (state.ps ? C.PERFECT_SHIELD_BONUS : 0))}〜${fmtAdv(a.advMax + (state.ps ? C.PERFECT_SHIELD_BONUS : 0))}F。表示と確定はいちばんきびしい判定です。</div><ul class="hbox">${boxes}</ul>`;
     h += `<div class="late">${a.lateUnknown ? "終わり際はシート上で不定" : a.worstEff === a.primaryEff ? "終わり際をガードしても同じ" : `終わり際をガードすると ${fmtAdv(a.worstEff)}F`}</div>`;
     if (a.bounceLag != null && a.landingLag != null && a.bounceLag !== a.landingLag) h += `<div class="note">ヒット時はバウンドの全体${a.bounceLag}Fから硬直を引いています。空振りの着地隙は${a.landingLag}Fです。</div>`;
     const altLine = (a.alt || []).filter((x) => x.adv != null && /アルセーヌ|（後）/.test(x.label));
@@ -363,8 +376,9 @@
       const routeTxt = x.cost ? `${x.routeLabel}（+${x.cost}F）` : x.routeLabel;
       const tier = x.tier === "severe" ? `<span class="t2 severe" title="猶予${T.severeMax}F以下。最速入力が必要">シビア</span>` : x.tier === "easy" ? `<span class="t2 easy" title="猶予${T.easyMin}F以上">余裕</span>` : "";
       const late = !a.lateUnknown && x.marginWorst !== x.margin ? `<div class="row3">終わり際の猶予 ${fmtM(x.marginWorst)}</div>` : "";
+      const weak = x.weakNote ? `<div class="row3">${esc(x.weakNote)}</div>` : "";
       return `<li class="${x.status}"><div class="row1"><span class="b ${x.status}">${lbl}</span><span class="n">${esc(shortName(x.move))}${x.move.material ? `【${esc(x.move.material)}】` : ""}</span>${tier}<span class="m ${mcls}">${fmtM(x.margin)}</span></div>` +
-        `<div class="row2">${esc(routeTxt)} ／ 発生${x.startup}F → 必要${x.need}F</div>${late}` +
+        `<div class="row2">${esc(routeTxt)} ／ 発生${x.startup}F → 必要${x.need}F</div>${weak}${late}` +
         (x.move.input === "button" ? `<div class="cmd">ボタン入力</div>` : x.move.command ? `<div class="cmd">${x.move.input === "command" ? "コマンド入力" : "入力"}: ${esc(x.move.command)}</div>` : "") +
         `</li>`;
     };
@@ -391,6 +405,7 @@
       (a.bounceLag != null && a.landingLag != null && a.bounceLag !== a.landingLag ? `<p>この技はヒットするとバウンドします。シートのバウンド行の全体Fは${a.bounceLag}Fなので、有利は ${a.bounceLag}F − ガード硬直です。空振りの着地隙${a.landingLag}Fは使っていません。</p>` : "") +
       (altLine.length ? `<p>${altLine.map((x) => `${esc(x.label)}をガードした有利は ${fmtAdv(x.adv)}F`).join("。")}。確定の数は通常の段だけです。</p>` : "") +
       (hitList ? `<ul class="hits">${hitList}</ul>` : `<p>基礎ダメージはシートにありません。</p>`) +
+      (boxes ? `<p>この段は判定ごとにガード硬直が違います。下は、それぞれをガードしたときの有利です。確定と不可は、ガード硬直が大きい方（${fmtAdv(a.primaryEff)}F）で分けています。</p><ul class="hbox">${boxes}</ul>` : "") +
       `<p>${a.lateUnknown ? "判定の終わりがシート上で不定なので、終わり際の数字は出していません。" : `判定の終わり際をガードした場合の有利は ${fmtAdv(a.worstEff)}F。カードの2行目は、そのときの猶予です。`}</p>` +
       `<p>密着が前提です。リーチと、ガードで押される距離は見ていません。コマンド入力の時間も含めていません。</p>` +
       (move.guardNote ? `<p>${esc(move.guardNote)}</p>` : "");

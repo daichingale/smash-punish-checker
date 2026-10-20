@@ -113,6 +113,35 @@ test("1on1補正とダメージの並べ方はURLに残り、空のcはキャラ
   assert.equal(T.parseQuery("#c=").chars.length, 0);
 });
 
+test("同じ段で有利が変わる技は範囲を出し、並べ替えと確定数はきびしい方", () => {
+  const rows = T.buildRows(data, C);
+  const ft = rows.find((r) => r.char === "マルス" && r.name === "横強");
+  const jab = rows.find((r) => r.char === "マルス" && r.name === "弱1");
+  const u = rows.find((r) => r.char === "マリオ" && r.name === "上強");
+  assert.equal(ft.adv, 14);
+  assert.equal(ft.advMin, 14);
+  assert.equal(ft.advMax, 16);
+  assert.equal(T.formatAdvRange(ft), "+14〜+16");
+  assert.equal(T.formatAdvRange(jab), "+14〜+16");
+  assert.equal(u.adv, 18);
+  assert.equal(u.advMin, 18);
+  assert.equal(u.advMax, 18);
+  assert.equal(T.formatAdvRange(u), "+18");
+  const sample = [
+    { order: 0, name: "幅", adv: 14, advMin: 14, advMax: 16 },
+    { order: 1, name: "単", adv: 15, advMin: 15, advMax: 15 },
+    { order: 2, name: "空", adv: null, advMin: null, advMax: null },
+  ];
+  assert.equal(T.formatAdvRange(sample[2]), "—");
+  assert.deepEqual(T.sortRows(sample, "adv", "desc").map((r) => r.name), ["単", "幅", "空"]);
+  assert.deepEqual(T.sortRows(sample, "adv", "asc").map((r) => r.name), ["幅", "単", "空"]);
+  const sureRows = [{ adv: 14, advMax: 16 }];
+  T.fillSure(sureRows, [[15], [14]], 0);
+  assert.equal(sureRows[0].sure, 0);
+  T.fillSure(sureRows, [[15], [14]], 1);
+  assert.equal(sureRows[0].sure, 1);
+});
+
 test("URLのソートとプリセットを復元できる", () => {
   const s = { sort: "startup", dir: "asc", preset: "fast", kinds: ["air"], place: "air", chars: [0, 66], text: "上", vs: 1 };
   const back = T.parseQuery("#" + T.serialize(s));

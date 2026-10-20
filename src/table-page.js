@@ -100,7 +100,7 @@
       const dmg = damageText(r);
       h += `<span class="c-dmg" title="${esc(dmg)}">${esc(dmg)}</span>`;
       h += `<span>${fmt("stun", r.stun)}</span>`;
-      h += `<span class="${advCls}">${fmt("adv", r.adv)}</span><span>${fmt("sure", r.sure)}</span></a>`;
+      h += `<span class="c-adv ${advCls}">${esc(T.formatAdvRange(r))}</span><span>${fmt("sure", r.sure)}</span></a>`;
     }
     $("win").innerHTML = h;
     $("win").style.transform = "translateY(" + (headH + s * ROW) + "px)";

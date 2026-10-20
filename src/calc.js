@@ -20,6 +20,29 @@
   const STARTER_SEQ = /^(弱1|横強1|空N1|空前1)/;
 
   const maxOf = (a) => Math.max.apply(null, a);
+  const minOf = (a) => Math.min.apply(null, a);
+  /** 1行の中の判定名。シートの行ラベルが数字の個数と一致するときだけその名前を使い、それ以外は hit1 / hit2 */
+  function partNames(row, n) {
+    const label = String((row && row.label) || "").trim();
+    if (n === 1) return [label || "hit1"];
+    const parts = label.split(/[/、]/).map((s) => s.trim()).filter(Boolean);
+    if (parts.length === n) return parts;
+    const names = [];
+    for (let i = 0; i < n; i++) names.push("hit" + (i + 1));
+    return names;
+  }
+  /** ダメージと硬直の個数が一致するときだけ、同じ行の判定を対応づける。合わなければ null（推測しない） */
+  function pairedHitboxes(row, advOf) {
+    const damages = row && Array.isArray(row.damage) ? row.damage : null;
+    const stuns = row && Array.isArray(row.stun) ? row.stun : null;
+    if (!damages || !stuns || !damages.length || damages.length !== stuns.length) return null;
+    for (let i = 0; i < damages.length; i++) {
+      if (typeof damages[i] !== "number" || Number.isNaN(damages[i])) return null;
+      if (typeof stuns[i] !== "number" || Number.isNaN(stuns[i])) return null;
+    }
+    const names = partNames(row, damages.length);
+    return damages.map((damage, i) => ({ name: names[i], damage: damage, stun: stuns[i], adv: advOf(stuns[i]) }));
+  }
   function hasHit(row) {
     return !!row.active && (row.damage == null || maxOf(row.damage) > 0);
   }
@@ -74,7 +97,7 @@
     const L = bounce ? bounce.total : move.landingLag;
     // 終わりが '*' の判定は、終わり際の有利Fを数字にしない
     const lateUnknown = use.some((r) => r.active && r.active.open);
-    let primary, worst, detail = [];
+    let primary, worst, detail = [], advOf;
     const groundAdv = (r, late) => r.total - (late ? r.active.end : r.active.starts[0]) - maxOf(r.stun);
     if (isAir) {
       if (L == null) return { ok: false, reason: "着地隙がシートに無い" };
@@ -82,19 +105,27 @@
       primary = f(pRow, false);
       worst = lateUnknown ? primary : Math.min.apply(null, use.map((r) => f(r, true)));
       detail = use.map((r) => ({ label: r.label || "本体", stun: r.stun, adv: f(r, false) }));
+      const base = pRow.label.includes("着地") ? L - pRow.active.starts[0] : L;
+      advOf = (s) => base - s;
     } else {
       const hit = seq ? lastStart(pRow) : pRow.active.starts[0];
       primary = pRow.total - hit - maxOf(pRow.stun);
       worst = lateUnknown ? primary : Math.min.apply(null, use.map((r) => groundAdv(r, true)));
       detail = use.map((r) => ({ label: r.label || "本体", stun: r.stun, total: r.total, hitFrame: r.active.starts[0], adv: groundAdv(r, false) }));
+      advOf = (s) => pRow.total - hit - s;
     }
+    // 主数値に使った段だけ。硬直が違う判定の有利は、同じ発生F・同じ後隙から引く。多段の他の段は混ぜない
+    const hitboxes = pairedHitboxes(pRow, advOf);
+    const advs = hitboxes ? hitboxes.map((h) => h.adv) : null;
+    const advMin = advs ? minOf(advs) : primary;
+    const advMax = advs ? maxOf(advs) : primary;
     const alt = rows.filter((r) => use.indexOf(r) < 0).map((r) => ({
       label: r.label,
       adv: isAir ? (L == null ? null : (r.label.includes("着地") ? L - r.active.starts[0] - maxOf(r.stun) : L - maxOf(r.stun))) : groundAdv(r, false),
     }));
     const damage = pRow.damage && pRow.damage.length ? maxOf(pRow.damage) : null;
     const total = pRow.total == null ? null : pRow.total;
-    return { ok: true, primary, worst: Math.min(worst, primary), lateUnknown, primaryStun: maxOf(pRow.stun), primaryLabel: pRow.label || "", multiHit: seq, aerial: isAir, landingLag: isAir ? move.landingLag : null, bounceLag: bounce ? bounce.total : null, alt, damage, total, detail };
+    return { ok: true, primary, worst: Math.min(worst, primary), lateUnknown, primaryStun: maxOf(pRow.stun), primaryLabel: pRow.label || "", multiHit: seq, aerial: isAir, landingLag: isAir ? move.landingLag : null, bounceLag: bounce ? bounce.total : null, alt, damage, total, detail, hitboxes, advMin, advMax };
   }
 
   /** 表の1行分。読めない値は null（画面では —）。有利は shieldAdvantage と同じ */
@@ -108,13 +139,13 @@
     if (!adv.ok) {
       const r = firstHitRow(move);
       return {
-        startup, activeEnd, landing, adv: null,
+        startup, activeEnd, landing, adv: null, advMin: null, advMax: null,
         total: r && r.total != null ? r.total : null,
         damage: r && r.damage && r.damage.length ? maxOf(r.damage) : null,
         stun: r && r.stun && r.stun.length ? maxOf(r.stun) : null,
       };
     }
-    return { startup, activeEnd, total: adv.total, landing, damage: adv.damage, stun: adv.primaryStun, adv: adv.primary };
+    return { startup, activeEnd, total: adv.total, landing, damage: adv.damage, stun: adv.primaryStun, adv: adv.primary, advMin: adv.advMin, advMax: adv.advMax };
   }
 
   function isStarter(move) {
@@ -170,6 +201,17 @@
     return null;
   }
 
+  /** きびしい判定では不可で、弱い判定の有利なら間に合うときの短い補足。確定側には付けない */
+  function weakSureNote(hitboxes, primary, bonus, need) {
+    if (!hitboxes) return "";
+    const names = [];
+    for (let i = 0; i < hitboxes.length; i++) {
+      const h = hitboxes[i];
+      if (h.adv > primary && h.adv + bonus - need >= 0) names.push(h.name);
+    }
+    return names.length ? names.join("・") + "なら確定" : "";
+  }
+
   /** attacker の move をガードした defender の反撃一覧 */
   function evaluate(attacker, move, defender, o) {
     o = o || {};
@@ -183,7 +225,8 @@
       const marginWorst = adv.worst + bonus - need;
       // 密着を前提に、フレームが間に合えば「確定」（リーチ・ガードで押される距離は考慮しない）
       const status = margin >= 0 ? "sure" : "impossible";
-      return { ...opt, cost, need, margin, marginWorst, status, tier: marginTier(margin), routeLabel: ROUTE_LABEL[opt.route] };
+      const weakNote = status === "impossible" ? weakSureNote(adv.hitboxes, adv.primary, bonus, need) : "";
+      return { ...opt, cost, need, margin, marginWorst, status, tier: marginTier(margin), routeLabel: ROUTE_LABEL[opt.route], weakNote };
     });
     // 猶予の大きい順（同じなら必要Fの小さい順）。「不可」は後ろ
     list.sort((a, b) => (a.status === b.status ? 0 : a.status === "sure" ? -1 : 1) || b.margin - a.margin || a.need - b.need);
@@ -241,7 +284,7 @@
   }
 
   const api = {
-    THRESHOLDS, marginTier, shieldAdvantage, listFrames, punishOptions, evaluate, startupOf, routeCost, isStarter,
+    THRESHOLDS, marginTier, shieldAdvantage, listFrames, punishOptions, evaluate, weakSureNote, startupOf, routeCost, isStarter,
     ROUTE_LABEL, SHIELD_DROP, GRAB_EXTRA, PERFECT_SHIELD_BONUS,
     ONE_ON_ONE, scaleDamage, hitboxParts, formatParts, formatHitboxes,
   };
