@@ -3,7 +3,7 @@
 
 入手元: https://www.smashbros.com/assets_v2/img/fighter/{file}/main.png
 色2〜8は main2.png … main8.png（色1は main.png）。
-ポケモントレーナー・Mii・ホムラ/ヒカリは公式の集合画像を個別に切り抜く。
+Mii は公式の集合画像を個別に切り抜く。ポケモントレーナーとホムラ／ヒカリは集合のまま残す。
 Mii は公式サイトに色違いの切り抜きが無いので、色1を 2〜8 にも使う。
 """
 import json, pathlib, sys, urllib.request
@@ -36,14 +36,10 @@ FILES = [
 ]
 # (x0, y0, x1, y1) は元画像に対する割合。集合レンダーだけ。
 CROPS = {
-    37: (0.00, 0.02, 0.38, 1.00),
-    38: (0.28, 0.00, 0.72, 1.00),
-    39: (0.55, 0.00, 1.00, 1.00),
+    # ポケモントレーナーとホムラ／ヒカリは集合のまま使う。途中で切るとリザードンや相方が欠ける。
     55: (0.00, 0.00, 0.42, 1.00),
     56: (0.28, 0.00, 0.74, 1.00),
     57: (0.58, 0.00, 1.00, 1.00),
-    85: (0.00, 0.00, 0.58, 1.00),
-    86: (0.40, 0.00, 1.00, 1.00),
 }
 
 
@@ -168,9 +164,9 @@ def main():
         "format": "画面用は WebP quality 62・最長辺200px。書き出し用は fighters/hires/ に quality 84・最長辺1000px。どちらも透過を詰めた WebP。元PNGは同梱しない。",
         "layout": "fighters/{rosterIndex}/{color}.webp と fighters/hires/{rosterIndex}/{color}.webp。color は 1-8",
         "crops": {
-            "37-39": "ポケモントレーナーの公式集合画像（pokemon_trainer）から ゼニガメ / フシギソウ / リザードン を切り出し",
+            "37-39": "ポケモントレーナーは公式集合画像（pokemon_trainer）のまま。トレーナー・ゼニガメ・フシギソウ・リザードンを途中で切らない",
             "55-57": "Miiファイターの公式集合画像（mii_fighter）から 格闘 / 剣術 / 射撃 を切り出し。公式サイトに色違いの切り抜きが無いため色2〜8は色1と同じ",
-            "85-86": "ホムラ／ヒカリの公式集合画像（homura、英語ページの pyra と同一）から ホムラ / ヒカリ を切り出し",
+            "85-86": "ホムラ／ヒカリは公式集合画像（homura、英語ページの pyra と同一）のまま。二人を途中で切らない",
         },
         "copyright": "© Nintendo / HAL Laboratory, Inc. 画像の権利は権利者に帰属します。この同梱は非公式のファン制作です。",
         "roster": [{"id": i, "name": names[i], "file": FILES[i], "crop": i in CROPS} for i in range(len(FILES))],

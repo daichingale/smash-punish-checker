@@ -4,6 +4,7 @@
   "use strict";
 
   const MIN_VISIBLE = 0.6;
+  const GROUP_MIN_VISIBLE = 0.7;
 
   const CARDS = {
     slash: [
@@ -68,7 +69,18 @@
       fx: row[4] / 1000, fy: row[5] / 1000,
       iw: row[6], ih: row[7],
       minVisible: MIN_VISIBLE,
+      bodies: bodiesFor(id, c),
     };
+  }
+
+  function bodiesFor(id, color) {
+    if (!table || !table.bodies || !table.bodies[id]) return null;
+    const list = table.bodies[id][color - 1];
+    if (!list || list.length < 2) return null;
+    return list.map((b) => ({
+      l: b[0] / 1000, t: b[1] / 1000, r: b[2] / 1000, b: b[3] / 1000,
+      fx: b[4] / 1000, fy: b[5] / 1000,
+    }));
   }
 
   function cards(id) {
@@ -168,24 +180,69 @@
       const dh = ih * s;
       return { x: (slotW - dw) * 0.5, y: (slotH - dh) * focusY, w: dw, h: dh, visible: 1, focusIn: true };
     }
-    const bl = meta.l * iw;
-    const bt = meta.t * ih;
-    const br = meta.r * iw;
-    const bb = meta.b * ih;
+    const bodies = (meta.bodies || []).map((b) => ({
+      l: b.l * iw, t: b.t * ih, r: b.r * iw, b: b.b * ih,
+      fx: clamp(b.fx * iw, b.l * iw, b.r * iw),
+      fy: clamp(b.fy * ih, b.t * ih, b.b * ih),
+    }));
+    const grouped = bodies.length >= 2;
+    const bl = grouped ? Math.min.apply(null, bodies.map((b) => b.l)) : meta.l * iw;
+    const bt = grouped ? Math.min.apply(null, bodies.map((b) => b.t)) : meta.t * ih;
+    const br = grouped ? Math.max.apply(null, bodies.map((b) => b.r)) : meta.r * iw;
+    const bb = grouped ? Math.max.apply(null, bodies.map((b) => b.b)) : meta.b * ih;
     const bw = Math.max(1, br - bl);
     const bh = Math.max(1, bb - bt);
-    const fx = clamp(meta.fx * iw, bl, br);
-    const fy = clamp(meta.fy * ih, bt, bb);
-    const minVis = meta.minVisible == null ? MIN_VISIBLE : meta.minVisible;
+    const fx = grouped ? bodies.reduce((s, b) => s + b.fx, 0) / bodies.length : clamp(meta.fx * iw, bl, br);
+    const fy = grouped ? bodies.reduce((s, b) => s + b.fy, 0) / bodies.length : clamp(meta.fy * ih, bt, bb);
+    const minVis = grouped ? GROUP_MIN_VISIBLE : (meta.minVisible == null ? MIN_VISIBLE : meta.minVisible);
     const bold = cover * Math.max(1, zoom);
     const fitAll = Math.min(slotW / bw, slotH / bh) * 0.98;
     const lo = Math.min(bold, Math.max(0.05, fitAll));
 
     function score(s) {
-      const lay = layoutAt(s, slotW, slotH, iw, ih, fx, fy, focusX, focusY, margin);
-      const vis = intersect(bl, bt, br, bb, lay.visL, lay.visT, lay.visL + lay.winW, lay.visT + lay.winH) / (bw * bh);
-      const focusIn = fx >= lay.visL - 0.01 && fx <= lay.visL + lay.winW + 0.01 && fy >= lay.visT - 0.01 && fy <= lay.visT + lay.winH + 0.01;
-      return { lay: lay, visible: vis, focusIn: focusIn };
+      if (!grouped) {
+        const lay = layoutAt(s, slotW, slotH, iw, ih, fx, fy, focusX, focusY, margin);
+        const vis = intersect(bl, bt, br, bb, lay.visL, lay.visT, lay.visL + lay.winW, lay.visT + lay.winH) / (bw * bh);
+        const focusIn = fx >= lay.visL - 0.01 && fx <= lay.visL + lay.winW + 0.01 && fy >= lay.visT - 0.01 && fy <= lay.visT + lay.winH + 0.01;
+        return { lay: lay, visible: vis, focusIn: focusIn, bodyVisible: [vis] };
+      }
+      const winW = slotW / s;
+      const winH = slotH / s;
+      let visL = (bl + br) / 2 - winW / 2;
+      if (winW >= iw) visL = (iw - winW) / 2;
+      else visL = clamp(visL, 0, iw - winW);
+      const fL = Math.min.apply(null, bodies.map((b) => b.fx));
+      const fR = Math.max.apply(null, bodies.map((b) => b.fx));
+      if (winW < iw && fR - fL <= winW) {
+        if (fL < visL) visL = fL;
+        if (fR > visL + winW) visL = fR - winW;
+        visL = clamp(visL, 0, iw - winW);
+      }
+      // 縦は頭の天辺を優先する。足りないときは足元を切り、顔は必ず残す。
+      const headTop = Math.min.apply(null, bodies.map((b) => Math.min(b.t, b.fy)));
+      const faceBot = Math.max.apply(null, bodies.map((b) => b.fy));
+      let visT;
+      if (winH >= ih) visT = (ih - winH) / 2;
+      else {
+        visT = headTop;
+        if (faceBot > visT + winH) visT = faceBot - winH;
+        visT = clamp(visT, 0, ih - winH);
+      }
+      const bodyVisible = bodies.map((b) => {
+        const area = Math.max(1, (b.r - b.l) * (b.b - b.t));
+        return intersect(b.l, b.t, b.r, b.b, visL, visT, visL + winW, visT + winH) / area;
+      });
+      const focusIn = bodies.every((b) => {
+        const face = b.fx >= visL - 0.5 && b.fx <= visL + winW + 0.5 && b.fy >= visT - 0.5 && b.fy <= visT + winH + 0.5;
+        const crown = b.t >= visT - 0.5 && b.t <= visT + winH + 0.5;
+        return face && crown;
+      });
+      return {
+        lay: { s: s, visL: visL, visT: visT, winW: winW, winH: winH },
+        visible: Math.min.apply(null, bodyVisible),
+        focusIn: focusIn,
+        bodyVisible: bodyVisible,
+      };
     }
 
     let chosen = score(bold);
@@ -211,11 +268,13 @@
       h: ih * lay.s,
       visible: chosen.visible,
       focusIn: chosen.focusIn,
+      bodyVisible: chosen.bodyVisible || [chosen.visible],
     };
   }
 
   const api = {
     MIN_VISIBLE: MIN_VISIBLE,
+    GROUP_MIN_VISIBLE: GROUP_MIN_VISIBLE,
     load: load,
     metaFor: metaFor,
     cards: cards,
