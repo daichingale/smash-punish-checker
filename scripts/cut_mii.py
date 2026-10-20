@@ -171,6 +171,9 @@ def write_webps(layers):
 
 
 def main():
+    if "--write" not in sys.argv:
+        print("Mii の同梱画像は SmashWiki の公式絵。この輪郭抜きでは上書きしない。")
+        return
     path = CACHE / "mii_fighter" / "1.png"
     if not path.exists():
         raise SystemExit(f"missing {path} (download {SRC})")
