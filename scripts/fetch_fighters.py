@@ -3,7 +3,7 @@
 
 入手元: https://www.smashbros.com/assets_v2/img/fighter/{file}/main.png
 色2〜8は main2.png … main8.png（色1は main.png）。
-Mii は公式に1体ずつの画像が無いので、集合画像から輪郭で1体ずつ抜く（scripts/cut_mii.py）。ポケモントレーナーとホムラ／ヒカリは集合のまま残す。
+Mii の単体は公式サイトに無く、SmashWiki の公式絵（原寸PNG）を使う。ポケモントレーナーとホムラ／ヒカリは集合のまま残す。
 Mii は公式サイトに色違いの切り抜きが無いので、色1を 2〜8 にも使う。
 """
 import json, pathlib, sys, urllib.request
@@ -163,7 +163,7 @@ def main():
         "layout": "fighters/{rosterIndex}/{color}.webp と fighters/hires/{rosterIndex}/{color}.webp。color は 1-8",
         "crops": {
             "37-39": "ポケモントレーナーは公式集合画像（pokemon_trainer/main.png と main2〜main8）を3キャラ共通でそのまま使う。単体の切り抜きは公式サイトに無い",
-            "55-57": "Miiファイターは公式サイト（ja/en の fighter/51-53、各言語の main_*.png、Miiコスチューム告知）に1体ずつのレンダーが無い。集合画像 mii_fighter/main.png から、色の境目を辿って格闘・剣術・射撃を1体ずつ抜いた。隣の体が重なる部分は補わず、境界に残った隣の色は落としている。色違いは公式に無いので色2〜8は色1と同じ",
+            "55-57": "公式サイト fighter/51-53 と各言語の main_*.png は集合画像だけ。単体は SmashWiki の公式絵（原寸PNG、1500px、透過）。格闘 https://smashwiki.info/images/f/f0/公式絵_SP_Mii_格闘タイプ.png 剣術 https://smashwiki.info/images/5/59/公式絵_SP_Mii_剣術タイプ.png 射撃 https://smashwiki.info/images/9/92/公式絵_SP_Mii_射撃タイプ.png 。色違いは無いので色2〜8は色1と同じ",
             "85-86": "ホムラ／ヒカリは公式集合画像（homura/main.png、英語ページの pyra と同一、main2〜main8）を2キャラ共通でそのまま使う。単体の切り抜きは公式サイトに無い",
         },
         "copyright": "© Nintendo / HAL Laboratory, Inc. 画像の権利は権利者に帰属します。この同梱は非公式のファン制作です。",
