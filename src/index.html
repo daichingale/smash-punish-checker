@@ -12,39 +12,77 @@
 <!--STYLE--><link rel="stylesheet" href="style.css"><!--/STYLE-->
 </head>
 <body>
+<div class="sitehead">
+  <div class="wrap titlebar">
+    <h1>スマブラSP<small>はじめてでも、選んですぐ試せます</small></h1>
+    <nav class="navs" aria-label="ページ"><a class="navlink" href="table.html">フレーム表</a><a class="navlink" href="tier.html">ティア</a><a class="navlink" href="result.html">リザルト</a></nav>
+  </div>
+</div>
+<section class="home" aria-label="できること">
+  <div class="wrap">
+    <div class="entries">
+      <button type="button" class="entry current" id="gotoCheck" aria-current="page">
+        <span class="thumb" aria-hidden="true"><img src="fighters/0/1.webp" alt="" width="48" height="48"><span class="thumb-vs">対</span><img src="fighters/1/1.webp" alt="" width="48" height="48"></span>
+        <b>確定反撃チェック</b>
+        <small>ガードしたあと、どの技で返せるか</small>
+      </button>
+      <a class="entry" href="table.html">
+        <span class="thumb thumb-table" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+        <b>技表</b>
+        <small>全キャラの技を、発生や有利で見くらべる</small>
+      </a>
+      <a class="entry" href="tier.html">
+        <span class="thumb thumb-tier" aria-hidden="true"><i>S</i><i>A</i><i>B</i></span>
+        <b>ティアメーカー</b>
+        <small>キャラを段に並べて、画像にする</small>
+      </a>
+      <a class="entry" href="result.html">
+        <span class="thumb thumb-result" aria-hidden="true"><i></i><i></i><i></i></span>
+        <b>リザルトメーカー</b>
+        <small>大会の順位表とTop8の画像を作る</small>
+      </a>
+    </div>
+  </div>
+</section>
 <header id="top">
   <div class="wrap">
-    <div class="titlebar">
-      <h1>確定反撃チェッカー<small>スマブラSP・タイマン・試作版</small></h1>
-      <nav class="navs" aria-label="ページ"><a class="navlink" href="table.html">フレーム表</a><a class="navlink" href="tier.html">ティア</a><a class="navlink" href="result.html">リザルト</a></nav>
-    </div>
-    <div class="pick">
-      <div><span class="lab me">自分（ガードする側）</span><button id="meBtn" class="cbtn" type="button" aria-haspopup="dialog"></button></div>
+    <div class="pick" id="checker">
+      <div><span class="lab me">自分のキャラ</span><button id="meBtn" class="cbtn" type="button" aria-haspopup="dialog"></button></div>
       <button id="swap" type="button" title="自分と相手を入れ替え" aria-label="入れ替え">⇄</button>
-      <div><span class="lab opp">相手</span><button id="oppBtn" class="cbtn" type="button" aria-haspopup="dialog"></button></div>
+      <div><span class="lab opp">相手のキャラ</span><button id="oppBtn" class="cbtn" type="button" aria-haspopup="dialog"></button></div>
     </div>
     <div id="mats"></div>
-    <div class="modes" id="modeBar" role="tablist" aria-label="向き">
-      <button id="modeA" class="on" type="button" role="tab">相手の技 → 自分の反撃</button>
-      <button id="modeB" type="button" role="tab">自分の技 → 相手の反撃（逆）</button>
-    </div>
-    <div class="opts" id="optBar">
-      <label><input type="checkbox" id="ps"> ジャストシールドした場合</label>
-      <div class="oo" id="oo" role="group" aria-label="1on1補正">
-        <span>1on1補正</span>
-        <button type="button" id="ooOff" data-oo="0" aria-pressed="true">なし</button>
-        <button type="button" id="ooOn" data-oo="1" aria-pressed="false">あり</button>
-      </div>
-      <div class="oo" id="ars" role="group" aria-label="アルセーヌ" hidden>
-        <span>アルセーヌ</span>
-        <button type="button" id="arsOff" data-ars="0" aria-pressed="true">なし</button>
-        <button type="button" id="arsOn" data-ars="1" aria-pressed="false">あり</button>
-      </div>
-    </div>
   </div>
 </header>
 <main class="wrap">
   <div id="banner"></div>
+  <details id="beginner">
+    <summary>はじめての人へ</summary>
+    <ul>
+      <li><b>ガード硬直</b>　攻撃をシールドで防ぐと、そのあと少しのあいだシールドが解けません。</li>
+      <li><b>有利F</b>　ガードしたあと、自分が相手より何フレーム先に動けるかです。プラスなら自分が有利です。</li>
+      <li><b>猶予</b>　反撃が間に合う余裕です。0以上なら、フレーム上は間に合います。</li>
+      <li><b>ガーキャン</b>　シールドを解かずに、上B・上スマッシュ・空中攻撃・つかみを出すことです。</li>
+    </ul>
+  </details>
+  <div id="glance"></div>
+  <div class="modes" id="modeBar" role="tablist" aria-label="向き">
+    <button id="modeA" class="on" type="button" role="tab">相手の技 → 自分の反撃</button>
+    <button id="modeB" type="button" role="tab">自分の技 → 相手の反撃（逆）</button>
+  </div>
+  <div class="opts" id="optBar">
+    <label><input type="checkbox" id="ps"> ジャストシールドした場合</label>
+    <div class="oo" id="oo" role="group" aria-label="1on1補正">
+      <span>1on1補正</span>
+      <button type="button" id="ooOff" data-oo="0" aria-pressed="true">なし</button>
+      <button type="button" id="ooOn" data-oo="1" aria-pressed="false">あり</button>
+    </div>
+    <div class="oo" id="ars" role="group" aria-label="アルセーヌ" hidden>
+      <span>アルセーヌ</span>
+      <button type="button" id="arsOff" data-ars="0" aria-pressed="true">なし</button>
+      <button type="button" id="arsOn" data-ars="1" aria-pressed="false">あり</button>
+    </div>
+  </div>
   <p class="hint" id="lead"></p>
   <div id="groups" class="segs" role="tablist" aria-label="技の種類"></div>
   <div id="moveArea"></div>

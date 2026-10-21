@@ -4,7 +4,7 @@
   const C = window.PunishCalc;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const state = { me: 0, opp: 1, mode: "A", moveId: null, ps: false, oo: false, arsene: false, mat: {}, group: 0 };
+  const state = { me: 0, opp: 0, mode: "A", moveId: null, ps: false, oo: false, arsene: false, mat: {}, group: 0 };
   const OO_KEY = "punish.oo";
   let D, pushNext = false, overlay = null;
 
@@ -100,6 +100,30 @@
     applyHash();
     $("meBtn").onclick = () => openPicker("me");
     $("oppBtn").onclick = () => openPicker("opp");
+    $("gotoCheck").onclick = () => {
+      const behavior = matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+      $("top").scrollIntoView({ behavior: behavior, block: "start" });
+      $("meBtn").focus({ preventScroll: true });
+    };
+    $("glance").onclick = (e) => {
+      const b = e.target.closest(".ex");
+      if (!b) return;
+      const move = attackerChar().moves.find((m) => m.id === b.dataset.id);
+      if (!move) return;
+      state.moveId = move.id;
+      state.group = groupOf(move);
+      pushNext = true;
+      scrollToResult = true;
+      render();
+    };
+    $("result").addEventListener("click", (e) => {
+      if (!e.target.closest("[data-act=back]")) return;
+      state.moveId = null;
+      pushNext = true;
+      render();
+      const behavior = matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+      $("glance").scrollIntoView({ behavior: behavior, block: "start" });
+    });
     $("swap").onclick = swap;
     initPicker();
     $("modeA").onclick = () => setMode("A");
@@ -239,9 +263,10 @@
     hideOverlays();
     if (history.state && history.state.overlay === kind) history.back();
   }
-  function tile(i, recentChip) {
+  function faceSrc(i) { return "fighters/" + i + "/1.webp"; }
+  function tile(i) {
     const c = D.chars[i], cur = state[pickFor] === i;
-    return `<button type="button" class="ch${cur ? " on" : ""}" data-i="${i}"><span class="no">${esc(charNo(c))}</span>${esc(recentChip ? c.name : c.name)}${c.stale ? `<span class="st" title="データが古い可能性">⚠</span>` : ""}</button>`;
+    return `<button type="button" class="ch${cur ? " on" : ""}" data-i="${i}" aria-label="${esc(c.name)}"><img src="${faceSrc(i)}" alt="" width="72" height="72" loading="lazy" decoding="async"><span class="nm">${esc(c.name)}</span><span class="no">${esc(charNo(c))}${c.stale ? `<span class="st" title="データが古い可能性">⚠</span>` : ""}</span></button>`;
   }
   function renderPicker() {
     const raw = $("pkQ").value.trim();
@@ -251,7 +276,7 @@
     let h = "";
     if (!qv) {
       const r = recent();
-      if (r.length) h += `<h3>最近使ったキャラ</h3><div class="recents">${r.map((i) => tile(i, true)).join("")}</div>`;
+      if (r.length) h += `<h3>最近使ったキャラ</h3><div class="recents">${r.map((i) => tile(i)).join("")}</div>`;
       h += `<h3>全キャラ（${D.chars.length}）</h3>`;
     }
     h += hit.length ? `<div class="grid">${hit.map((i) => tile(i)).join("")}</div>` : `<p class="empty">「${esc(raw)}」に一致するキャラはいません。読み・英語名・ファイター番号でも探せます。</p>`;
@@ -304,8 +329,8 @@
     for (const [k, id] of [["me", "meBtn"], ["opp", "oppBtn"]]) {
       const c = D.chars[state[k]];
       const who = k === "me" ? "自分" : "相手";
-      $(id).innerHTML = `<span class="who ${k}">${who}</span><span class="nm">${esc(c.name)}</span>${c.stale ? `<span class="st" title="データが古い可能性">⚠</span>` : ""}<span class="dd">▾</span>`;
-      $(id).setAttribute("aria-label", who + " " + c.name);
+      $(id).innerHTML = `<img class="face" src="${faceSrc(state[k])}" alt="" width="48" height="48" decoding="async"><span class="who ${k}">${who}</span><span class="nm">${esc(c.name)}</span>${c.stale ? `<span class="st" title="データが古い可能性">⚠</span>` : ""}<span class="dd">▾</span>`;
+      $(id).setAttribute("aria-label", (k === "me" ? "自分のキャラ " : "相手のキャラ ") + c.name);
     }
     renderMats();
     const warn = [state.me, state.opp].filter((v, i, a) => a.indexOf(v) === i).map((i) => D.chars[i]).filter((c) => c.stale)
@@ -317,9 +342,7 @@
     $("groups").innerHTML = GROUPS.map((g, i) => counts[i] ? `<button type="button" role="tab" data-g="${i}" aria-selected="${i === state.group ? "true" : "false"}" aria-label="${esc(g[1])}">${esc(g[0])}</button>` : "").join("");
     $("groups").querySelectorAll("button").forEach((b) => (b.onclick = () => setGroup(+b.dataset.g)));
     const shown = moves.filter(GROUPS[state.group][2]);
-    const who = state.mode === "A" ? "相手" : "自分";
-    const att = attackerChar();
-    $("lead").textContent = state.moveId ? "" : `${who}（${att.name}）の技を選ぶと、反撃が下に出ます。`;
+    $("lead").textContent = state.moveId ? "" : "行を押すと、その技だけの詳しい数字が出ます。";
     $("moveArea").innerHTML = shown.length ? `<div class="moves">` + shown.map((m) => {
       const a = C.shieldAdvantage(m, { arsene: useArsene() });
       const sub = [m.input === "button" ? "ボタン" : m.input === "command" ? (m.command ? "コマンド " + m.command : "コマンド") : m.command || "", m.material || ""].filter(Boolean).join("・");
@@ -331,6 +354,7 @@
       scrollToResult = true;
       render();
     }));
+    renderGlance();
     renderResult();
     writeHash();
     if (scrollToResult && state.moveId) {
@@ -339,6 +363,96 @@
       const behavior = matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
       window.scrollTo({ top: Math.max(0, y), behavior });
     }
+  }
+
+  function easeWord(margin) {
+    if (margin >= C.THRESHOLDS.easyMin) return "余裕があります";
+    if (margin <= C.THRESHOLDS.severeMax) return "入力はシビアです";
+    return "間に合います";
+  }
+  function glanceName(m) {
+    if ((m.category === "special" || m.category === "command") && m.group) {
+      const extra = [m.strength, m.landingVariant].filter(Boolean).join(" ");
+      return m.group + (extra ? "（" + extra + "）" : "");
+    }
+    return shortName(m);
+  }
+  function familiarRank(m) {
+    const n = glanceName(m);
+    if (n === "上強") return 0;
+    if (n === "横強") return 1;
+    if (n === "下強") return 2;
+    if (n === "上スマッシュ") return 3;
+    if (n === "横スマッシュ") return 4;
+    if (n === "下スマッシュ") return 5;
+    if (/^空[前N後上下]/.test(n)) return 6;
+    if (n === "上B") return 7;
+    if (/^弱/.test(n)) return 8;
+    return 30;
+  }
+  function whoName(idx) {
+    const c = D.chars[idx];
+    return esc(c.name) + (c.materials.length ? "（" + esc(matOf(idx)) + "）" : "");
+  }
+  function renderGlance() {
+    const el = $("glance");
+    if (state.moveId) { el.innerHTML = ""; return; }
+    const att = attackerChar(), def = defenderChar();
+    const attIdx = D.chars.indexOf(att), defIdx = D.chars.indexOf(def);
+    const attWho = state.mode === "A" ? "相手" : "自分";
+    const defWho = state.mode === "A" ? "自分" : "相手";
+    const opts = { perfectShield: state.ps, defenderMaterial: matOf(defIdx), arsene: useArsene() };
+    const rows = [];
+    for (const m of visibleMoves()) {
+      const r = C.evaluate(att, m, def, opts);
+      if (!r.adv.ok) continue;
+      const best = r.list.find((x) => x.status === "sure" && x.route !== "drop");
+      rows.push({ move: m, adv: r.adv.primaryEff, best: best });
+    }
+    const can = rows.filter((x) => x.best);
+    const cannot = rows.filter((x) => !x.best);
+    const tally = new Map();
+    for (const row of can) {
+      const id = row.best.move.id;
+      let t = tally.get(id);
+      if (!t) { t = { opt: row.best, n: 0 }; tally.set(id, t); }
+      t.n += 1;
+    }
+    let top = null;
+    for (const t of tally.values()) if (!top || t.n > top.n) top = t;
+    let say = defWho + "の" + whoName(defIdx) + "が、" + attWho + "の" + whoName(attIdx) + "をガードしたときです。";
+    if (top && top.n >= 2) say += esc(glanceName(top.opt.move)) + "なら、" + top.n + "個の技に間に合います。";
+    else if (can.length) say += "シールドを解かずに返せる技が" + can.length + "個あります。";
+    else say += "シールドを解かずに間に合う反撃はありません。下の技を開くと、理由が分かります。";
+    if (state.ps) say += "ジャストシールドした場合です。";
+    if (useArsene()) say += "アルセーヌありで見ています。";
+    const buckets = GROUPS.map(() => []);
+    for (const row of can) buckets[groupOf(row.move)].push(row);
+    for (const b of buckets) b.sort((a, c) => familiarRank(a.move) - familiarRank(c.move) || c.adv - a.adv);
+    const picked = [];
+    const seen = new Set();
+    for (let guard = 0; picked.length < 4 && guard < 8; guard++) {
+      let added = false;
+      for (const b of buckets) {
+        while (b.length && (seen.has(glanceName(b[0].move)) || b[0].move.landingVariant)) b.shift();
+        if (!b.length) continue;
+        const row = b.shift();
+        seen.add(glanceName(row.move));
+        picked.push(row);
+        added = true;
+        if (picked.length >= 4) break;
+      }
+      if (!added) break;
+    }
+    const familiar = cannot.filter((row) => groupOf(row.move) <= 2);
+    const missPool = (familiar.length ? familiar : cannot).slice().sort((a, b) => b.adv - a.adv);
+    const miss = missPool[0];
+    const line = (row, nope) => {
+      const name = esc(glanceName(row.move));
+      if (nope) return `<button type="button" class="ex nope" data-id="${esc(row.move.id)}">${attWho}の${name}をガード → シールドを解かずに返すのは間に合いません。</button>`;
+      return `<button type="button" class="ex" data-id="${esc(row.move.id)}">${attWho}の${name}をガード → ${esc(glanceName(row.best.move))}で返せる。${easeWord(row.best.margin)}</button>`;
+    };
+    el.innerHTML = `<p class="say">${say}</p>` + picked.map((row) => line(row, false)).join("") + (miss ? line(miss, true) : "");
   }
 
   function fmtAdv(v) { return v > 0 ? `+${v}` : `${v}`; }
@@ -364,7 +478,7 @@
     const a = r.adv;
     const attWho = state.mode === "A" ? "相手" : "自分", defWho = state.mode === "A" ? "自分" : "相手";
     const name = `${esc(shortName(move))}${move.input === "button" ? "［ボタン］" : move.input === "command" && move.category !== "command" ? "［コマンド］" : ""}`;
-    let h = `<div class="sum"><div class="t">${attWho}の ${esc(att.name)}「${name}」${move.material ? "【" + esc(move.material) + "】" : ""}を${defWho}（${esc(def.name)}）がガード${state.ps ? "（ジャストシールド）" : ""}</div>`;
+    let h = `<button type="button" class="backlist" data-act="back">例の一覧に戻る</button><div class="sum"><div class="t">${attWho}の ${esc(att.name)}「${name}」${move.material ? "【" + esc(move.material) + "】" : ""}を${defWho}（${esc(def.name)}）がガード${state.ps ? "（ジャストシールド）" : ""}</div>`;
     if (move.command) h += `<div class="cmd">入力: ${esc(move.command)}${move.commandDerived ? "（シート備考から作成）" : ""}</div>`;
     const hits = C.formatHitboxes(move, state.oo);
     if (hits.text) h += `<div class="cmd">ダメージ ${esc(hits.text)}${state.oo ? "（1on1・基礎×1.2）" : ""}</div>`;
