@@ -54,11 +54,14 @@ body.has-move .pick{align-items:center}
 .opts{margin-top:8px;font-size:14px;color:var(--sub)}
 .opts label{display:flex;align-items:center;gap:8px;min-height:44px}
 .opts input,#dock input{width:18px;height:18px}
-.oo{display:flex;align-items:center;gap:6px;min-height:44px}
-.oo span{color:var(--sub);font-size:13px;font-weight:700}
-.oo button{min-height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card)}
+.oo{display:flex;align-items:center;gap:6px;min-height:44px;flex-wrap:nowrap}
+.oo[hidden]{display:none}
+.oo span{color:var(--sub);font-size:13px;font-weight:700;white-space:nowrap}
+.oo button{min-height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);white-space:nowrap}
 .oo button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:750}
 #dock .oo{margin-top:6px}
+body.has-move.has-ars main{padding-bottom:168px}
+body.has-move.has-ars footer{padding-bottom:calc(160px + env(safe-area-inset-bottom))}
 main{padding:10px 12px 24px}
 body.has-move main{padding-bottom:96px}
 body.has-move footer{padding-bottom:calc(88px + env(safe-area-inset-bottom))}

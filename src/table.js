@@ -57,12 +57,13 @@
     return [m.landingVariant || PLACE_LABEL[place], m.material || "", m.input === "command" ? "コマンド" : ""].filter(Boolean).join(" · ");
   }
 
-  function buildRows(data, calc) {
+  function buildRows(data, calc, o) {
+    o = o || {};
     const rows = [];
     let order = 0;
     data.chars.forEach((ch, ci) => {
       ch.moves.forEach((m) => {
-        const f = calc.listFrames(m);
+        const f = calc.listFrames(m, o.arsene && ch.name === "ジョーカー" ? { arsene: true } : undefined);
         const kind = kindOf(m);
         const place = placeOf(m);
         const name = moveLabel(m);
@@ -197,7 +198,8 @@
     const dmg = q.get("dmg") === "min" ? "min" : "max";
     const ooRaw = q.get("oo");
     const oo = ooRaw === "1" ? true : ooRaw === "0" ? false : null;
-    return { sort, dir, preset, kinds, place, chars, text: q.get("q") || "", vs, dmg, oo };
+    const arsene = q.get("ars") === "1";
+    return { sort, dir, preset, kinds, place, chars, text: q.get("q") || "", vs, dmg, oo, arsene };
   }
   function serialize(s) {
     const p = new URLSearchParams();
@@ -212,6 +214,7 @@
     if (s.dmg === "min") p.set("dmg", "min");
     if (s.oo === true) p.set("oo", "1");
     else if (s.oo === false) p.set("oo", "0");
+    if (s.arsene) p.set("ars", "1");
     return p.toString();
   }
 

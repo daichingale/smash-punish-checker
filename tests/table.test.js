@@ -142,6 +142,45 @@ test("同じ段で有利が変わる技は範囲を出し、並べ替えと確�
   assert.equal(sureRows[0].sure, 1);
 });
 
+test("アルセーヌありはジョーカーの有利と確定数だけ変わり、URLは ars=1 のときだけ", () => {
+  const off = T.buildRows(data, C);
+  const on = T.buildRows(data, C, { arsene: true });
+  assert.equal(off.length, on.length);
+  const pick = (rows, ch, name) => rows.find((r) => r.char === ch && r.name === name);
+  assert.equal(pick(off, "ジョーカー", "横強").adv, 15);
+  assert.equal(pick(off, "ジョーカー", "横強").stun, 6);
+  assert.equal(pick(on, "ジョーカー", "横強").adv, 11);
+  assert.equal(pick(on, "ジョーカー", "横強").stun, 10);
+  assert.equal(pick(on, "ジョーカー", "横強").total, 34);
+  assert.equal(pick(off, "ジョーカー", "弱1").adv, pick(on, "ジョーカー", "弱1").adv);
+  const gun = data.chars.find((c) => c.name === "ジョーカー").moves.find((m) => m.name === "NB（ガン）");
+  assert.equal(off.find((r) => r.id === gun.id).adv, on.find((r) => r.id === gun.id).adv);
+  assert.equal(pick(off, "マリオ", "上強").adv, 18);
+  assert.equal(pick(on, "マリオ", "上強").adv, 18);
+  assert.equal(pick(on, "マリオ", "上強").stun, pick(off, "マリオ", "上強").stun);
+  const keys = ["startup", "activeEnd", "total", "landing", "stun", "adv", "advMin", "advMax"];
+  for (let i = 0; i < off.length; i++) {
+    if (off[i].char === "ジョーカー") continue;
+    for (const k of keys) assert.equal(on[i][k], off[i][k], off[i].char + " " + off[i].name + " " + k);
+  }
+  const needs = T.punishNeeds(data.chars, C);
+  const marioIdx = data.chars.findIndex((c) => c.name === "マリオ");
+  const ft = [pick(off, "ジョーカー", "横強"), pick(on, "ジョーカー", "横強")];
+  T.fillSure(ft, needs, marioIdx);
+  assert.ok(ft[0].sure > ft[1].sure);
+  const mario = [pick(off, "マリオ", "上強"), pick(on, "マリオ", "上強")];
+  T.fillSure(mario, needs, marioIdx);
+  assert.equal(mario[0].sure, mario[1].sure);
+  assert.equal(T.parseQuery("").arsene, false);
+  assert.equal(T.parseQuery("#ars=1").arsene, true);
+  assert.equal(T.parseQuery("#ars=0").arsene, false);
+  const s = { sort: "adv", dir: "desc", preset: "", kinds: [], place: "", chars: [77], text: "", vs: null, dmg: "max", oo: false, arsene: true };
+  const back = T.parseQuery("#" + T.serialize(s));
+  assert.equal(back.arsene, true);
+  assert.deepEqual(back.chars, [77]);
+  assert.equal(T.serialize({ sort: "order", dir: "asc", arsene: false }).includes("ars="), false);
+});
+
 test("URLのソートとプリセットを復元できる", () => {
   const s = { sort: "startup", dir: "asc", preset: "fast", kinds: ["air"], place: "air", chars: [0, 66], text: "上", vs: 1 };
   const back = T.parseQuery("#" + T.serialize(s));

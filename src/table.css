@@ -26,6 +26,13 @@ a{color:var(--accent)}
 .headbar h1{font-size:16px;margin:0;font-weight:750}
 .headbar h1 small{display:block;color:var(--sub);font-weight:500;font-size:12px}
 .back{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--text);text-decoration:none;font-weight:750;white-space:nowrap}
+@media (max-width:480px){
+  .headbar{flex-wrap:nowrap;gap:4px;padding-left:8px;padding-right:8px}
+  .headbar h1{font-size:14px;line-height:1.15;min-width:0}
+  .headbar h1 small{display:none}
+  .headlinks{flex-wrap:nowrap;gap:4px}
+  .back{padding:0 8px;font-size:12px}
+}
 .filters{padding:6px 12px 0;display:flex;flex-direction:column;gap:6px}
 .frow{display:flex;gap:6px;align-items:center}
 .frow input,.frow select,.frow .cbtn{min-height:44px;border-radius:12px;border:1px solid var(--line);background:var(--card);padding:0 10px}
@@ -36,6 +43,8 @@ a{color:var(--accent)}
 .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
 .chips button{flex:0 0 auto;min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);white-space:nowrap}
 .chips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:750}
+#ars[hidden]{display:none}
+#ars{align-items:center}
 .picked{display:flex;gap:6px;overflow-x:auto}
 .picked:empty{display:none}
 .picked button{flex:0 0 auto;min-height:36px;padding:0 10px;border-radius:999px;border:1px solid var(--line);background:var(--card)}

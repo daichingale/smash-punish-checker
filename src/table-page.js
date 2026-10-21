@@ -23,7 +23,7 @@
   const parsed = T.parseQuery(location.hash);
   const state = parsed;
   state.oo = parsed.oo == null ? storedOo() : parsed.oo;
-  let rows = [], needs = [], chars = [], view = [], headH = 44, start = -1, end = -1, pushNext = false, sureMode, draft = [];
+  let rows = [], needs = [], chars = [], view = [], headH = 44, start = -1, end = -1, pushNext = false, sureMode, draft = [], source = null, builtArsene = null;
 
   function storedOo() {
     try { return localStorage.getItem(OO_KEY) === "1"; } catch (e) { return false; }
@@ -64,11 +64,21 @@
     if (preset) bits.push(preset.label);
     bits.push(state.vs == null ? "確定数は全キャラ平均" : "確定数は対 " + (chars[state.vs] ? chars[state.vs].name : ""));
     bits.push(state.oo ? "1on1補正あり（ダメージ×1.2）" : "1on1補正なし（基礎ダメージ）");
+    const showArs = jokerInView();
+    if (showArs) bits.push(state.arsene ? "ジョーカーはアルセーヌ" : "ジョーカーは通常");
     $("meta").textContent = bits.join(" · ");
+    $("ars").hidden = !showArs;
     $("dmgAgg").innerHTML = [["max", "ダメージ最大"], ["min", "ダメージ最小"]].map(([id, label]) => `<button type="button" data-dmg="${id}" aria-pressed="${state.dmg === id}">${label}</button>`).join("");
     $("ooOff").setAttribute("aria-pressed", state.oo ? "false" : "true");
     $("ooOn").setAttribute("aria-pressed", state.oo ? "true" : "false");
-    document.querySelectorAll('a[href^="index.html"]').forEach((a) => { a.hash = "oo=" + (state.oo ? "1" : "0"); });
+    $("arsOff").setAttribute("aria-pressed", state.arsene ? "false" : "true");
+    $("arsOn").setAttribute("aria-pressed", state.arsene ? "true" : "false");
+    document.querySelectorAll('a[href^="index.html"]').forEach((a) => {
+      const p = new URLSearchParams();
+      p.set("oo", state.oo ? "1" : "0");
+      if (state.arsene) p.set("ars", "1");
+      a.hash = p.toString();
+    });
     $("head").innerHTML = `<span class="c-rank"></span>` + COLS.map(([key, label, side]) => {
       const on = state.sort === key;
       const aria = on ? (state.dir === "asc" ? "ascending" : "descending") : "none";
@@ -114,12 +124,27 @@
     p.set("move", r.id);
     if (r.material) p.set("mo", r.material);
     p.set("oo", state.oo ? "1" : "0");
+    if (state.arsene && r.char === "ジョーカー") p.set("ars", "1");
     return "index.html#" + p.toString();
+  }
+  function jokerInView() {
+    const ji = chars.findIndex((c) => c.name === "ジョーカー");
+    if (ji < 0) return false;
+    if (!state.chars.length) return true;
+    return state.chars.indexOf(ji) >= 0;
+  }
+  function ensureRows() {
+    if (!source || (builtArsene === !!state.arsene && rows.length)) return;
+    rows = T.buildRows(source, C, { arsene: !!state.arsene });
+    builtArsene = !!state.arsene;
+    // null は「全キャラ平均」なので、再計算の印には使わない
+    sureMode = -2;
   }
   function apply(scrollTop) {
     if (state.vs != null && (state.vs < 0 || state.vs >= chars.length)) state.vs = null;
     state.chars = state.chars.filter((i) => chars[i]);
     rememberOo(state.oo);
+    ensureRows();
     if (sureMode !== state.vs) { T.fillSure(rows, needs, state.vs); sureMode = state.vs; }
     T.applyDamageKey(rows, state.dmg);
     view = T.applyView(rows, state);
@@ -163,6 +188,13 @@
       if (state.oo === on) return;
       state.oo = on;
       rememberOo(on);
+      pushNext = true; apply(false);
+    };
+    $("ars").onclick = (e) => {
+      const b = e.target.closest("[data-ars]"); if (!b) return;
+      const on = b.dataset.ars === "1";
+      if (state.arsene === on) return;
+      state.arsene = on;
       pushNext = true; apply(false);
     };
     $("picked").onclick = (e) => {
@@ -236,9 +268,11 @@
     }).join("")}</div>` : `<p class="empty">「${esc($("pkQ").value)}」に一致するキャラはいません。</p>`;
   }
   function boot(data) {
+    source = data;
     chars = data.chars;
-    rows = T.buildRows(data, C);
     needs = T.punishNeeds(chars, C);
+    builtArsene = null;
+    rows = [];
     $("vs").innerHTML = `<option value="">平均</option>` + chars.map((c, i) => `<option value="${i}">${esc(c.name)}</option>`).join("");
     bind();
     apply(false);

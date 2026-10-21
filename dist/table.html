@@ -35,6 +35,13 @@ a{color:var(--accent)}
 .headbar h1{font-size:16px;margin:0;font-weight:750}
 .headbar h1 small{display:block;color:var(--sub);font-weight:500;font-size:12px}
 .back{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--text);text-decoration:none;font-weight:750;white-space:nowrap}
+@media (max-width:480px){
+  .headbar{flex-wrap:nowrap;gap:4px;padding-left:8px;padding-right:8px}
+  .headbar h1{font-size:14px;line-height:1.15;min-width:0}
+  .headbar h1 small{display:none}
+  .headlinks{flex-wrap:nowrap;gap:4px}
+  .back{padding:0 8px;font-size:12px}
+}
 .filters{padding:6px 12px 0;display:flex;flex-direction:column;gap:6px}
 .frow{display:flex;gap:6px;align-items:center}
 .frow input,.frow select,.frow .cbtn{min-height:44px;border-radius:12px;border:1px solid var(--line);background:var(--card);padding:0 10px}
@@ -45,6 +52,8 @@ a{color:var(--accent)}
 .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
 .chips button{flex:0 0 auto;min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);white-space:nowrap}
 .chips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:750}
+#ars[hidden]{display:none}
+#ars{align-items:center}
 .picked{display:flex;gap:6px;overflow-x:auto}
 .picked:empty{display:none}
 .picked button{flex:0 0 auto;min-height:36px;padding:0 10px;border-radius:999px;border:1px solid var(--line);background:var(--card)}
@@ -116,6 +125,11 @@ body.noscroll{overflow:hidden}
       <button type="button" id="ooOff" data-oo="0">なし</button>
       <button type="button" id="ooOn" data-oo="1">あり</button>
     </div>
+    <div id="ars" class="chips" role="group" aria-label="アルセーヌ" hidden>
+      <span class="oolab">アルセーヌ</span>
+      <button type="button" id="arsOff" data-ars="0" aria-pressed="true">なし</button>
+      <button type="button" id="arsOn" data-ars="1" aria-pressed="false">あり</button>
+    </div>
   </div>
   <div id="picked" class="picked"></div>
 </div>
@@ -130,7 +144,7 @@ body.noscroll{overflow:hidden}
   <a href="index.html">反撃チェックに戻る</a> · <a href="tier.html">ティア表</a> · <a href="result.html">リザルト</a><br>
   フレームデータ: <a href="https://docs.google.com/spreadsheets/d/15SClMwvDIqovtO3DJnf1GGIteH35UX3IM7-mnbdG6eE/edit" target="_blank" rel="noopener">スマブラSP検証窓</a>（<a href="https://w.atwiki.jp/smashsp_kensyou/" target="_blank" rel="noopener">スマブラSPECIAL 検証wiki</a>）のフレームシートをもとに計算しています。<br>
   このページは個人が作った非公式の試作です。検証窓・任天堂とは関係ありません。表示内容の正確さは保証しません。実際の対戦ではトレーニングモードで確認してください。<br>
-  ガード有利は反撃チェックと同じ式（ガード側の有利。＋ならガードした側が有利）。多段は通常の最終段、前と後ろがある技は正面です。同じ段で硬直が違う技は、きびしい方〜弱い方の範囲を出します。並び順と確定数はきびしい方のままです。ダメージは判定ごとで、行の名前がシートにあるときだけ括弧で付けます。1on1補正ありは表示ダメージだけ基礎ダメージの1.2倍で、ガード硬直とガード有利は変わりません。
+  ガード有利は反撃チェックと同じ式（ガード側の有利。＋ならガードした側が有利）。多段は通常の最終段、前と後ろがある技は正面です。同じ段で硬直が違う技は、きびしい方〜弱い方の範囲を出します。並び順と確定数はきびしい方のままです。ダメージは判定ごとで、行の名前がシートにあるときだけ括弧で付けます。1on1補正ありは表示ダメージだけ基礎ダメージの1.2倍で、ガード硬直とガード有利は変わりません。攻撃側にジョーカーがいるときだけ「アルセーヌ」を切り替えられます。ありはアルセーヌの段のガード硬直と全体Fで有利と確定数を出し、段が無い技と他のキャラは通常のままです（初期はなし）。
 </footer>
 <div id="picker" hidden role="dialog" aria-modal="true" aria-labelledby="pkTitle">
   <div class="pkHead">
@@ -203,8 +217,10 @@ body.noscroll{overflow:hidden}
   }
 
   /** 攻撃側の技をガードしたときのガード側有利F。
-   * primary: 最速判定（多段技は最終段）をガードした場合 / worst: いちばん遅い判定の終わり際をガードした場合 */
-  function shieldAdvantage(move) {
+   * primary: 最速判定（多段技は最終段）をガードした場合 / worst: いちばん遅い判定の終わり際をガードした場合
+   * o.arsene: 真のとき、アルセーヌの段がある技はその段のガード硬直と全体Fを使う。段が無い技は通常のまま */
+  function shieldAdvantage(move, o) {
+    o = o || {};
     if (move.category === "grab") return { ok: false, reason: "つかみはガードできない" };
     if (move.projectile) return { ok: false, reason: "飛び道具（防御側だけにヒットストップ・距離で変わる）のため計算対象外" };
     if (move.specialShield) return { ok: false, reason: "ガードさせた際の特殊仕様がある（シート備考）ため計算対象外" };
@@ -226,8 +242,16 @@ body.noscroll{overflow:hidden}
       return { ok: false, reason: why };
     }
     // 通常とアルセーヌが同じ技に並ぶときは、通常の段だけで有利を出す（アルセーヌは内訳だけ）
+    // アルセーヌありのときは、最初のアルセーヌ行から末尾までを使う。下強の持続のように
+    // その行のあとに並ぶ段も、シートに書いてある硬直と全体Fのまま使う（数値は作らない）
+    const arseneAt = rows.findIndex((r) => /アルセーヌ/.test(r.label));
     const baseRows = rows.filter((r) => !/アルセーヌ/.test(r.label));
     let use = baseRows.length && baseRows.length < rows.length ? baseRows : rows;
+    let usedArsene = false;
+    if (o.arsene && arseneAt >= 0) {
+      use = rows.slice(arseneAt);
+      usedArsene = true;
+    }
     // 前と後ろの両方がある技は、密着している正面の段だけを使う
     if (use.some((r) => /（前）/.test(r.label)) && use.some((r) => /（後）/.test(r.label))) {
       use = use.filter((r) => !/（後）/.test(r.label));
@@ -267,15 +291,15 @@ body.noscroll{overflow:hidden}
     }));
     const damage = pRow.damage && pRow.damage.length ? maxOf(pRow.damage) : null;
     const total = pRow.total == null ? null : pRow.total;
-    return { ok: true, primary, worst: Math.min(worst, primary), lateUnknown, primaryStun: maxOf(pRow.stun), primaryLabel: pRow.label || "", multiHit: seq, aerial: isAir, landingLag: isAir ? move.landingLag : null, bounceLag: bounce ? bounce.total : null, alt, damage, total, detail, hitboxes, advMin, advMax };
+    return { ok: true, primary, worst: Math.min(worst, primary), lateUnknown, primaryStun: maxOf(pRow.stun), primaryLabel: pRow.label || "", multiHit: seq, aerial: isAir, landingLag: isAir ? move.landingLag : null, bounceLag: bounce ? bounce.total : null, alt, damage, total, detail, hitboxes, advMin, advMax, usedArsene };
   }
 
   /** 表の1行分。読めない値は null（画面では —）。有利は shieldAdvantage と同じ */
-  function listFrames(move) {
+  function listFrames(move, o) {
     const startup = startupOf(move);
     const isAir = move.category === "aerial" || !!move.landingVariant;
     const landing = isAir && move.landingLag != null ? move.landingLag : null;
-    const adv = shieldAdvantage(move);
+    const adv = shieldAdvantage(move, o);
     const activeRows = (move.rows || []).filter((r) => r.active);
     const activeEnd = !activeRows.length || activeRows.some((r) => r.active.open) ? null : Math.max.apply(null, activeRows.map((r) => r.active.end));
     if (!adv.ok) {
@@ -357,7 +381,7 @@ body.noscroll{overflow:hidden}
   /** attacker の move をガードした defender の反撃一覧 */
   function evaluate(attacker, move, defender, o) {
     o = o || {};
-    const adv = shieldAdvantage(move);
+    const adv = shieldAdvantage(move, { arsene: !!o.arsene });
     if (!adv.ok) return { adv, list: [] };
     const bonus = o.perfectShield ? PERFECT_SHIELD_BONUS : 0;
     const list = punishOptions(defender, o.defenderMaterial).map((opt) => {
@@ -534,12 +558,13 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     return [m.landingVariant || PLACE_LABEL[place], m.material || "", m.input === "command" ? "コマンド" : ""].filter(Boolean).join(" · ");
   }
 
-  function buildRows(data, calc) {
+  function buildRows(data, calc, o) {
+    o = o || {};
     const rows = [];
     let order = 0;
     data.chars.forEach((ch, ci) => {
       ch.moves.forEach((m) => {
-        const f = calc.listFrames(m);
+        const f = calc.listFrames(m, o.arsene && ch.name === "ジョーカー" ? { arsene: true } : undefined);
         const kind = kindOf(m);
         const place = placeOf(m);
         const name = moveLabel(m);
@@ -674,7 +699,8 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     const dmg = q.get("dmg") === "min" ? "min" : "max";
     const ooRaw = q.get("oo");
     const oo = ooRaw === "1" ? true : ooRaw === "0" ? false : null;
-    return { sort, dir, preset, kinds, place, chars, text: q.get("q") || "", vs, dmg, oo };
+    const arsene = q.get("ars") === "1";
+    return { sort, dir, preset, kinds, place, chars, text: q.get("q") || "", vs, dmg, oo, arsene };
   }
   function serialize(s) {
     const p = new URLSearchParams();
@@ -689,6 +715,7 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     if (s.dmg === "min") p.set("dmg", "min");
     if (s.oo === true) p.set("oo", "1");
     else if (s.oo === false) p.set("oo", "0");
+    if (s.arsene) p.set("ars", "1");
     return p.toString();
   }
 
@@ -724,7 +751,7 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
   const parsed = T.parseQuery(location.hash);
   const state = parsed;
   state.oo = parsed.oo == null ? storedOo() : parsed.oo;
-  let rows = [], needs = [], chars = [], view = [], headH = 44, start = -1, end = -1, pushNext = false, sureMode, draft = [];
+  let rows = [], needs = [], chars = [], view = [], headH = 44, start = -1, end = -1, pushNext = false, sureMode, draft = [], source = null, builtArsene = null;
 
   function storedOo() {
     try { return localStorage.getItem(OO_KEY) === "1"; } catch (e) { return false; }
@@ -765,11 +792,21 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     if (preset) bits.push(preset.label);
     bits.push(state.vs == null ? "確定数は全キャラ平均" : "確定数は対 " + (chars[state.vs] ? chars[state.vs].name : ""));
     bits.push(state.oo ? "1on1補正あり（ダメージ×1.2）" : "1on1補正なし（基礎ダメージ）");
+    const showArs = jokerInView();
+    if (showArs) bits.push(state.arsene ? "ジョーカーはアルセーヌ" : "ジョーカーは通常");
     $("meta").textContent = bits.join(" · ");
+    $("ars").hidden = !showArs;
     $("dmgAgg").innerHTML = [["max", "ダメージ最大"], ["min", "ダメージ最小"]].map(([id, label]) => `<button type="button" data-dmg="${id}" aria-pressed="${state.dmg === id}">${label}</button>`).join("");
     $("ooOff").setAttribute("aria-pressed", state.oo ? "false" : "true");
     $("ooOn").setAttribute("aria-pressed", state.oo ? "true" : "false");
-    document.querySelectorAll('a[href^="index.html"]').forEach((a) => { a.hash = "oo=" + (state.oo ? "1" : "0"); });
+    $("arsOff").setAttribute("aria-pressed", state.arsene ? "false" : "true");
+    $("arsOn").setAttribute("aria-pressed", state.arsene ? "true" : "false");
+    document.querySelectorAll('a[href^="index.html"]').forEach((a) => {
+      const p = new URLSearchParams();
+      p.set("oo", state.oo ? "1" : "0");
+      if (state.arsene) p.set("ars", "1");
+      a.hash = p.toString();
+    });
     $("head").innerHTML = `<span class="c-rank"></span>` + COLS.map(([key, label, side]) => {
       const on = state.sort === key;
       const aria = on ? (state.dir === "asc" ? "ascending" : "descending") : "none";
@@ -815,12 +852,27 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     p.set("move", r.id);
     if (r.material) p.set("mo", r.material);
     p.set("oo", state.oo ? "1" : "0");
+    if (state.arsene && r.char === "ジョーカー") p.set("ars", "1");
     return "index.html#" + p.toString();
+  }
+  function jokerInView() {
+    const ji = chars.findIndex((c) => c.name === "ジョーカー");
+    if (ji < 0) return false;
+    if (!state.chars.length) return true;
+    return state.chars.indexOf(ji) >= 0;
+  }
+  function ensureRows() {
+    if (!source || (builtArsene === !!state.arsene && rows.length)) return;
+    rows = T.buildRows(source, C, { arsene: !!state.arsene });
+    builtArsene = !!state.arsene;
+    // null は「全キャラ平均」なので、再計算の印には使わない
+    sureMode = -2;
   }
   function apply(scrollTop) {
     if (state.vs != null && (state.vs < 0 || state.vs >= chars.length)) state.vs = null;
     state.chars = state.chars.filter((i) => chars[i]);
     rememberOo(state.oo);
+    ensureRows();
     if (sureMode !== state.vs) { T.fillSure(rows, needs, state.vs); sureMode = state.vs; }
     T.applyDamageKey(rows, state.dmg);
     view = T.applyView(rows, state);
@@ -864,6 +916,13 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
       if (state.oo === on) return;
       state.oo = on;
       rememberOo(on);
+      pushNext = true; apply(false);
+    };
+    $("ars").onclick = (e) => {
+      const b = e.target.closest("[data-ars]"); if (!b) return;
+      const on = b.dataset.ars === "1";
+      if (state.arsene === on) return;
+      state.arsene = on;
       pushNext = true; apply(false);
     };
     $("picked").onclick = (e) => {
@@ -937,9 +996,11 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     }).join("")}</div>` : `<p class="empty">「${esc($("pkQ").value)}」に一致するキャラはいません。</p>`;
   }
   function boot(data) {
+    source = data;
     chars = data.chars;
-    rows = T.buildRows(data, C);
     needs = T.punishNeeds(chars, C);
+    builtArsene = null;
+    rows = [];
     $("vs").innerHTML = `<option value="">平均</option>` + chars.map((c, i) => `<option value="${i}">${esc(c.name)}</option>`).join("");
     bind();
     apply(false);

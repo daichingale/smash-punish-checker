@@ -432,6 +432,139 @@ test("ダメージと硬直の個数が合わない行は判定ごとの有利�
   assert.equal(r.list[0].weakNote, "");
 });
 
+test("アルセーヌありはアルセーヌ行の硬直と全体Fで有利と確定が変わり、なしとジョーカー以外は変わらない", () => {
+  const joker = ch("ジョーカー");
+  const ft = mv(joker, "横強");
+  const off = C.shieldAdvantage(ft);
+  const on = C.shieldAdvantage(ft, { arsene: true });
+  assert.equal(off.primary, 15);
+  assert.equal(off.primaryStun, 6);
+  assert.equal(off.usedArsene, false);
+  assert.equal(off.primaryLabel, "全シフト, Hit 2");
+  assert.equal(on.usedArsene, true);
+  assert.equal(on.primary, 11);
+  assert.equal(on.primaryStun, 10);
+  assert.equal(on.total, 34);
+  assert.equal(on.primaryLabel, "全シフト, Hit 2, アルセーヌ");
+  assert.equal(on.advMin, 11);
+  assert.equal(on.advMax, 11);
+  const mario = ch("マリオ");
+  const jab = C.evaluate(joker, ft, mario, {}).list.find((x) => x.move.name === "弱1" && x.route === "drop");
+  const jabOn = C.evaluate(joker, ft, mario, { arsene: true }).list.find((x) => x.move.name === "弱1" && x.route === "drop");
+  assert.equal(jab.status, "sure");
+  assert.equal(jab.margin, 2);
+  assert.equal(jabOn.status, "impossible");
+  assert.equal(jabOn.margin, -2);
+  assert.equal(jabOn.weakNote, "");
+
+  const ut = mv(joker, "上強");
+  assert.equal(C.shieldAdvantage(ut).primary, 18);
+  assert.equal(C.shieldAdvantage(ut, { arsene: true }).primary, 15);
+  assert.equal(C.shieldAdvantage(ut, { arsene: true }).primaryLabel, "〆, アルセーヌ");
+  assert.equal(C.shieldAdvantage(ut, { arsene: true }).primaryStun, 5);
+
+  const bair = mv(joker, "空後");
+  assert.equal(C.shieldAdvantage(bair).primary, 5);
+  assert.equal(C.shieldAdvantage(bair, { arsene: true }).primary, 6);
+  assert.equal(C.shieldAdvantage(bair, { arsene: true }).primaryStun, 3);
+  const nairOff = C.evaluate(joker, bair, mario, {}).list.find((x) => x.move.name === "空N" && x.route === "jump");
+  const nairOn = C.evaluate(joker, bair, mario, { arsene: true }).list.find((x) => x.move.name === "空N" && x.route === "jump");
+  assert.equal(nairOff.status, "impossible");
+  assert.equal(nairOn.status, "sure");
+  assert.equal(nairOn.margin, 0);
+
+  const jab1 = mv(joker, "弱1");
+  assert.equal(C.shieldAdvantage(jab1).primary, C.shieldAdvantage(jab1, { arsene: true }).primary);
+  assert.equal(C.shieldAdvantage(jab1, { arsene: true }).usedArsene, true);
+  const gun = joker.moves.find((m) => m.name === "NB（ガン）");
+  const gunOff = C.shieldAdvantage(gun);
+  const gunOn = C.shieldAdvantage(gun, { arsene: true });
+  assert.equal(gunOn.primary, gunOff.primary);
+  assert.equal(gunOn.usedArsene, false);
+  assert.equal(gunOn.primaryStun, gunOff.primaryStun);
+
+  const dtilt = mv(joker, "下強");
+  assert.equal(C.shieldAdvantage(dtilt, { arsene: true }).primary, 19);
+  assert.equal(C.shieldAdvantage(dtilt, { arsene: true }).primaryStun, 10);
+  assert.equal(C.shieldAdvantage(dtilt, { arsene: true }).worst, 13);
+
+  const marioU = C.shieldAdvantage(mv(mario, "上強"), { arsene: true });
+  assert.equal(marioU.primary, 18);
+  assert.equal(marioU.primaryStun, 6);
+  assert.equal(marioU.usedArsene, false);
+  const marth = mv(ch("マルス"), "横強");
+  const marthOn = C.shieldAdvantage(marth, { arsene: true });
+  assert.equal(marthOn.primary, 14);
+  assert.deepEqual(marthOn.hitboxes.map((h) => h.adv), [16, 16, 14]);
+  const mk = (name, s) => ({ name, category: "ground", rows: [row({ active: act([s], s), damage: [1], stun: [1], total: 40 })] });
+  const def = { name: "D", jumpsquat: 3, moves: [mk("上スマッシュ", 15)] };
+  const note = C.evaluate(ch("マルス"), marth, def, { arsene: true }).list[0];
+  assert.equal(note.status, "impossible");
+  assert.equal(note.weakNote, "hit1・hit2なら確定");
+  assert.equal(C.evaluate(ch("マルス"), marth, def, {}).list[0].weakNote, "hit1・hit2なら確定");
+
+  const split = {
+    name: "横強", category: "ground", rows: [
+      row({ label: "通常", active: act([8], 10), total: 30, damage: [10], stun: [8] }),
+      row({ label: "アルセーヌ, 先端、根元", active: act([8], 10), total: 30, damage: [12, 9], stun: [12, 9] }),
+    ],
+  };
+  assert.equal(C.shieldAdvantage(split).primary, 14);
+  assert.equal(C.shieldAdvantage(split).usedArsene, false);
+  const splitOn = C.shieldAdvantage(split, { arsene: true });
+  assert.equal(splitOn.primary, 10);
+  assert.equal(splitOn.usedArsene, true);
+  assert.deepEqual(splitOn.hitboxes.map((h) => [h.name, h.stun, h.adv]), [["アルセーヌ, 先端", 12, 10], ["根元", 9, 13]]);
+  const pun = { name: "D", jumpsquat: 3, moves: [mk("上スマッシュ", 10), mk("上スマッシュB", 11), mk("上スマッシュC", 14)] };
+  const by = Object.fromEntries(C.evaluate({ name: "A", moves: [] }, split, pun, { arsene: true }).list.map((x) => [x.move.name, x]));
+  assert.equal(by["上スマッシュ"].status, "sure");
+  assert.equal(by["上スマッシュ"].weakNote, "");
+  assert.equal(by["上スマッシュB"].status, "impossible");
+  assert.equal(by["上スマッシュB"].weakNote, "根元なら確定");
+  assert.equal(by["上スマッシュC"].weakNote, "");
+  const byOff = Object.fromEntries(C.evaluate({ name: "A", moves: [] }, split, pun, {}).list.map((x) => [x.move.name, x]));
+  assert.equal(byOff["上スマッシュB"].status, "sure");
+  assert.equal(byOff["上スマッシュB"].weakNote, "");
+
+  const missing = {
+    name: "x", category: "ground", rows: [
+      row({ label: "通常", active: act([5], 6), total: 20, stun: [4] }),
+      row({ label: "アルセーヌ", active: act([5], 6), total: 20, stun: null }),
+    ],
+  };
+  const miss = C.shieldAdvantage(missing, { arsene: true });
+  assert.equal(miss.ok, true);
+  assert.equal(miss.primary, 11);
+  assert.equal(miss.usedArsene, false);
+
+  const sureKey = (list) => list.filter((x) => x.status === "sure").map((x) => x.move.id + "|" + x.route).sort().join(",");
+  const changed = [];
+  for (const m of joker.moves) {
+    if (m.category === "grab") continue;
+    const a = C.shieldAdvantage(m);
+    const b = C.shieldAdvantage(m, { arsene: true });
+    if (!a.ok || !b.ok || a.primary === b.primary) continue;
+    let diff = false;
+    for (const d of data.chars) {
+      if (sureKey(C.evaluate(joker, m, d, {}).list) !== sureKey(C.evaluate(joker, m, d, { arsene: true }).list)) { diff = true; break; }
+    }
+    if (diff) changed.push(m.name);
+  }
+  assert.deepEqual(changed, ["ダッシュ攻撃", "横強", "上強", "下強", "横スマッシュ", "上スマッシュ", "下スマッシュ", "空前", "空後", "空上"]);
+  for (const c of data.chars) {
+    if (c.name === "ジョーカー") continue;
+    for (const m of c.moves) {
+      const a = C.shieldAdvantage(m);
+      const b = C.shieldAdvantage(m, { arsene: true });
+      assert.equal(b.ok, a.ok);
+      assert.equal(b.primary, a.primary);
+      assert.equal(b.worst, a.worst);
+      assert.equal(b.primaryStun, a.primaryStun);
+      assert.equal(!!b.usedArsene, false);
+    }
+  }
+});
+
 test("主数値は最大硬直のまま。1on1では判定ごとの有利は変わらない", () => {
   let spread = 0;
   for (const ch of data.chars) for (const m of ch.moves) {

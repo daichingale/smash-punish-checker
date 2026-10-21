@@ -4,7 +4,7 @@
   const C = window.PunishCalc;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const state = { me: 0, opp: 1, mode: "A", moveId: null, ps: false, oo: false, mat: {}, group: 0 };
+  const state = { me: 0, opp: 1, mode: "A", moveId: null, ps: false, oo: false, arsene: false, mat: {}, group: 0 };
   const OO_KEY = "punish.oo";
   let D, pushNext = false, overlay = null;
 
@@ -48,6 +48,7 @@
     if (q.has("opp")) state.opp = clampIdx(+q.get("opp"), state.opp);
     state.mode = q.get("mode") === "B" ? "B" : "A";
     state.ps = q.get("ps") === "1";
+    state.arsene = q.get("ars") === "1";
     if (q.has("oo")) state.oo = q.get("oo") === "1";
     else { try { state.oo = localStorage.getItem(OO_KEY) === "1"; } catch (e) { state.oo = false; } }
     try { localStorage.setItem(OO_KEY, state.oo ? "1" : "0"); } catch (e) {}
@@ -72,6 +73,7 @@
     p.set("g", String(state.group));
     if (state.moveId) p.set("move", state.moveId);
     if (state.ps) p.set("ps", "1");
+    if (state.arsene) p.set("ars", "1");
     p.set("oo", state.oo ? "1" : "0");
     const meC = D.chars[state.me], oppC = D.chars[state.opp];
     if (meC.materials.length) p.set("mm", matOf(state.me));
@@ -106,6 +108,8 @@
     $("psDock").onchange = (e) => setPs(e.target.checked);
     $("oo").onclick = (e) => { const b = e.target.closest("[data-oo]"); if (b) setOo(b.dataset.oo === "1"); };
     $("ooDock").onclick = (e) => { const b = e.target.closest("[data-oo]"); if (b) setOo(b.dataset.oo === "1"); };
+    $("ars").onclick = (e) => { const b = e.target.closest("[data-ars]"); if (b) setArs(b.dataset.ars === "1"); };
+    $("arsDock").onclick = (e) => { const b = e.target.closest("[data-ars]"); if (b) setArs(b.dataset.ars === "1"); };
     $("flip").onclick = () => setMode(state.mode === "A" ? "B" : "A");
     $("detailBtn").onclick = openSheet;
     $("sheetBack").onclick = dismissOverlay;
@@ -169,6 +173,14 @@
     pushNext = true;
     render();
   }
+  function setArs(on) {
+    on = !!on;
+    if (state.arsene === on) return;
+    state.arsene = on;
+    pushNext = true;
+    render();
+  }
+  function useArsene() { return state.arsene && attackerChar().name === "ジョーカー"; }
   function setGroup(i) {
     if (!GROUPS[i] || state.group === i) return;
     state.group = i;
@@ -267,7 +279,19 @@
       const el = $(id);
       if (el) el.setAttribute("aria-pressed", (id.indexOf("On") >= 0) === state.oo ? "true" : "false");
     }
-    document.querySelectorAll('a[href^="table.html"]').forEach((a) => { a.hash = "oo=" + (state.oo ? "1" : "0"); });
+    const jokerAtt = attackerChar().name === "ジョーカー";
+    for (const id of ["ars", "arsDock"]) { const el = $(id); if (el) el.hidden = !jokerAtt; }
+    document.body.classList.toggle("has-ars", jokerAtt && !!state.moveId);
+    for (const id of ["arsOff", "arsOn", "arsOffDock", "arsOnDock"]) {
+      const el = $(id);
+      if (el) el.setAttribute("aria-pressed", (id.indexOf("On") >= 0) === state.arsene ? "true" : "false");
+    }
+    document.querySelectorAll('a[href^="table.html"]').forEach((a) => {
+      const p = new URLSearchParams();
+      p.set("oo", state.oo ? "1" : "0");
+      if (state.arsene) p.set("ars", "1");
+      a.hash = p.toString();
+    });
     $("modeA").classList.toggle("on", state.mode === "A");
     $("modeB").classList.toggle("on", state.mode === "B");
     $("modeA").setAttribute("aria-selected", state.mode === "A" ? "true" : "false");
@@ -297,7 +321,7 @@
     const att = attackerChar();
     $("lead").textContent = state.moveId ? "" : `${who}（${att.name}）の技を選ぶと、反撃が下に出ます。`;
     $("moveArea").innerHTML = shown.length ? `<div class="moves">` + shown.map((m) => {
-      const a = C.shieldAdvantage(m);
+      const a = C.shieldAdvantage(m, { arsene: useArsene() });
       const sub = [m.input === "button" ? "ボタン" : m.input === "command" ? (m.command ? "コマンド " + m.command : "コマンド") : m.command || "", m.material || ""].filter(Boolean).join("・");
       return `<button type="button" class="mv ${m.id === state.moveId ? "on" : ""} ${a.ok ? "" : "na"}" data-id="${m.id}">${esc(shortName(m))}${sub ? `<small>${esc(sub)}</small>` : ""}</button>`;
     }).join("") + `</div>` : `<p class="empty">この種類の技はありません。</p>`;
@@ -336,7 +360,7 @@
     const move = att.moves.find((m) => m.id === state.moveId);
     if (!move) { $("result").innerHTML = ""; $("sheetBody").innerHTML = ""; return; }
     const defIdx = D.chars.indexOf(def);
-    const r = C.evaluate(att, move, def, { perfectShield: state.ps, defenderMaterial: matOf(defIdx) });
+    const r = C.evaluate(att, move, def, { perfectShield: state.ps, defenderMaterial: matOf(defIdx), arsene: useArsene() });
     const a = r.adv;
     const attWho = state.mode === "A" ? "相手" : "自分", defWho = state.mode === "A" ? "自分" : "相手";
     const name = `${esc(shortName(move))}${move.input === "button" ? "［ボタン］" : move.input === "command" && move.category !== "command" ? "［コマンド］" : ""}`;
@@ -364,6 +388,7 @@
     h += `<div class="late">${a.lateUnknown ? "終わり際はシート上で不定" : a.worstEff === a.primaryEff ? "終わり際をガードしても同じ" : `終わり際をガードすると ${fmtAdv(a.worstEff)}F`}</div>`;
     if (a.bounceLag != null && a.landingLag != null && a.bounceLag !== a.landingLag) h += `<div class="note">ヒット時はバウンドの全体${a.bounceLag}Fから硬直を引いています。空振りの着地隙は${a.landingLag}Fです。</div>`;
     const altLine = (a.alt || []).filter((x) => x.adv != null && /アルセーヌ|（後）/.test(x.label));
+    if (a.usedArsene) h += `<div class="note">アルセーヌの段のガード硬直と全体Fで計算しています。</div>`;
     if (altLine.length) h += `<div class="note">${altLine.map((x) => `${esc(x.label)}は ${fmtAdv(x.adv + (state.ps ? C.PERFECT_SHIELD_BONUS : 0))}F`).join("、")}（確定の数には入れていません）</div>`;
     if (move.guardNote) h += `<div class="note">${esc(move.guardNote)}</div>`;
     h += `</div>`;
@@ -403,7 +428,8 @@
     $("sheetBody").innerHTML = `<p>${a.aerial ? airTxt : `地上の技。最速の判定${a.multiHit ? "（多段の最終段）" : ""}をガードした場合の有利は ${fmtAdv(a.primaryEff)}F。`}</p>` +
       `<p>${state.oo ? "ダメージはシートの基礎ダメージ×1.2（1on1補正）です。ガード硬直はシートの値のままなので、有利と確定は変わりません。" : "ダメージはシートの基礎ダメージです。1on1補正は掛けていません。"}</p>` +
       (a.bounceLag != null && a.landingLag != null && a.bounceLag !== a.landingLag ? `<p>この技はヒットするとバウンドします。シートのバウンド行の全体Fは${a.bounceLag}Fなので、有利は ${a.bounceLag}F − ガード硬直です。空振りの着地隙${a.landingLag}Fは使っていません。</p>` : "") +
-      (altLine.length ? `<p>${altLine.map((x) => `${esc(x.label)}をガードした有利は ${fmtAdv(x.adv)}F`).join("。")}。確定の数は通常の段だけです。</p>` : "") +
+      (a.usedArsene ? `<p>アルセーヌの段のガード硬直と全体Fで有利と確定を出しています。アルセーヌの段が無い技は、この切り替えでも通常の値のままです。</p>` : "") +
+      (altLine.length ? `<p>${altLine.map((x) => `${esc(x.label)}をガードした有利は ${fmtAdv(x.adv)}F`).join("。")}。${a.usedArsene ? "この段は確定の数に入れていません。" : "確定の数は通常の段だけです。"}</p>` : "") +
       (hitList ? `<ul class="hits">${hitList}</ul>` : `<p>基礎ダメージはシートにありません。</p>`) +
       (boxes ? `<p>この段は判定ごとにガード硬直が違います。下は、それぞれをガードしたときの有利です。確定と不可は、ガード硬直が大きい方（${fmtAdv(a.primaryEff)}F）で分けています。</p><ul class="hbox">${boxes}</ul>` : "") +
       `<p>${a.lateUnknown ? "判定の終わりがシート上で不定なので、終わり際の数字は出していません。" : `判定の終わり際をガードした場合の有利は ${fmtAdv(a.worstEff)}F。カードの2行目は、そのときの猶予です。`}</p>` +
