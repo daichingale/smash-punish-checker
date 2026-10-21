@@ -32,29 +32,58 @@ body.noscroll{overflow:hidden}
 button,input{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:max(8px,env(safe-area-inset-top)) 12px 8px}
-.titlebar{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.sitehead{padding:max(8px,env(safe-area-inset-top)) 12px 0}
+header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:8px 12px}
+.titlebar{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .navs{display:flex;gap:6px;flex:none;flex-wrap:wrap}
-h1{font-size:16px;margin:0;font-weight:750;letter-spacing:.01em}
+h1{font-size:18px;margin:0;font-weight:750;letter-spacing:.01em}
 .navlink{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--text);text-decoration:none;font-size:14px;font-weight:750;white-space:nowrap}
-body.has-move .titlebar{display:none}
 h1 small{display:block;color:var(--sub);font-weight:500;font-size:12px;margin-top:1px}
+.home{padding:10px 12px 4px}
+.entries{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.entry{display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:100%;min-height:132px;padding:8px;border-radius:16px;border:1px solid var(--line);background:var(--card);color:inherit;text-decoration:none;text-align:left}
+.entry.current{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+.entry b{font-size:15px;line-height:1.25;font-weight:800}
+.entry small{color:var(--sub);font-size:12px;font-weight:650;line-height:1.35}
+.thumb{display:flex;align-items:center;justify-content:center;gap:4px;width:100%;height:64px;border-radius:12px;background:color-mix(in srgb,var(--bg) 78%,var(--card));overflow:hidden}
+.thumb img{width:48px;height:48px;object-fit:contain}
+.thumb-vs{font-size:12px;font-weight:800;color:var(--sub)}
+.thumb-table{display:grid;grid-template-columns:1.4fr .8fr;gap:6px;padding:10px}
+.thumb-table span{display:block;height:16px;border-radius:4px;background:var(--line)}
+.thumb-table span:first-child{background:var(--accent)}
+.thumb-tier,.thumb-result{flex-direction:column;align-items:stretch;padding:8px 10px;gap:4px}
+.thumb-tier i,.thumb-result i{display:block;height:14px;border-radius:4px;font-style:normal;font-size:10px;font-weight:800;line-height:14px;padding-left:4px;color:#fff}
+.thumb-tier i:nth-child(1){background:#d64545}
+.thumb-tier i:nth-child(2){background:#e07a2f;width:78%}
+.thumb-tier i:nth-child(3){background:#e0b030;width:56%;color:#1c1404}
+.thumb-result i:nth-child(1){background:var(--accent);width:100%}
+.thumb-result i:nth-child(2){background:var(--accent);width:74%;opacity:.72}
+.thumb-result i:nth-child(3){background:var(--accent);width:52%;opacity:.45}
+@media (min-width:900px){
+  .wrap{max-width:1040px}
+  .entries{grid-template-columns:repeat(4,1fr)}
+  .entry{min-height:168px}
+  .thumb{height:84px}
+}
 .pick{display:grid;grid-template-columns:1fr 44px 1fr;gap:6px;align-items:end}
-.lab{display:block;font-size:12px;color:var(--sub);margin-bottom:3px}
+.lab{display:block;font-size:12px;font-weight:750;color:var(--sub);margin-bottom:3px}
 .lab.me{color:var(--me)}.lab.opp{color:var(--opp)}
-.cbtn{width:100%;display:flex;align-items:center;gap:4px;padding:8px 10px;border-radius:12px;border:1px solid var(--line);background:var(--card);min-height:44px;text-align:left}
-.cbtn .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+.cbtn{width:100%;display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:12px;border:1px solid var(--line);background:var(--card);min-height:64px;text-align:left}
+.cbtn .face{width:48px;height:48px;object-fit:contain;flex:none}
+.cbtn .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:750;font-size:15px}
 .cbtn .who{display:none;font-size:11px;font-weight:650;line-height:1.1}
 .cbtn .dd{color:var(--sub);font-size:12px}
 .st{color:var(--warn);font-size:12px}
-#swap{height:44px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:18px}
-body.has-move h1,body.has-move #modeBar,body.has-move #optBar,body.has-move .lab{display:none}
+#swap{height:64px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:18px}
+body.has-move #modeBar,body.has-move #optBar,body.has-move .lab{display:none}
 body.has-move header{padding-top:max(6px,env(safe-area-inset-top));padding-bottom:6px}
-body.has-move .cbtn{min-height:44px;padding:4px 10px}
+body.has-move .cbtn{min-height:44px;padding:4px 8px}
+body.has-move .cbtn .face{width:36px;height:36px}
 body.has-move .cbtn .who{display:inline;margin-right:4px}
 body.has-move .cbtn .who.me{color:var(--me)}
 body.has-move .cbtn .who.opp{color:var(--opp)}
 body.has-move .pick{align-items:center}
+body.has-move #swap{height:44px}
 .mats{display:flex;gap:6px;overflow-x:auto;margin-top:8px;padding-bottom:2px}
 .mats span{font-size:12px;color:var(--sub);align-self:center;white-space:nowrap}
 .chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:0 12px;min-height:44px;font-size:14px;white-space:nowrap}
@@ -141,11 +170,23 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
 #pkBody{flex:1;overflow-y:auto;padding:8px 12px 28px;-webkit-overflow-scrolling:touch}
 #pkBody h3{font-size:12px;color:var(--sub);margin:8px 0 6px;font-weight:700}
 .recents{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
-.recents .ch{flex:0 0 auto;min-width:96px}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.ch{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:8px;font-size:13px;line-height:1.25;min-height:44px;text-align:left}
+.recents .ch{flex:0 0 auto;min-width:112px}
+.say{margin:0 0 8px;font-size:16px;font-weight:750;line-height:1.45}
+.ex,.backlist{display:block;width:100%;text-align:left;min-height:52px;margin:0 0 8px;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:var(--card);font-size:15px;font-weight:650;line-height:1.4}
+.ex.nope{color:var(--sub)}
+#glance:empty{display:none}
+#glance,#result{scroll-margin-top:calc(var(--bar) + 8px)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ch{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;border:1px solid var(--line);background:var(--card);border-radius:14px;padding:8px 4px;font-size:13px;line-height:1.25;min-height:112px;text-align:center}
+.ch img{width:64px;height:64px;object-fit:contain}
+.ch .nm{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:100%;font-weight:700}
 .ch .no{display:block;font-size:11px;color:var(--sub)}
 .ch.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+@media (min-width:800px){
+  .grid{grid-template-columns:repeat(6,1fr)}
+  .ch img{width:72px;height:72px}
+  .ch{min-height:128px}
+}
 .pkNote{color:var(--sub);font-size:12px;margin-top:10px}
 #sheet{position:fixed;inset:0;z-index:30}
 #sheet[hidden]{display:none}
@@ -162,39 +203,77 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
 </style>
 </head>
 <body>
+<div class="sitehead">
+  <div class="wrap titlebar">
+    <h1>スマブラSP<small>はじめてでも、選んですぐ試せます</small></h1>
+    <nav class="navs" aria-label="ページ"><a class="navlink" href="table.html">フレーム表</a><a class="navlink" href="tier.html">ティア</a><a class="navlink" href="result.html">リザルト</a></nav>
+  </div>
+</div>
+<section class="home" aria-label="できること">
+  <div class="wrap">
+    <div class="entries">
+      <button type="button" class="entry current" id="gotoCheck" aria-current="page">
+        <span class="thumb" aria-hidden="true"><img src="fighters/0/1.webp" alt="" width="48" height="48"><span class="thumb-vs">対</span><img src="fighters/1/1.webp" alt="" width="48" height="48"></span>
+        <b>確定反撃チェック</b>
+        <small>ガードしたあと、どの技で返せるか</small>
+      </button>
+      <a class="entry" href="table.html">
+        <span class="thumb thumb-table" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+        <b>技表</b>
+        <small>全キャラの技を、発生や有利で見くらべる</small>
+      </a>
+      <a class="entry" href="tier.html">
+        <span class="thumb thumb-tier" aria-hidden="true"><i>S</i><i>A</i><i>B</i></span>
+        <b>ティアメーカー</b>
+        <small>キャラを段に並べて、画像にする</small>
+      </a>
+      <a class="entry" href="result.html">
+        <span class="thumb thumb-result" aria-hidden="true"><i></i><i></i><i></i></span>
+        <b>リザルトメーカー</b>
+        <small>大会の順位表とTop8の画像を作る</small>
+      </a>
+    </div>
+  </div>
+</section>
 <header id="top">
   <div class="wrap">
-    <div class="titlebar">
-      <h1>確定反撃チェッカー<small>スマブラSP・タイマン・試作版</small></h1>
-      <nav class="navs" aria-label="ページ"><a class="navlink" href="table.html">フレーム表</a><a class="navlink" href="tier.html">ティア</a><a class="navlink" href="result.html">リザルト</a></nav>
-    </div>
-    <div class="pick">
-      <div><span class="lab me">自分（ガードする側）</span><button id="meBtn" class="cbtn" type="button" aria-haspopup="dialog"></button></div>
+    <div class="pick" id="checker">
+      <div><span class="lab me">自分のキャラ</span><button id="meBtn" class="cbtn" type="button" aria-haspopup="dialog"></button></div>
       <button id="swap" type="button" title="自分と相手を入れ替え" aria-label="入れ替え">⇄</button>
-      <div><span class="lab opp">相手</span><button id="oppBtn" class="cbtn" type="button" aria-haspopup="dialog"></button></div>
+      <div><span class="lab opp">相手のキャラ</span><button id="oppBtn" class="cbtn" type="button" aria-haspopup="dialog"></button></div>
     </div>
     <div id="mats"></div>
-    <div class="modes" id="modeBar" role="tablist" aria-label="向き">
-      <button id="modeA" class="on" type="button" role="tab">相手の技 → 自分の反撃</button>
-      <button id="modeB" type="button" role="tab">自分の技 → 相手の反撃（逆）</button>
-    </div>
-    <div class="opts" id="optBar">
-      <label><input type="checkbox" id="ps"> ジャストシールドした場合</label>
-      <div class="oo" id="oo" role="group" aria-label="1on1補正">
-        <span>1on1補正</span>
-        <button type="button" id="ooOff" data-oo="0" aria-pressed="true">なし</button>
-        <button type="button" id="ooOn" data-oo="1" aria-pressed="false">あり</button>
-      </div>
-      <div class="oo" id="ars" role="group" aria-label="アルセーヌ" hidden>
-        <span>アルセーヌ</span>
-        <button type="button" id="arsOff" data-ars="0" aria-pressed="true">なし</button>
-        <button type="button" id="arsOn" data-ars="1" aria-pressed="false">あり</button>
-      </div>
-    </div>
   </div>
 </header>
 <main class="wrap">
   <div id="banner"></div>
+  <details id="beginner">
+    <summary>はじめての人へ</summary>
+    <ul>
+      <li><b>ガード硬直</b>　攻撃をシールドで防ぐと、そのあと少しのあいだシールドが解けません。</li>
+      <li><b>有利F</b>　ガードしたあと、自分が相手より何フレーム先に動けるかです。プラスなら自分が有利です。</li>
+      <li><b>猶予</b>　反撃が間に合う余裕です。0以上なら、フレーム上は間に合います。</li>
+      <li><b>ガーキャン</b>　シールドを解かずに、上B・上スマッシュ・空中攻撃・つかみを出すことです。</li>
+    </ul>
+  </details>
+  <div id="glance"></div>
+  <div class="modes" id="modeBar" role="tablist" aria-label="向き">
+    <button id="modeA" class="on" type="button" role="tab">相手の技 → 自分の反撃</button>
+    <button id="modeB" type="button" role="tab">自分の技 → 相手の反撃（逆）</button>
+  </div>
+  <div class="opts" id="optBar">
+    <label><input type="checkbox" id="ps"> ジャストシールドした場合</label>
+    <div class="oo" id="oo" role="group" aria-label="1on1補正">
+      <span>1on1補正</span>
+      <button type="button" id="ooOff" data-oo="0" aria-pressed="true">なし</button>
+      <button type="button" id="ooOn" data-oo="1" aria-pressed="false">あり</button>
+    </div>
+    <div class="oo" id="ars" role="group" aria-label="アルセーヌ" hidden>
+      <span>アルセーヌ</span>
+      <button type="button" id="arsOff" data-ars="0" aria-pressed="true">なし</button>
+      <button type="button" id="arsOn" data-ars="1" aria-pressed="false">あり</button>
+    </div>
+  </div>
   <p class="hint" id="lead"></p>
   <div id="groups" class="segs" role="tablist" aria-label="技の種類"></div>
   <div id="moveArea"></div>
@@ -627,7 +706,7 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
   const C = window.PunishCalc;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const state = { me: 0, opp: 1, mode: "A", moveId: null, ps: false, oo: false, arsene: false, mat: {}, group: 0 };
+  const state = { me: 0, opp: 0, mode: "A", moveId: null, ps: false, oo: false, arsene: false, mat: {}, group: 0 };
   const OO_KEY = "punish.oo";
   let D, pushNext = false, overlay = null;
 
@@ -723,6 +802,30 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     applyHash();
     $("meBtn").onclick = () => openPicker("me");
     $("oppBtn").onclick = () => openPicker("opp");
+    $("gotoCheck").onclick = () => {
+      const behavior = matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+      $("top").scrollIntoView({ behavior: behavior, block: "start" });
+      $("meBtn").focus({ preventScroll: true });
+    };
+    $("glance").onclick = (e) => {
+      const b = e.target.closest(".ex");
+      if (!b) return;
+      const move = attackerChar().moves.find((m) => m.id === b.dataset.id);
+      if (!move) return;
+      state.moveId = move.id;
+      state.group = groupOf(move);
+      pushNext = true;
+      scrollToResult = true;
+      render();
+    };
+    $("result").addEventListener("click", (e) => {
+      if (!e.target.closest("[data-act=back]")) return;
+      state.moveId = null;
+      pushNext = true;
+      render();
+      const behavior = matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+      $("glance").scrollIntoView({ behavior: behavior, block: "start" });
+    });
     $("swap").onclick = swap;
     initPicker();
     $("modeA").onclick = () => setMode("A");
@@ -862,9 +965,10 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     hideOverlays();
     if (history.state && history.state.overlay === kind) history.back();
   }
-  function tile(i, recentChip) {
+  function faceSrc(i) { return "fighters/" + i + "/1.webp"; }
+  function tile(i) {
     const c = D.chars[i], cur = state[pickFor] === i;
-    return `<button type="button" class="ch${cur ? " on" : ""}" data-i="${i}"><span class="no">${esc(charNo(c))}</span>${esc(recentChip ? c.name : c.name)}${c.stale ? `<span class="st" title="データが古い可能性">⚠</span>` : ""}</button>`;
+    return `<button type="button" class="ch${cur ? " on" : ""}" data-i="${i}" aria-label="${esc(c.name)}"><img src="${faceSrc(i)}" alt="" width="72" height="72" loading="lazy" decoding="async"><span class="nm">${esc(c.name)}</span><span class="no">${esc(charNo(c))}${c.stale ? `<span class="st" title="データが古い可能性">⚠</span>` : ""}</span></button>`;
   }
   function renderPicker() {
     const raw = $("pkQ").value.trim();
@@ -874,7 +978,7 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     let h = "";
     if (!qv) {
       const r = recent();
-      if (r.length) h += `<h3>最近使ったキャラ</h3><div class="recents">${r.map((i) => tile(i, true)).join("")}</div>`;
+      if (r.length) h += `<h3>最近使ったキャラ</h3><div class="recents">${r.map((i) => tile(i)).join("")}</div>`;
       h += `<h3>全キャラ（${D.chars.length}）</h3>`;
     }
     h += hit.length ? `<div class="grid">${hit.map((i) => tile(i)).join("")}</div>` : `<p class="empty">「${esc(raw)}」に一致するキャラはいません。読み・英語名・ファイター番号でも探せます。</p>`;
@@ -927,8 +1031,8 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     for (const [k, id] of [["me", "meBtn"], ["opp", "oppBtn"]]) {
       const c = D.chars[state[k]];
       const who = k === "me" ? "自分" : "相手";
-      $(id).innerHTML = `<span class="who ${k}">${who}</span><span class="nm">${esc(c.name)}</span>${c.stale ? `<span class="st" title="データが古い可能性">⚠</span>` : ""}<span class="dd">▾</span>`;
-      $(id).setAttribute("aria-label", who + " " + c.name);
+      $(id).innerHTML = `<img class="face" src="${faceSrc(state[k])}" alt="" width="48" height="48" decoding="async"><span class="who ${k}">${who}</span><span class="nm">${esc(c.name)}</span>${c.stale ? `<span class="st" title="データが古い可能性">⚠</span>` : ""}<span class="dd">▾</span>`;
+      $(id).setAttribute("aria-label", (k === "me" ? "自分のキャラ " : "相手のキャラ ") + c.name);
     }
     renderMats();
     const warn = [state.me, state.opp].filter((v, i, a) => a.indexOf(v) === i).map((i) => D.chars[i]).filter((c) => c.stale)
@@ -940,9 +1044,7 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     $("groups").innerHTML = GROUPS.map((g, i) => counts[i] ? `<button type="button" role="tab" data-g="${i}" aria-selected="${i === state.group ? "true" : "false"}" aria-label="${esc(g[1])}">${esc(g[0])}</button>` : "").join("");
     $("groups").querySelectorAll("button").forEach((b) => (b.onclick = () => setGroup(+b.dataset.g)));
     const shown = moves.filter(GROUPS[state.group][2]);
-    const who = state.mode === "A" ? "相手" : "自分";
-    const att = attackerChar();
-    $("lead").textContent = state.moveId ? "" : `${who}（${att.name}）の技を選ぶと、反撃が下に出ます。`;
+    $("lead").textContent = state.moveId ? "" : "行を押すと、その技だけの詳しい数字が出ます。";
     $("moveArea").innerHTML = shown.length ? `<div class="moves">` + shown.map((m) => {
       const a = C.shieldAdvantage(m, { arsene: useArsene() });
       const sub = [m.input === "button" ? "ボタン" : m.input === "command" ? (m.command ? "コマンド " + m.command : "コマンド") : m.command || "", m.material || ""].filter(Boolean).join("・");
@@ -954,6 +1056,7 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
       scrollToResult = true;
       render();
     }));
+    renderGlance();
     renderResult();
     writeHash();
     if (scrollToResult && state.moveId) {
@@ -962,6 +1065,96 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
       const behavior = matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
       window.scrollTo({ top: Math.max(0, y), behavior });
     }
+  }
+
+  function easeWord(margin) {
+    if (margin >= C.THRESHOLDS.easyMin) return "余裕があります";
+    if (margin <= C.THRESHOLDS.severeMax) return "入力はシビアです";
+    return "間に合います";
+  }
+  function glanceName(m) {
+    if ((m.category === "special" || m.category === "command") && m.group) {
+      const extra = [m.strength, m.landingVariant].filter(Boolean).join(" ");
+      return m.group + (extra ? "（" + extra + "）" : "");
+    }
+    return shortName(m);
+  }
+  function familiarRank(m) {
+    const n = glanceName(m);
+    if (n === "上強") return 0;
+    if (n === "横強") return 1;
+    if (n === "下強") return 2;
+    if (n === "上スマッシュ") return 3;
+    if (n === "横スマッシュ") return 4;
+    if (n === "下スマッシュ") return 5;
+    if (/^空[前N後上下]/.test(n)) return 6;
+    if (n === "上B") return 7;
+    if (/^弱/.test(n)) return 8;
+    return 30;
+  }
+  function whoName(idx) {
+    const c = D.chars[idx];
+    return esc(c.name) + (c.materials.length ? "（" + esc(matOf(idx)) + "）" : "");
+  }
+  function renderGlance() {
+    const el = $("glance");
+    if (state.moveId) { el.innerHTML = ""; return; }
+    const att = attackerChar(), def = defenderChar();
+    const attIdx = D.chars.indexOf(att), defIdx = D.chars.indexOf(def);
+    const attWho = state.mode === "A" ? "相手" : "自分";
+    const defWho = state.mode === "A" ? "自分" : "相手";
+    const opts = { perfectShield: state.ps, defenderMaterial: matOf(defIdx), arsene: useArsene() };
+    const rows = [];
+    for (const m of visibleMoves()) {
+      const r = C.evaluate(att, m, def, opts);
+      if (!r.adv.ok) continue;
+      const best = r.list.find((x) => x.status === "sure" && x.route !== "drop");
+      rows.push({ move: m, adv: r.adv.primaryEff, best: best });
+    }
+    const can = rows.filter((x) => x.best);
+    const cannot = rows.filter((x) => !x.best);
+    const tally = new Map();
+    for (const row of can) {
+      const id = row.best.move.id;
+      let t = tally.get(id);
+      if (!t) { t = { opt: row.best, n: 0 }; tally.set(id, t); }
+      t.n += 1;
+    }
+    let top = null;
+    for (const t of tally.values()) if (!top || t.n > top.n) top = t;
+    let say = defWho + "の" + whoName(defIdx) + "が、" + attWho + "の" + whoName(attIdx) + "をガードしたときです。";
+    if (top && top.n >= 2) say += esc(glanceName(top.opt.move)) + "なら、" + top.n + "個の技に間に合います。";
+    else if (can.length) say += "シールドを解かずに返せる技が" + can.length + "個あります。";
+    else say += "シールドを解かずに間に合う反撃はありません。下の技を開くと、理由が分かります。";
+    if (state.ps) say += "ジャストシールドした場合です。";
+    if (useArsene()) say += "アルセーヌありで見ています。";
+    const buckets = GROUPS.map(() => []);
+    for (const row of can) buckets[groupOf(row.move)].push(row);
+    for (const b of buckets) b.sort((a, c) => familiarRank(a.move) - familiarRank(c.move) || c.adv - a.adv);
+    const picked = [];
+    const seen = new Set();
+    for (let guard = 0; picked.length < 4 && guard < 8; guard++) {
+      let added = false;
+      for (const b of buckets) {
+        while (b.length && (seen.has(glanceName(b[0].move)) || b[0].move.landingVariant)) b.shift();
+        if (!b.length) continue;
+        const row = b.shift();
+        seen.add(glanceName(row.move));
+        picked.push(row);
+        added = true;
+        if (picked.length >= 4) break;
+      }
+      if (!added) break;
+    }
+    const familiar = cannot.filter((row) => groupOf(row.move) <= 2);
+    const missPool = (familiar.length ? familiar : cannot).slice().sort((a, b) => b.adv - a.adv);
+    const miss = missPool[0];
+    const line = (row, nope) => {
+      const name = esc(glanceName(row.move));
+      if (nope) return `<button type="button" class="ex nope" data-id="${esc(row.move.id)}">${attWho}の${name}をガード → シールドを解かずに返すのは間に合いません。</button>`;
+      return `<button type="button" class="ex" data-id="${esc(row.move.id)}">${attWho}の${name}をガード → ${esc(glanceName(row.best.move))}で返せる。${easeWord(row.best.margin)}</button>`;
+    };
+    el.innerHTML = `<p class="say">${say}</p>` + picked.map((row) => line(row, false)).join("") + (miss ? line(miss, true) : "");
   }
 
   function fmtAdv(v) { return v > 0 ? `+${v}` : `${v}`; }
@@ -987,7 +1180,7 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     const a = r.adv;
     const attWho = state.mode === "A" ? "相手" : "自分", defWho = state.mode === "A" ? "自分" : "相手";
     const name = `${esc(shortName(move))}${move.input === "button" ? "［ボタン］" : move.input === "command" && move.category !== "command" ? "［コマンド］" : ""}`;
-    let h = `<div class="sum"><div class="t">${attWho}の ${esc(att.name)}「${name}」${move.material ? "【" + esc(move.material) + "】" : ""}を${defWho}（${esc(def.name)}）がガード${state.ps ? "（ジャストシールド）" : ""}</div>`;
+    let h = `<button type="button" class="backlist" data-act="back">例の一覧に戻る</button><div class="sum"><div class="t">${attWho}の ${esc(att.name)}「${name}」${move.material ? "【" + esc(move.material) + "】" : ""}を${defWho}（${esc(def.name)}）がガード${state.ps ? "（ジャストシールド）" : ""}</div>`;
     if (move.command) h += `<div class="cmd">入力: ${esc(move.command)}${move.commandDerived ? "（シート備考から作成）" : ""}</div>`;
     const hits = C.formatHitboxes(move, state.oo);
     if (hits.text) h += `<div class="cmd">ダメージ ${esc(hits.text)}${state.oo ? "（1on1・基礎×1.2）" : ""}</div>`;
