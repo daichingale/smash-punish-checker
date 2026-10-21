@@ -61,8 +61,10 @@
   }
 
   /** 攻撃側の技をガードしたときのガード側有利F。
-   * primary: 最速判定（多段技は最終段）をガードした場合 / worst: いちばん遅い判定の終わり際をガードした場合 */
-  function shieldAdvantage(move) {
+   * primary: 最速判定（多段技は最終段）をガードした場合 / worst: いちばん遅い判定の終わり際をガードした場合
+   * o.arsene: 真のとき、アルセーヌの段がある技はその段のガード硬直と全体Fを使う。段が無い技は通常のまま */
+  function shieldAdvantage(move, o) {
+    o = o || {};
     if (move.category === "grab") return { ok: false, reason: "つかみはガードできない" };
     if (move.projectile) return { ok: false, reason: "飛び道具（防御側だけにヒットストップ・距離で変わる）のため計算対象外" };
     if (move.specialShield) return { ok: false, reason: "ガードさせた際の特殊仕様がある（シート備考）ため計算対象外" };
@@ -84,8 +86,16 @@
       return { ok: false, reason: why };
     }
     // 通常とアルセーヌが同じ技に並ぶときは、通常の段だけで有利を出す（アルセーヌは内訳だけ）
+    // アルセーヌありのときは、最初のアルセーヌ行から末尾までを使う。下強の持続のように
+    // その行のあとに並ぶ段も、シートに書いてある硬直と全体Fのまま使う（数値は作らない）
+    const arseneAt = rows.findIndex((r) => /アルセーヌ/.test(r.label));
     const baseRows = rows.filter((r) => !/アルセーヌ/.test(r.label));
     let use = baseRows.length && baseRows.length < rows.length ? baseRows : rows;
+    let usedArsene = false;
+    if (o.arsene && arseneAt >= 0) {
+      use = rows.slice(arseneAt);
+      usedArsene = true;
+    }
     // 前と後ろの両方がある技は、密着している正面の段だけを使う
     if (use.some((r) => /（前）/.test(r.label)) && use.some((r) => /（後）/.test(r.label))) {
       use = use.filter((r) => !/（後）/.test(r.label));
@@ -125,15 +135,15 @@
     }));
     const damage = pRow.damage && pRow.damage.length ? maxOf(pRow.damage) : null;
     const total = pRow.total == null ? null : pRow.total;
-    return { ok: true, primary, worst: Math.min(worst, primary), lateUnknown, primaryStun: maxOf(pRow.stun), primaryLabel: pRow.label || "", multiHit: seq, aerial: isAir, landingLag: isAir ? move.landingLag : null, bounceLag: bounce ? bounce.total : null, alt, damage, total, detail, hitboxes, advMin, advMax };
+    return { ok: true, primary, worst: Math.min(worst, primary), lateUnknown, primaryStun: maxOf(pRow.stun), primaryLabel: pRow.label || "", multiHit: seq, aerial: isAir, landingLag: isAir ? move.landingLag : null, bounceLag: bounce ? bounce.total : null, alt, damage, total, detail, hitboxes, advMin, advMax, usedArsene };
   }
 
   /** 表の1行分。読めない値は null（画面では —）。有利は shieldAdvantage と同じ */
-  function listFrames(move) {
+  function listFrames(move, o) {
     const startup = startupOf(move);
     const isAir = move.category === "aerial" || !!move.landingVariant;
     const landing = isAir && move.landingLag != null ? move.landingLag : null;
-    const adv = shieldAdvantage(move);
+    const adv = shieldAdvantage(move, o);
     const activeRows = (move.rows || []).filter((r) => r.active);
     const activeEnd = !activeRows.length || activeRows.some((r) => r.active.open) ? null : Math.max.apply(null, activeRows.map((r) => r.active.end));
     if (!adv.ok) {
@@ -215,7 +225,7 @@
   /** attacker の move をガードした defender の反撃一覧 */
   function evaluate(attacker, move, defender, o) {
     o = o || {};
-    const adv = shieldAdvantage(move);
+    const adv = shieldAdvantage(move, { arsene: !!o.arsene });
     if (!adv.ok) return { adv, list: [] };
     const bonus = o.perfectShield ? PERFECT_SHIELD_BONUS : 0;
     const list = punishOptions(defender, o.defenderMaterial).map((opt) => {
