@@ -7,7 +7,51 @@
 <meta name="theme-color" content="#0e1116" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#f3f5f7" media="(prefers-color-scheme: light)">
 <title>リザルト — スマブラSP 確定反撃チェッカー</title>
-<style>:root{
+<style>/* 4ページ共通のナビ。390px は4列、広い画面は説明文も出す。 */
+.sitenav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;width:100%;max-width:1040px;margin:0 auto;padding:8px 12px 6px;box-sizing:border-box}
+.sitenav .entry{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0;min-height:0;margin:0;padding:6px 4px 7px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text);text-decoration:none;text-align:center}
+.sitenav .ename{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;width:100%;font-size:11px;line-height:1.25;font-weight:800}
+.sitenav .entry small{display:none;color:var(--sub);font-size:12px;font-weight:650;line-height:1.35}
+.sitenav .entry[aria-current="page"]{border-color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent);background:color-mix(in srgb,var(--accent) 18%,var(--card))}
+.sitenav .thumb{display:flex;align-items:center;justify-content:center;gap:3px;width:100%;height:58px;border-radius:8px;background:color-mix(in srgb,var(--bg) 78%,var(--card));overflow:hidden}
+.sitenav .thumb img{width:28px;height:28px;max-width:none;object-fit:contain;flex:none}
+.sitenav .vs{font-size:10px;font-weight:800;color:var(--sub)}
+.thumb-sheet{justify-content:flex-start;padding:3px 4px;gap:3px}
+.sitenav .thumb-sheet > img{width:26px;height:26px}
+.sheet{display:flex;flex-direction:column;justify-content:center;gap:1px;flex:1;min-width:0;font-size:10px;font-weight:750;line-height:1.15;color:var(--text)}
+.sheet span{display:flex;justify-content:space-between;gap:3px;height:auto;background:none;border-radius:0}
+.sheet b{font-variant-numeric:tabular-nums;color:var(--accent);font-weight:800}
+.thumb-tier{flex-direction:column;align-items:stretch;padding:6px 7px;gap:3px}
+.thumb-tier i{display:flex;align-items:center;height:12px;border-radius:3px;font-style:normal;font-size:9px;font-weight:800;line-height:1;padding-left:3px;color:#fff}
+.thumb-tier i:nth-child(1){background:#d64545}
+.thumb-tier i:nth-child(2){background:#e07a2f;width:78%}
+.thumb-tier i:nth-child(3){background:#e0b030;width:56%;color:#1c1404}
+.thumb-top8{flex-direction:column;align-items:stretch;padding:4px 5px;gap:2px}
+.winlabel{align-self:center;font-size:9px;font-weight:800;letter-spacing:.04em;line-height:1.2;color:#fff;background:#e23b4a;border-radius:4px;padding:1px 5px}
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:3px;width:100%}
+.place{display:flex;flex-direction:column;align-items:center;gap:0;min-width:0}
+.place b{font-size:9px;line-height:1;font-weight:800;color:var(--sub)}
+.sitenav .place img{width:20px;height:20px}
+.sitenav .place.p1 img{width:26px;height:26px}
+.place.p1 b{color:var(--text)}
+@media (min-width:900px){
+  .sitenav{gap:8px;padding:10px 12px 8px}
+  .sitenav .entry{align-items:flex-start;text-align:left;padding:8px;border-radius:16px;gap:4px}
+  .sitenav .ename{font-size:15px;-webkit-line-clamp:1}
+  .sitenav .entry small{display:block}
+  .sitenav .thumb{height:104px;border-radius:12px;gap:6px}
+  .sitenav .thumb img,.sitenav .thumb-sheet > img,.sitenav .place.p1 img{width:48px;height:48px}
+  .sitenav .vs{font-size:13px}
+  .sheet{font-size:13px;gap:3px}
+  .thumb-tier{padding:10px 12px;gap:5px}
+  .thumb-tier i{height:16px;font-size:11px;border-radius:4px}
+  .thumb-top8{padding:8px 10px;gap:4px}
+  .winlabel{font-size:12px;padding:2px 8px}
+  .podium{gap:10px}
+  .place b{font-size:12px}
+  .sitenav .place img{width:36px;height:36px}
+}
+:root{
   --bg:#0e1116;--card:#171c24;--line:#313846;--text:#f2f5f8;--sub:#c5ced8;
   --accent:#6cb4ff;--on-accent:#04121f;color-scheme:dark
 }
@@ -24,11 +68,10 @@ button{cursor:pointer}
 a{color:var(--accent)}
 img{max-width:100%}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.headbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:max(8px,env(safe-area-inset-top)) 12px 8px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px)}
-.headbar h1{font-size:16px;margin:0;font-weight:750}
+.headbar{display:flex;flex-direction:column;align-items:stretch;gap:4px;padding:max(8px,env(safe-area-inset-top)) 0 8px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px)}
+.headbar h1{font-size:16px;margin:0;padding:0 12px;font-weight:750}
 .headbar h1 small{display:block;color:var(--sub);font-weight:500;font-size:12px}
-.headlinks{display:flex;gap:6px;flex-wrap:wrap}
-.back{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--text);text-decoration:none;font-weight:750;white-space:nowrap}
+.headbar .sitenav{padding-top:4px}
 .hint,.fine{margin:8px 12px;color:var(--sub);font-size:13px}
 .card{margin:8px 12px;padding:10px;border:1px solid var(--line);border-radius:14px;background:var(--card);min-width:0}
 .card h2{font-size:15px;margin:0 0 8px}
@@ -110,11 +153,7 @@ footer{padding:8px 12px calc(16px + env(safe-area-inset-bottom));color:var(--sub
 <body>
 <header class="headbar">
   <h1>リザルト<small>スマブラSP・試作版</small></h1>
-  <nav class="headlinks" aria-label="ページ">
-    <a class="back" href="table.html">フレーム表</a>
-    <a class="back" href="tier.html">ティア</a>
-    <a class="back" href="index.html">反撃チェック</a>
-  </nav>
+  <nav class="sitenav" aria-label="ページ"><a class="entry" href="index.html"><span class="thumb" aria-hidden="true"><img src="fighters/0/1.webp" alt="" width="64" height="64"><span class="vs">対</span><img src="fighters/1/1.webp" alt="" width="64" height="64"></span><span class="ename">確定反撃チェック</span><small>ガードしたあと、どの技で返せるか</small></a><a class="entry" href="table.html"><span class="thumb thumb-sheet" aria-hidden="true"><img src="fighters/0/1.webp" alt="" width="64" height="64"><span class="sheet"><span>上強<b>5</b></span><span>横強<b>5</b></span><span>空前<b>16</b></span></span></span><span class="ename">技表</span><small>全キャラの技を、発生や有利で見くらべる</small></a><a class="entry" href="tier.html"><span class="thumb thumb-tier" aria-hidden="true"><i>S</i><i>A</i><i>B</i></span><span class="ename">ティアメーカー</span><small>キャラを段に並べて、画像にする</small></a><a class="entry" href="result.html" aria-current="page"><span class="thumb thumb-top8" aria-hidden="true"><span class="winlabel">WINNER</span><span class="podium"><span class="place p1"><img src="fighters/0/1.webp" alt="" width="64" height="64"><b>1</b></span><span class="place"><img src="fighters/1/1.webp" alt="" width="64" height="64"><b>2</b></span><span class="place"><img src="fighters/2/1.webp" alt="" width="64" height="64"><b>3</b></span></span></span><span class="ename">リザルトメーカー</span><small>大会の順位表とTop8の画像を作る</small></a></nav>
 </header>
 <p class="hint">大会名と順位、選手、使用キャラを入れます。下のカードをタップすると、今の入力から画像を作って編集できます。アイコンをタップすると別のキャラに差し替えられます。</p>
 <section class="card" aria-label="大会">

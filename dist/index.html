@@ -9,7 +9,51 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="確定反撃">
 <title>スマブラSP 確定反撃チェッカー（試作）</title>
-<style>:root{
+<style>/* 4ページ共通のナビ。390px は4列、広い画面は説明文も出す。 */
+.sitenav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;width:100%;max-width:1040px;margin:0 auto;padding:8px 12px 6px;box-sizing:border-box}
+.sitenav .entry{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0;min-height:0;margin:0;padding:6px 4px 7px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text);text-decoration:none;text-align:center}
+.sitenav .ename{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;width:100%;font-size:11px;line-height:1.25;font-weight:800}
+.sitenav .entry small{display:none;color:var(--sub);font-size:12px;font-weight:650;line-height:1.35}
+.sitenav .entry[aria-current="page"]{border-color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent);background:color-mix(in srgb,var(--accent) 18%,var(--card))}
+.sitenav .thumb{display:flex;align-items:center;justify-content:center;gap:3px;width:100%;height:58px;border-radius:8px;background:color-mix(in srgb,var(--bg) 78%,var(--card));overflow:hidden}
+.sitenav .thumb img{width:28px;height:28px;max-width:none;object-fit:contain;flex:none}
+.sitenav .vs{font-size:10px;font-weight:800;color:var(--sub)}
+.thumb-sheet{justify-content:flex-start;padding:3px 4px;gap:3px}
+.sitenav .thumb-sheet > img{width:26px;height:26px}
+.sheet{display:flex;flex-direction:column;justify-content:center;gap:1px;flex:1;min-width:0;font-size:10px;font-weight:750;line-height:1.15;color:var(--text)}
+.sheet span{display:flex;justify-content:space-between;gap:3px;height:auto;background:none;border-radius:0}
+.sheet b{font-variant-numeric:tabular-nums;color:var(--accent);font-weight:800}
+.thumb-tier{flex-direction:column;align-items:stretch;padding:6px 7px;gap:3px}
+.thumb-tier i{display:flex;align-items:center;height:12px;border-radius:3px;font-style:normal;font-size:9px;font-weight:800;line-height:1;padding-left:3px;color:#fff}
+.thumb-tier i:nth-child(1){background:#d64545}
+.thumb-tier i:nth-child(2){background:#e07a2f;width:78%}
+.thumb-tier i:nth-child(3){background:#e0b030;width:56%;color:#1c1404}
+.thumb-top8{flex-direction:column;align-items:stretch;padding:4px 5px;gap:2px}
+.winlabel{align-self:center;font-size:9px;font-weight:800;letter-spacing:.04em;line-height:1.2;color:#fff;background:#e23b4a;border-radius:4px;padding:1px 5px}
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:3px;width:100%}
+.place{display:flex;flex-direction:column;align-items:center;gap:0;min-width:0}
+.place b{font-size:9px;line-height:1;font-weight:800;color:var(--sub)}
+.sitenav .place img{width:20px;height:20px}
+.sitenav .place.p1 img{width:26px;height:26px}
+.place.p1 b{color:var(--text)}
+@media (min-width:900px){
+  .sitenav{gap:8px;padding:10px 12px 8px}
+  .sitenav .entry{align-items:flex-start;text-align:left;padding:8px;border-radius:16px;gap:4px}
+  .sitenav .ename{font-size:15px;-webkit-line-clamp:1}
+  .sitenav .entry small{display:block}
+  .sitenav .thumb{height:104px;border-radius:12px;gap:6px}
+  .sitenav .thumb img,.sitenav .thumb-sheet > img,.sitenav .place.p1 img{width:48px;height:48px}
+  .sitenav .vs{font-size:13px}
+  .sheet{font-size:13px;gap:3px}
+  .thumb-tier{padding:10px 12px;gap:5px}
+  .thumb-tier i{height:16px;font-size:11px;border-radius:4px}
+  .thumb-top8{padding:8px 10px;gap:4px}
+  .winlabel{font-size:12px;padding:2px 8px}
+  .podium{gap:10px}
+  .place b{font-size:12px}
+  .sitenav .place img{width:36px;height:36px}
+}
+:root{
   --bg:#0e1116;--card:#171c24;--line:#313846;--text:#f2f5f8;--sub:#c5ced8;
   --accent:#6cb4ff;--on-accent:#04121f;--sure:#3ddc84;--on-sure:#04210f;
   --range:#f5b942;--on-range:#1c1404;--no:#5c6775;--on-no:#f4f6f8;
@@ -35,35 +79,10 @@ button{cursor:pointer}
 .sitehead{padding:max(8px,env(safe-area-inset-top)) 12px 0}
 header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:8px 12px}
 .titlebar{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.navs{display:flex;gap:6px;flex:none;flex-wrap:wrap}
 h1{font-size:18px;margin:0;font-weight:750;letter-spacing:.01em}
-.navlink{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--text);text-decoration:none;font-size:14px;font-weight:750;white-space:nowrap}
 h1 small{display:block;color:var(--sub);font-weight:500;font-size:12px;margin-top:1px}
-.home{padding:10px 12px 4px}
-.entries{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.entry{display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:100%;min-height:132px;padding:8px;border-radius:16px;border:1px solid var(--line);background:var(--card);color:inherit;text-decoration:none;text-align:left}
-.entry.current{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
-.entry b{font-size:15px;line-height:1.25;font-weight:800}
-.entry small{color:var(--sub);font-size:12px;font-weight:650;line-height:1.35}
-.thumb{display:flex;align-items:center;justify-content:center;gap:4px;width:100%;height:64px;border-radius:12px;background:color-mix(in srgb,var(--bg) 78%,var(--card));overflow:hidden}
-.thumb img{width:48px;height:48px;object-fit:contain}
-.thumb-vs{font-size:12px;font-weight:800;color:var(--sub)}
-.thumb-table{display:grid;grid-template-columns:1.4fr .8fr;gap:6px;padding:10px}
-.thumb-table span{display:block;height:16px;border-radius:4px;background:var(--line)}
-.thumb-table span:first-child{background:var(--accent)}
-.thumb-tier,.thumb-result{flex-direction:column;align-items:stretch;padding:8px 10px;gap:4px}
-.thumb-tier i,.thumb-result i{display:block;height:14px;border-radius:4px;font-style:normal;font-size:10px;font-weight:800;line-height:14px;padding-left:4px;color:#fff}
-.thumb-tier i:nth-child(1){background:#d64545}
-.thumb-tier i:nth-child(2){background:#e07a2f;width:78%}
-.thumb-tier i:nth-child(3){background:#e0b030;width:56%;color:#1c1404}
-.thumb-result i:nth-child(1){background:var(--accent);width:100%}
-.thumb-result i:nth-child(2){background:var(--accent);width:74%;opacity:.72}
-.thumb-result i:nth-child(3){background:var(--accent);width:52%;opacity:.45}
 @media (min-width:900px){
   .wrap{max-width:1040px}
-  .entries{grid-template-columns:repeat(4,1fr)}
-  .entry{min-height:168px}
-  .thumb{height:84px}
 }
 .pick{display:grid;grid-template-columns:1fr 44px 1fr;gap:6px;align-items:end}
 .lab{display:block;font-size:12px;font-weight:750;color:var(--sub);margin-bottom:3px}
@@ -206,35 +225,9 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
 <div class="sitehead">
   <div class="wrap titlebar">
     <h1>スマブラSP<small>はじめてでも、選んですぐ試せます</small></h1>
-    <nav class="navs" aria-label="ページ"><a class="navlink" href="table.html">フレーム表</a><a class="navlink" href="tier.html">ティア</a><a class="navlink" href="result.html">リザルト</a></nav>
   </div>
 </div>
-<section class="home" aria-label="できること">
-  <div class="wrap">
-    <div class="entries">
-      <button type="button" class="entry current" id="gotoCheck" aria-current="page">
-        <span class="thumb" aria-hidden="true"><img src="fighters/0/1.webp" alt="" width="48" height="48"><span class="thumb-vs">対</span><img src="fighters/1/1.webp" alt="" width="48" height="48"></span>
-        <b>確定反撃チェック</b>
-        <small>ガードしたあと、どの技で返せるか</small>
-      </button>
-      <a class="entry" href="table.html">
-        <span class="thumb thumb-table" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
-        <b>技表</b>
-        <small>全キャラの技を、発生や有利で見くらべる</small>
-      </a>
-      <a class="entry" href="tier.html">
-        <span class="thumb thumb-tier" aria-hidden="true"><i>S</i><i>A</i><i>B</i></span>
-        <b>ティアメーカー</b>
-        <small>キャラを段に並べて、画像にする</small>
-      </a>
-      <a class="entry" href="result.html">
-        <span class="thumb thumb-result" aria-hidden="true"><i></i><i></i><i></i></span>
-        <b>リザルトメーカー</b>
-        <small>大会の順位表とTop8の画像を作る</small>
-      </a>
-    </div>
-  </div>
-</section>
+<nav class="sitenav" aria-label="ページ"><a class="entry" href="index.html" aria-current="page"><span class="thumb" aria-hidden="true"><img src="fighters/0/1.webp" alt="" width="64" height="64"><span class="vs">対</span><img src="fighters/1/1.webp" alt="" width="64" height="64"></span><span class="ename">確定反撃チェック</span><small>ガードしたあと、どの技で返せるか</small></a><a class="entry" href="table.html"><span class="thumb thumb-sheet" aria-hidden="true"><img src="fighters/0/1.webp" alt="" width="64" height="64"><span class="sheet"><span>上強<b>5</b></span><span>横強<b>5</b></span><span>空前<b>16</b></span></span></span><span class="ename">技表</span><small>全キャラの技を、発生や有利で見くらべる</small></a><a class="entry" href="tier.html"><span class="thumb thumb-tier" aria-hidden="true"><i>S</i><i>A</i><i>B</i></span><span class="ename">ティアメーカー</span><small>キャラを段に並べて、画像にする</small></a><a class="entry" href="result.html"><span class="thumb thumb-top8" aria-hidden="true"><span class="winlabel">WINNER</span><span class="podium"><span class="place p1"><img src="fighters/0/1.webp" alt="" width="64" height="64"><b>1</b></span><span class="place"><img src="fighters/1/1.webp" alt="" width="64" height="64"><b>2</b></span><span class="place"><img src="fighters/2/1.webp" alt="" width="64" height="64"><b>3</b></span></span></span><span class="ename">リザルトメーカー</span><small>大会の順位表とTop8の画像を作る</small></a></nav>
 <header id="top">
   <div class="wrap">
     <div class="pick" id="checker">
@@ -802,11 +795,6 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     applyHash();
     $("meBtn").onclick = () => openPicker("me");
     $("oppBtn").onclick = () => openPicker("opp");
-    $("gotoCheck").onclick = () => {
-      const behavior = matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
-      $("top").scrollIntoView({ behavior: behavior, block: "start" });
-      $("meBtn").focus({ preventScroll: true });
-    };
     $("glance").onclick = (e) => {
       const b = e.target.closest(".ex");
       if (!b) return;
