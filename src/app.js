@@ -100,11 +100,6 @@
     applyHash();
     $("meBtn").onclick = () => openPicker("me");
     $("oppBtn").onclick = () => openPicker("opp");
-    $("gotoCheck").onclick = () => {
-      const behavior = matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
-      $("top").scrollIntoView({ behavior: behavior, block: "start" });
-      $("meBtn").focus({ preventScroll: true });
-    };
     $("glance").onclick = (e) => {
       const b = e.target.closest(".ex");
       if (!b) return;

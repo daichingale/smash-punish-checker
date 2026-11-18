@@ -8,16 +8,52 @@
 - dist/manifest.webmanifest, icon.svg, sw.js: ホーム画面追加とオフライン用（ネットワーク優先）"""
 import hashlib, json, pathlib, re, shutil
 ROOT = pathlib.Path(__file__).resolve().parent.parent
+
+def sitenav(current):
+    """4ページ共通。current のリンクだけ aria-current=page。画像は表示用WebP（200px）で、CSS上は半分以下なので2倍でも粗い拡大にならない。"""
+    check = (
+        '<span class="thumb" aria-hidden="true">'
+        '<img src="fighters/0/1.webp" alt="" width="64" height="64">'
+        '<span class="vs">対</span>'
+        '<img src="fighters/1/1.webp" alt="" width="64" height="64"></span>'
+    )
+    sheet = (
+        '<span class="thumb thumb-sheet" aria-hidden="true">'
+        '<img src="fighters/0/1.webp" alt="" width="64" height="64">'
+        '<span class="sheet"><span>上強<b>5</b></span><span>横強<b>5</b></span><span>空前<b>16</b></span></span></span>'
+    )
+    tier = '<span class="thumb thumb-tier" aria-hidden="true"><i>S</i><i>A</i><i>B</i></span>'
+    top8 = (
+        '<span class="thumb thumb-top8" aria-hidden="true">'
+        '<span class="winlabel">WINNER</span><span class="podium">'
+        '<span class="place p1"><img src="fighters/0/1.webp" alt="" width="64" height="64"><b>1</b></span>'
+        '<span class="place"><img src="fighters/1/1.webp" alt="" width="64" height="64"><b>2</b></span>'
+        '<span class="place"><img src="fighters/2/1.webp" alt="" width="64" height="64"><b>3</b></span>'
+        '</span></span>'
+    )
+    pages = [
+        ("index", "index.html", "確定反撃チェック", "ガードしたあと、どの技で返せるか", check),
+        ("table", "table.html", "技表", "全キャラの技を、発生や有利で見くらべる", sheet),
+        ("tier", "tier.html", "ティアメーカー", "キャラを段に並べて、画像にする", tier),
+        ("result", "result.html", "リザルトメーカー", "大会の順位表とTop8の画像を作る", top8),
+    ]
+    items = []
+    for key, href, title, blurb, thumb in pages:
+        cur = ' aria-current="page"' if key == current else ""
+        items.append(f'<a class="entry" href="{href}"{cur}>{thumb}<span class="ename">{title}</span><small>{blurb}</small></a>')
+    return '<nav class="sitenav" aria-label="ページ">' + "".join(items) + "</nav>"
+
 src, data, dist = ROOT / "src", ROOT / "data", ROOT / "dist"
 dist.mkdir(exist_ok=True)
-html = (src / "index.html").read_text(encoding="utf-8")
-css = (src / "style.css").read_text(encoding="utf-8")
+html = (src / "index.html").read_text(encoding="utf-8").replace("<!--NAV-->", sitenav("index"))
+nav_css = (src / "nav.css").read_text(encoding="utf-8")
+css = nav_css + (src / "style.css").read_text(encoding="utf-8")
 calc = (src / "calc.js").read_text(encoding="utf-8")
 names = (src / "names.js").read_text(encoding="utf-8")
 app = (src / "app.js").read_text(encoding="utf-8")
 table_js = (src / "table.js").read_text(encoding="utf-8")
 table_page = (src / "table-page.js").read_text(encoding="utf-8")
-table_css = (src / "table.css").read_text(encoding="utf-8")
+table_css = nav_css + (src / "table.css").read_text(encoding="utf-8")
 d = json.loads((data / "data.json").read_text(encoding="utf-8"))
 # 画面で使わない生値・備考を落として軽くする（data.json 側はデバッグ用に残す）
 for c in d["chars"]:
@@ -32,25 +68,25 @@ html = re.sub(r"<!--DATA-->.*?<!--/DATA-->", lambda m: f"<script>window.__DATA__
 html = re.sub(r"<!--SCRIPTS-->.*?<!--/SCRIPTS-->", lambda m: f"<script>{calc}</script><script>{names}</script><script>{app}</script>", html, flags=re.S)
 (dist / "index.html").write_text(html, encoding="utf-8")
 (dist / "data.json").write_text(blob, encoding="utf-8")
-table = (src / "table.html").read_text(encoding="utf-8")
+table = (src / "table.html").read_text(encoding="utf-8").replace("<!--NAV-->", sitenav("table"))
 table = re.sub(r"<!--STYLE-->.*?<!--/STYLE-->", lambda m: f"<style>{table_css}</style>", table, flags=re.S)
 table = re.sub(r"<!--SCRIPTS-->.*?<!--/SCRIPTS-->", lambda m: f"<script>{calc}</script><script>{names}</script><script>{table_js}</script><script>{table_page}</script>", table, flags=re.S)
 (dist / "table.html").write_text(table, encoding="utf-8")
-tier_css = (src / "tier.css").read_text(encoding="utf-8")
+tier_css = nav_css + (src / "tier.css").read_text(encoding="utf-8")
 tier_js = (src / "tier.js").read_text(encoding="utf-8")
 tier_page = (src / "tier-page.js").read_text(encoding="utf-8")
 roster = json.dumps([{"name": c["name"], "sheetTab": c["sheetTab"]} for c in d["chars"]], ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
-tier = (src / "tier.html").read_text(encoding="utf-8")
+tier = (src / "tier.html").read_text(encoding="utf-8").replace("<!--NAV-->", sitenav("tier"))
 tier = re.sub(r"<!--STYLE-->.*?<!--/STYLE-->", lambda m: f"<style>{tier_css}</style>", tier, flags=re.S)
 tier = re.sub(r"<!--DATA-->.*?<!--/DATA-->", lambda m: f"<script>window.__ROSTER__={roster};</script>", tier, flags=re.S)
 preview_js = (src / "preview.js").read_text(encoding="utf-8")
 frame_js = (src / "frame.js").read_text(encoding="utf-8")
 tier = re.sub(r"<!--SCRIPTS-->.*?<!--/SCRIPTS-->", lambda m: f"<script>{names}</script><script>{tier_js}</script><script>{preview_js}</script><script>{tier_page}</script>", tier, flags=re.S)
 (dist / "tier.html").write_text(tier, encoding="utf-8")
-result_css = (src / "result.css").read_text(encoding="utf-8")
+result_css = nav_css + (src / "result.css").read_text(encoding="utf-8")
 result_js = (src / "result.js").read_text(encoding="utf-8")
 result_page = (src / "result-page.js").read_text(encoding="utf-8")
-result = (src / "result.html").read_text(encoding="utf-8")
+result = (src / "result.html").read_text(encoding="utf-8").replace("<!--NAV-->", sitenav("result"))
 result = re.sub(r"<!--STYLE-->.*?<!--/STYLE-->", lambda m: f"<style>{result_css}</style>", result, flags=re.S)
 result = re.sub(r"<!--DATA-->.*?<!--/DATA-->", lambda m: f"<script>window.__ROSTER__={roster};</script>", result, flags=re.S)
 focus = (ROOT / "data" / "focus.json").read_text(encoding="utf-8").replace("</", "<\\/")
