@@ -1,6 +1,7 @@
 /* 全技表の行・ソート・プリセット。ブラウザ / Node 共通。計算は calc.js を使う */
 (function (root) {
   "use strict";
+  const Mii = root.MiiSlots || require("./mii.js");
   const KIND_LABEL = { tilt: "弱・強", smash: "スマッシュ", air: "空中", special: "必殺", command: "コマンド", grab: "つかみ" };
   const KIND_IDS = Object.keys(KIND_LABEL);
   const PLACE_LABEL = { ground: "地上", air: "空中" };
@@ -72,7 +73,7 @@
         rows.push({
           order: order++, ci, id: m.id, char: ch.name, name, kind, place,
           group: groupIndex(m), material: m.material || "", command: m.command || "",
-          slotGroup: m.group || "", sub: subLine(m, place),
+          slotGroup: m.group || "", miiSlot: Mii.miiSlot(m), sub: subLine(m, place),
           hay: norm(name + " " + (m.command || "") + " " + (m.material || "")),
           startup: f.startup, activeEnd: f.activeEnd, total: f.total, landing: f.landing,
           parts, damageMax: span.max, damageMin: span.min, damage: span.max,
@@ -171,6 +172,9 @@
       const set = new Set(q.kinds);
       out = out.filter((r) => set.has(r.kind));
     }
+    if (q.slot && Mii.SLOT_IDS.indexOf(q.slot) >= 0) {
+      out = out.filter((r) => r.miiSlot == null || r.miiSlot === q.slot);
+    }
     if (q.place === "air" || q.place === "ground") out = out.filter((r) => r.place === q.place);
     if (q.text) {
       const n = norm(q.text);
@@ -199,7 +203,9 @@
     const ooRaw = q.get("oo");
     const oo = ooRaw === "1" ? true : ooRaw === "0" ? false : null;
     const arsene = q.get("ars") === "1";
-    return { sort, dir, preset, kinds, place, chars, text: q.get("q") || "", vs, dmg, oo, arsene };
+    const slotRaw = q.get("slot") || "";
+    const slot = Mii.SLOT_IDS.indexOf(slotRaw) >= 0 ? slotRaw : "";
+    return { sort, dir, preset, kinds, place, chars, text: q.get("q") || "", vs, dmg, oo, arsene, slot };
   }
   function serialize(s) {
     const p = new URLSearchParams();
@@ -215,6 +221,7 @@
     if (s.oo === true) p.set("oo", "1");
     else if (s.oo === false) p.set("oo", "0");
     if (s.arsene) p.set("ars", "1");
+    if (s.slot && Mii.SLOT_IDS.indexOf(s.slot) >= 0) p.set("slot", s.slot);
     return p.toString();
   }
 

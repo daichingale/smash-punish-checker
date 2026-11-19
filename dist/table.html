@@ -93,6 +93,8 @@ a{color:var(--accent)}
 .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
 .chips button{flex:0 0 auto;min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);white-space:nowrap}
 .chips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:750}
+#slots.chips{flex-wrap:wrap;overflow:visible}
+#slots[hidden]{display:none}
 #ars[hidden]{display:none}
 #ars{align-items:center}
 .picked{display:flex;gap:6px;overflow-x:auto}
@@ -158,6 +160,7 @@ body.noscroll{overflow:hidden}
   </div>
   <div id="presets" class="chips" role="toolbar" aria-label="ランキング"></div>
   <div id="kinds" class="chips" role="toolbar" aria-label="技の種類"></div>
+  <div id="slots" class="chips" role="toolbar" aria-label="Miiの必殺番号" hidden></div>
   <div id="places" class="chips" role="toolbar" aria-label="地上か空中か"></div>
   <div class="frow oo">
     <div id="dmgAgg" class="chips" role="toolbar" aria-label="ダメージの並べ方"></div>
@@ -540,9 +543,72 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.Names = api;
 })(typeof window !== "undefined" ? window : globalThis);
+</script><script>/* Miiファイターの必殺番号。シートの group（NB1 / 横B2 / 上B3 / 下B1）が
+ * 1〜3 で確定できるときだけ番号を付ける。技名と group が食い違うときは付けない。
+ * 番号が無い技は絞り込みでも残す（その他）。
+ */
+(function (root) {
+  "use strict";
+  const SLOT_RE = /^(NB|横B|上B|下B)([1-3])(?!\d)/;
+  const DIR_CODE = { NB: "n", "横B": "s", "上B": "u", "下B": "d" };
+  const DIRS = [["n", "通常"], ["s", "横"], ["u", "上"], ["d", "下"]];
+  const MII_NAMES = ["格闘Mii", "剣術Mii", "射撃Mii"];
+  const SLOTS = [];
+  for (let d = 0; d < DIRS.length; d++) {
+    for (let n = 1; n <= 3; n++) {
+      const code = DIRS[d][0];
+      SLOTS.push({ id: code + n, dir: code, num: n, dirLabel: DIRS[d][1], label: DIRS[d][1] + n });
+    }
+  }
+  const SLOT_IDS = SLOTS.map((s) => s.id);
+
+  function parseSlot(text) {
+    const m = SLOT_RE.exec(String(text == null ? "" : text).trim());
+    return m ? DIR_CODE[m[1]] + m[2] : null;
+  }
+  /** 必殺番号。確実なときだけ "n1" / "s2" / "u3" / "d1"。それ以外は null */
+  function miiSlot(move) {
+    if (!move || typeof move !== "object") return null;
+    const groupText = move.group != null ? move.group : move.slotGroup;
+    const hasGroup = groupText != null && String(groupText) !== "";
+    const fromGroup = parseSlot(groupText);
+    const fromName = parseSlot(move.name);
+    if (fromGroup && fromName && fromGroup !== fromName) return null;
+    if (fromGroup) return fromGroup;
+    if (!hasGroup) return fromName;
+    return null;
+  }
+  function isMiiName(name) {
+    return MII_NAMES.indexOf(name) >= 0;
+  }
+  function slotLabel(id) {
+    for (let i = 0; i < SLOTS.length; i++) if (SLOTS[i].id === id) return SLOTS[i].label;
+    return "";
+  }
+  /** 同じチップをもう一度押すと解除。未知の id は今の選択を変えない */
+  function toggleSlot(current, id) {
+    const cur = SLOT_IDS.indexOf(current) >= 0 ? current : "";
+    if (SLOT_IDS.indexOf(id) < 0) return cur;
+    return cur === id ? "" : id;
+  }
+  /** 番号が無い技は残す。slot が空や未知なら絞らない */
+  function filterBySlot(moves, slot) {
+    const list = moves || [];
+    if (!slot || SLOT_IDS.indexOf(slot) < 0) return list.slice();
+    return list.filter((m) => {
+      const s = miiSlot(m);
+      return s == null || s === slot;
+    });
+  }
+
+  const api = { SLOTS, SLOT_IDS, MII_NAMES, miiSlot, isMiiName, slotLabel, toggleSlot, filterBySlot };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else root.MiiSlots = api;
+})(typeof window !== "undefined" ? window : globalThis);
 </script><script>/* 全技表の行・ソート・プリセット。ブラウザ / Node 共通。計算は calc.js を使う */
 (function (root) {
   "use strict";
+  const Mii = root.MiiSlots || require("./mii.js");
   const KIND_LABEL = { tilt: "弱・強", smash: "スマッシュ", air: "空中", special: "必殺", command: "コマンド", grab: "つかみ" };
   const KIND_IDS = Object.keys(KIND_LABEL);
   const PLACE_LABEL = { ground: "地上", air: "空中" };
@@ -614,7 +680,7 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
         rows.push({
           order: order++, ci, id: m.id, char: ch.name, name, kind, place,
           group: groupIndex(m), material: m.material || "", command: m.command || "",
-          slotGroup: m.group || "", sub: subLine(m, place),
+          slotGroup: m.group || "", miiSlot: Mii.miiSlot(m), sub: subLine(m, place),
           hay: norm(name + " " + (m.command || "") + " " + (m.material || "")),
           startup: f.startup, activeEnd: f.activeEnd, total: f.total, landing: f.landing,
           parts, damageMax: span.max, damageMin: span.min, damage: span.max,
@@ -713,6 +779,9 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
       const set = new Set(q.kinds);
       out = out.filter((r) => set.has(r.kind));
     }
+    if (q.slot && Mii.SLOT_IDS.indexOf(q.slot) >= 0) {
+      out = out.filter((r) => r.miiSlot == null || r.miiSlot === q.slot);
+    }
     if (q.place === "air" || q.place === "ground") out = out.filter((r) => r.place === q.place);
     if (q.text) {
       const n = norm(q.text);
@@ -741,7 +810,9 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     const ooRaw = q.get("oo");
     const oo = ooRaw === "1" ? true : ooRaw === "0" ? false : null;
     const arsene = q.get("ars") === "1";
-    return { sort, dir, preset, kinds, place, chars, text: q.get("q") || "", vs, dmg, oo, arsene };
+    const slotRaw = q.get("slot") || "";
+    const slot = Mii.SLOT_IDS.indexOf(slotRaw) >= 0 ? slotRaw : "";
+    return { sort, dir, preset, kinds, place, chars, text: q.get("q") || "", vs, dmg, oo, arsene, slot };
   }
   function serialize(s) {
     const p = new URLSearchParams();
@@ -757,6 +828,7 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     if (s.oo === true) p.set("oo", "1");
     else if (s.oo === false) p.set("oo", "0");
     if (s.arsene) p.set("ars", "1");
+    if (s.slot && Mii.SLOT_IDS.indexOf(s.slot) >= 0) p.set("slot", s.slot);
     return p.toString();
   }
 
@@ -773,6 +845,7 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
   const T = window.FrameTable;
   const N = window.Names;
   const C = window.PunishCalc;
+  const Mii = window.MiiSlots;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const COLS = [
@@ -831,6 +904,7 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     if (rows.length && view.length !== rows.length) bits[0] += ` / ${rows.length}`;
     const preset = T.PRESET_BY_ID[state.preset];
     if (preset) bits.push(preset.label);
+    if (state.slot) bits.push("必殺 " + Mii.slotLabel(state.slot));
     bits.push(state.vs == null ? "確定数は全キャラ平均" : "確定数は対 " + (chars[state.vs] ? chars[state.vs].name : ""));
     bits.push(state.oo ? "1on1補正あり（ダメージ×1.2）" : "1on1補正なし（基礎ダメージ）");
     const showArs = jokerInView();
@@ -842,6 +916,7 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     $("ooOn").setAttribute("aria-pressed", state.oo ? "true" : "false");
     $("arsOff").setAttribute("aria-pressed", state.arsene ? "false" : "true");
     $("arsOn").setAttribute("aria-pressed", state.arsene ? "true" : "false");
+    renderSlots();
     document.querySelectorAll('a[href^="index.html"]').forEach((a) => {
       const p = new URLSearchParams();
       p.set("oo", state.oo ? "1" : "0");
@@ -894,7 +969,18 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     if (r.material) p.set("mo", r.material);
     p.set("oo", state.oo ? "1" : "0");
     if (state.arsene && r.char === "ジョーカー") p.set("ars", "1");
+    if (state.slot) p.set("slot", state.slot);
     return "index.html#" + p.toString();
+  }
+  function selectionHasMii() {
+    return state.chars.some((i) => chars[i] && Mii.isMiiName(chars[i].name));
+  }
+  function renderSlots() {
+    const el = $("slots");
+    const on = selectionHasMii();
+    el.hidden = !on;
+    if (!on) { el.innerHTML = ""; return; }
+    el.innerHTML = `<span class="oolab">必殺番号</span>` + Mii.SLOTS.map((s) => `<button type="button" data-slot="${s.id}" aria-pressed="${state.slot === s.id}" aria-label="${esc(s.label)}">${esc(s.label)}</button>`).join("");
   }
   function jokerInView() {
     const ji = chars.findIndex((c) => c.name === "ジョーカー");
@@ -912,6 +998,7 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
   function apply(scrollTop) {
     if (state.vs != null && (state.vs < 0 || state.vs >= chars.length)) state.vs = null;
     state.chars = state.chars.filter((i) => chars[i]);
+    if (!selectionHasMii()) state.slot = "";
     rememberOo(state.oo);
     ensureRows();
     if (sureMode !== state.vs) { T.fillSure(rows, needs, state.vs); sureMode = state.vs; }
@@ -937,6 +1024,11 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
       const k = b.dataset.kind;
       const i = state.kinds.indexOf(k);
       if (i >= 0) state.kinds.splice(i, 1); else state.kinds.push(k);
+      pushNext = true; apply(true);
+    };
+    $("slots").onclick = (e) => {
+      const b = e.target.closest("[data-slot]"); if (!b) return;
+      state.slot = Mii.toggleSlot(state.slot, b.dataset.slot);
       pushNext = true; apply(true);
     };
     $("places").onclick = (e) => {

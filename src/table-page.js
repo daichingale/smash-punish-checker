@@ -4,6 +4,7 @@
   const T = window.FrameTable;
   const N = window.Names;
   const C = window.PunishCalc;
+  const Mii = window.MiiSlots;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const COLS = [
@@ -62,6 +63,7 @@
     if (rows.length && view.length !== rows.length) bits[0] += ` / ${rows.length}`;
     const preset = T.PRESET_BY_ID[state.preset];
     if (preset) bits.push(preset.label);
+    if (state.slot) bits.push("必殺 " + Mii.slotLabel(state.slot));
     bits.push(state.vs == null ? "確定数は全キャラ平均" : "確定数は対 " + (chars[state.vs] ? chars[state.vs].name : ""));
     bits.push(state.oo ? "1on1補正あり（ダメージ×1.2）" : "1on1補正なし（基礎ダメージ）");
     const showArs = jokerInView();
@@ -73,6 +75,7 @@
     $("ooOn").setAttribute("aria-pressed", state.oo ? "true" : "false");
     $("arsOff").setAttribute("aria-pressed", state.arsene ? "false" : "true");
     $("arsOn").setAttribute("aria-pressed", state.arsene ? "true" : "false");
+    renderSlots();
     document.querySelectorAll('a[href^="index.html"]').forEach((a) => {
       const p = new URLSearchParams();
       p.set("oo", state.oo ? "1" : "0");
@@ -125,7 +128,18 @@
     if (r.material) p.set("mo", r.material);
     p.set("oo", state.oo ? "1" : "0");
     if (state.arsene && r.char === "ジョーカー") p.set("ars", "1");
+    if (state.slot) p.set("slot", state.slot);
     return "index.html#" + p.toString();
+  }
+  function selectionHasMii() {
+    return state.chars.some((i) => chars[i] && Mii.isMiiName(chars[i].name));
+  }
+  function renderSlots() {
+    const el = $("slots");
+    const on = selectionHasMii();
+    el.hidden = !on;
+    if (!on) { el.innerHTML = ""; return; }
+    el.innerHTML = `<span class="oolab">必殺番号</span>` + Mii.SLOTS.map((s) => `<button type="button" data-slot="${s.id}" aria-pressed="${state.slot === s.id}" aria-label="${esc(s.label)}">${esc(s.label)}</button>`).join("");
   }
   function jokerInView() {
     const ji = chars.findIndex((c) => c.name === "ジョーカー");
@@ -143,6 +157,7 @@
   function apply(scrollTop) {
     if (state.vs != null && (state.vs < 0 || state.vs >= chars.length)) state.vs = null;
     state.chars = state.chars.filter((i) => chars[i]);
+    if (!selectionHasMii()) state.slot = "";
     rememberOo(state.oo);
     ensureRows();
     if (sureMode !== state.vs) { T.fillSure(rows, needs, state.vs); sureMode = state.vs; }
@@ -168,6 +183,11 @@
       const k = b.dataset.kind;
       const i = state.kinds.indexOf(k);
       if (i >= 0) state.kinds.splice(i, 1); else state.kinds.push(k);
+      pushNext = true; apply(true);
+    };
+    $("slots").onclick = (e) => {
+      const b = e.target.closest("[data-slot]"); if (!b) return;
+      state.slot = Mii.toggleSlot(state.slot, b.dataset.slot);
       pushNext = true; apply(true);
     };
     $("places").onclick = (e) => {
