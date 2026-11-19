@@ -2,9 +2,10 @@
 (function () {
   "use strict";
   const C = window.PunishCalc;
+  const Mii = window.MiiSlots;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const state = { me: 0, opp: 0, mode: "A", moveId: null, ps: false, oo: false, arsene: false, mat: {}, group: 0 };
+  const state = { me: 0, opp: 0, mode: "A", moveId: null, ps: false, oo: false, arsene: false, mat: {}, group: 0, slot: "" };
   const OO_KEY = "punish.oo";
   let D, pushNext = false, overlay = null;
 
@@ -28,6 +29,8 @@
   };
 
   function attackerChar() { return D.chars[state.mode === "A" ? state.opp : state.me]; }
+  function attackerIsMii() { return Mii.isMiiName(attackerChar().name); }
+  function specialGroupIndex() { return GROUPS.findIndex((g) => g[0] === "必殺"); }
   function defenderChar() { return D.chars[state.mode === "A" ? state.me : state.opp]; }
   function matOf(idx) { const c = D.chars[idx]; return c.materials.length ? (state.mat[idx] || c.materials[1] || c.materials[0]) : null; }
   function visibleMoves() {
@@ -63,6 +66,8 @@
     const g = q.get("g");
     if (g != null && /^\d$/.test(g) && +g < GROUPS.length) state.group = +g;
     else if (state.moveId) state.group = groupOf(att.moves.find((m) => m.id === state.moveId));
+    const slot = q.get("slot") || "";
+    state.slot = Mii.SLOT_IDS.indexOf(slot) >= 0 ? slot : "";
     scrollToResult = !!state.moveId;
   }
   function hashString() {
@@ -78,6 +83,7 @@
     const meC = D.chars[state.me], oppC = D.chars[state.opp];
     if (meC.materials.length) p.set("mm", matOf(state.me));
     if (oppC.materials.length) p.set("mo", matOf(state.opp));
+    if (state.slot && attackerIsMii()) p.set("slot", state.slot);
     return p.toString();
   }
   function writeHash() {
@@ -130,6 +136,11 @@
     $("ars").onclick = (e) => { const b = e.target.closest("[data-ars]"); if (b) setArs(b.dataset.ars === "1"); };
     $("arsDock").onclick = (e) => { const b = e.target.closest("[data-ars]"); if (b) setArs(b.dataset.ars === "1"); };
     $("flip").onclick = () => setMode(state.mode === "A" ? "B" : "A");
+    $("slots").onclick = (e) => {
+      const b = e.target.closest("[data-slot]");
+      if (!b) return;
+      setSlot(b.dataset.slot);
+    };
     $("detailBtn").onclick = openSheet;
     $("sheetBack").onclick = dismissOverlay;
     $("sheetClose").onclick = dismissOverlay;
@@ -206,6 +217,17 @@
     pushNext = true;
     render();
   }
+  function setSlot(id) {
+    const next = Mii.toggleSlot(state.slot, id);
+    if (next === state.slot) return;
+    state.slot = next;
+    if (next) {
+      const gi = specialGroupIndex();
+      if (gi >= 0) state.group = gi;
+    }
+    pushNext = true;
+    render();
+  }
 
   const norm = window.Names.norm;
   const charNo = window.Names.charNo;
@@ -279,6 +301,29 @@
     $("pkBody").innerHTML = h;
   }
 
+  function renderSlots() {
+    const el = $("slots");
+    if (!attackerIsMii()) {
+      el.hidden = true;
+      el.innerHTML = "";
+      return;
+    }
+    el.hidden = false;
+    const lines = [];
+    for (const s of Mii.SLOTS) {
+      let line = lines[lines.length - 1];
+      if (!line || line.dir !== s.dir) {
+        line = { dir: s.dir, label: s.dirLabel, items: [] };
+        lines.push(line);
+      }
+      line.items.push(s);
+    }
+    el.innerHTML = lines.map((line) => {
+      const btns = line.items.map((s) => `<button type="button" data-slot="${s.id}" aria-pressed="${state.slot === s.id ? "true" : "false"}" aria-label="${esc(s.label)}">${s.num}</button>`).join("");
+      return `<div class="slotline" role="group" aria-label="${esc(line.label)}"><span>${esc(line.label)}</span>${btns}</div>`;
+    }).join("");
+  }
+
   function renderMats() {
     let h = "";
     for (const [idx, who] of [[state.me, "自分"], [state.opp, "相手"]]) {
@@ -327,7 +372,9 @@
       $(id).innerHTML = `<img class="face" src="${faceSrc(state[k])}" alt="" width="48" height="48" decoding="async"><span class="who ${k}">${who}</span><span class="nm">${esc(c.name)}</span>${c.stale ? `<span class="st" title="データが古い可能性">⚠</span>` : ""}<span class="dd">▾</span>`;
       $(id).setAttribute("aria-label", (k === "me" ? "自分のキャラ " : "相手のキャラ ") + c.name);
     }
+    if (!attackerIsMii()) state.slot = "";
     renderMats();
+    renderSlots();
     const warn = [state.me, state.opp].filter((v, i, a) => a.indexOf(v) === i).map((i) => D.chars[i]).filter((c) => c.stale)
       .map((c) => `⚠ ${esc(c.name)}: ${esc(c.stale)}。数値はシート掲載時点のものです。`);
     $("banner").innerHTML = warn.map((w) => `<div class="banner">${w}</div>`).join("");
@@ -336,13 +383,22 @@
     if (!counts[state.group]) { const i = counts.findIndex((n) => n); if (i >= 0) state.group = i; }
     $("groups").innerHTML = GROUPS.map((g, i) => counts[i] ? `<button type="button" role="tab" data-g="${i}" aria-selected="${i === state.group ? "true" : "false"}" aria-label="${esc(g[1])}">${esc(g[0])}</button>` : "").join("");
     $("groups").querySelectorAll("button").forEach((b) => (b.onclick = () => setGroup(+b.dataset.g)));
-    const shown = moves.filter(GROUPS[state.group][2]);
-    $("lead").textContent = state.moveId ? "" : "行を押すと、その技だけの詳しい数字が出ます。";
+    let shown = moves.filter(GROUPS[state.group][2]);
+    const slotOn = !!state.slot && GROUPS[state.group][0] === "必殺";
+    if (state.slot) shown = Mii.filterBySlot(shown, state.slot);
+    const unnamed = slotOn && shown.some((m) => Mii.miiSlot(m) == null);
+    $("lead").textContent = state.moveId ? "" : slotOn
+      ? Mii.slotLabel(state.slot) + " の必殺に絞っています。" + (unnamed ? "番号のない技も残しています。" : "") + "同じチップをもう一度押すと解除します。"
+      : "行を押すと、その技だけの詳しい数字が出ます。";
+    const slotExists = slotOn && attackerChar().moves.some((m) => Mii.miiSlot(m) === state.slot);
+    const emptyMsg = slotOn
+      ? (slotExists ? "この番号の必殺は、当たる判定がシートに無いため一覧にありません。" : "この番号の必殺はありません。")
+      : "この種類の技はありません。";
     $("moveArea").innerHTML = shown.length ? `<div class="moves">` + shown.map((m) => {
       const a = C.shieldAdvantage(m, { arsene: useArsene() });
       const sub = [m.input === "button" ? "ボタン" : m.input === "command" ? (m.command ? "コマンド " + m.command : "コマンド") : m.command || "", m.material || ""].filter(Boolean).join("・");
       return `<button type="button" class="mv ${m.id === state.moveId ? "on" : ""} ${a.ok ? "" : "na"}" data-id="${m.id}">${esc(shortName(m))}${sub ? `<small>${esc(sub)}</small>` : ""}</button>`;
-    }).join("") + `</div>` : `<p class="empty">この種類の技はありません。</p>`;
+    }).join("") + `</div>` : `<p class="empty">${emptyMsg}</p>`;
     $("moveArea").querySelectorAll(".mv").forEach((b) => (b.onclick = () => {
       state.moveId = b.dataset.id;
       pushNext = true;

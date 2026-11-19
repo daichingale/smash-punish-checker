@@ -59,6 +59,7 @@
   </div>
   <p class="hint" id="lead"></p>
   <div id="groups" class="segs" role="tablist" aria-label="技の種類"></div>
+  <div id="slots" class="slots" role="toolbar" aria-label="必殺の番号" hidden></div>
   <div id="moveArea"></div>
   <div id="result" aria-live="polite"></div>
   <details id="about">
@@ -92,7 +93,7 @@
       <li>計算しないもの: 飛び道具（防御側だけにヒットストップがかかる）、ガード時に特殊仕様がある技（例: カズヤの最速風神拳）、全体Fやガード硬直がシートに無い・溜めで変わる技。数値は作らず「計算対象外」と表示します。</li>
       <li>反撃側から外しているもの: ダッシュ攻撃・左踵落とし（走る必要あり）、しゃがみ攻撃・立ち途中（しゃがむ必要あり）、連続技の2段目以降、空中版の必殺ワザ。コマンド技の発生Fはシートの値をそのまま使い、コマンド入力にかかる時間は含めていません。コマンド版の上B（昇龍拳）でガーキャンできるかは未検証です。</li>
       <li>技名・数値はフレームシート（Ver.13.0.1 時点の値）をもとにしています。シートの最終更新が、そのキャラの最後の調整（Ver.13.0.0: 2021/10/19、Ver.13.0.1: 2021/12/02）より前のキャラには「データが古い可能性」の警告を出します（キャラ選択では ⚠ 印）。</li>
-      <li>収録: 検証窓フレームシートの全ファイタータブ（ダッシュファイター・DLC・Mii 3タイプを含む）。Mii の必殺ワザは「NB1」「横B2」のように番号付きで、カスタマイズ3種がそれぞれ別の技として並びます。</li>
+      <li>収録: 検証窓フレームシートの全ファイタータブ（ダッシュファイター・DLC・Mii 3タイプを含む）。Mii の必殺ワザは「NB1」「横B2」のように番号付きで、カスタマイズ3種がそれぞれ別の技として並びます。攻撃側がMiiのときは、技一覧の上の番号チップでその必殺だけに絞れます。もう一度押すと解除します。</li>
     </ul>
   </details>
   <p class="keys">キーボード: <kbd>/</kbd> 相手 <kbd>x</kbd> 入れ替え <kbd>r</kbd> 逆 <kbd>j</kbd> ジャスト <kbd>1</kbd>–<kbd>5</kbd> 技種 <kbd>Esc</kbd> 閉じる</p>
@@ -138,6 +139,6 @@
   </div>
 </div>
 <!--DATA--><!--/DATA-->
-<!--SCRIPTS--><script src="calc.js"></script><script src="names.js"></script><script src="app.js"></script><!--/SCRIPTS-->
+<!--SCRIPTS--><script src="calc.js"></script><script src="names.js"></script><script src="mii.js"></script><script src="app.js"></script><!--/SCRIPTS-->
 </body>
 </html>
