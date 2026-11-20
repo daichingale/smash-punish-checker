@@ -100,42 +100,85 @@
     if (use.some((r) => /（前）/.test(r.label)) && use.some((r) => /（後）/.test(r.label))) {
       use = use.filter((r) => !/（後）/.test(r.label));
     }
+    // 着地隙 L での空中有利。条件が複数あるときは、条件ごとにこの式を使う
+    function airBlock(useRows, lag) {
+      if (lag == null || !useRows.length) return null;
+      const seqAir = useRows.some((r) => SEQ_RE.test(r.label));
+      const row = seqAir ? useRows[useRows.length - 1] : useRows[0];
+      const late = useRows.some((r) => r.active && r.active.open);
+      const f = (r, atEnd) => (r.label.includes("着地") ? lag - (atEnd && !r.active.open ? r.active.end : r.active.starts[0]) - maxOf(r.stun) : lag - maxOf(r.stun));
+      const prim = f(row, false);
+      const worstAir = late ? prim : Math.min.apply(null, useRows.map((r) => f(r, true)));
+      const base = row.label.includes("着地") ? lag - row.active.starts[0] : lag;
+      const ofStun = (s) => base - s;
+      return {
+        seq: seqAir, pRow: row, lateUnknown: late, primary: prim, worst: worstAir,
+        detail: useRows.map((r) => ({ label: r.label || "本体", stun: r.stun, adv: f(r, false) })),
+        hitboxes: pairedHitboxes(row, ofStun), advOf: ofStun,
+      };
+    }
     const seq = use.some((r) => SEQ_RE.test(r.label));
-    const pRow = seq ? use[use.length - 1] : use[0];
-    // ヒットするとバウンドし、その行だけ全体Fが書いてあるときは、空振りの着地隙ではなくその全体F
-    const bounce = isAir ? move.rows.find((r) => r.label === "バウンド" && r.damage == null && !r.stun && r.total != null) : null;
+    const pRow0 = seq ? use[use.length - 1] : use[0];
+    const caseSpecs = isAir && Array.isArray(move.landingCases) && move.landingCases.length >= 2 ? move.landingCases : null;
+    // ヒットするとバウンドし、その行だけ全体Fが書いてあるときは、空振りの着地隙ではなくその全体F。
+    // 備考が条件別に着地隙を書いているときは、その数字を使う（バウンド行では置き換えない）
+    const bounce = isAir && !caseSpecs ? move.rows.find((r) => r.label === "バウンド" && r.damage == null && !r.stun && r.total != null) : null;
     const L = bounce ? bounce.total : move.landingLag;
     // 終わりが '*' の判定は、終わり際の有利Fを数字にしない
-    const lateUnknown = use.some((r) => r.active && r.active.open);
-    let primary, worst, detail = [], advOf;
+    let lateUnknown = use.some((r) => r.active && r.active.open);
+    let pRow = pRow0, multi = seq, primary, worst, detail = [], advOf, hitboxes;
+    let landingCases = null, landingName = "", harshLag = null;
     const groundAdv = (r, late) => r.total - (late ? r.active.end : r.active.starts[0]) - maxOf(r.stun);
-    if (isAir) {
+    if (isAir && caseSpecs) {
+      const computed = [];
+      for (let i = 0; i < caseSpecs.length; i++) {
+        const c = caseSpecs[i];
+        if (!c || typeof c.lag !== "number" || !c.name) continue;
+        let subset = use;
+        if (Array.isArray(c.labels) && c.labels.length) subset = use.filter((r) => c.labels.indexOf(r.label) >= 0);
+        const sub = airBlock(subset, c.lag);
+        if (!sub) continue;
+        computed.push({ name: String(c.name), lag: c.lag, adv: sub.primary, sub: sub });
+      }
+      if (computed.length < 2) return { ok: false, reason: "着地隙の条件を分けられない" };
+      let harsh = computed[0];
+      for (let i = 1; i < computed.length; i++) if (computed[i].adv < harsh.adv) harsh = computed[i];
+      landingCases = computed.map((c) => ({ name: c.name, lag: c.lag, adv: c.adv }));
+      landingName = computed.filter((c) => c.adv === harsh.adv).map((c) => c.name).join("・");
+      harshLag = harsh.lag;
+      const sub = harsh.sub;
+      multi = sub.seq; pRow = sub.pRow; lateUnknown = sub.lateUnknown;
+      primary = sub.primary; worst = sub.worst; detail = sub.detail; advOf = sub.advOf; hitboxes = sub.hitboxes;
+    } else if (isAir) {
       if (L == null) return { ok: false, reason: "着地隙がシートに無い" };
-      const f = (r, late) => (r.label.includes("着地") ? L - (late && !r.active.open ? r.active.end : r.active.starts[0]) - maxOf(r.stun) : L - maxOf(r.stun));
-      primary = f(pRow, false);
-      worst = lateUnknown ? primary : Math.min.apply(null, use.map((r) => f(r, true)));
-      detail = use.map((r) => ({ label: r.label || "本体", stun: r.stun, adv: f(r, false) }));
-      const base = pRow.label.includes("着地") ? L - pRow.active.starts[0] : L;
-      advOf = (s) => base - s;
+      const sub = airBlock(use, L);
+      multi = sub.seq; pRow = sub.pRow; lateUnknown = sub.lateUnknown;
+      primary = sub.primary; worst = sub.worst; detail = sub.detail; advOf = sub.advOf; hitboxes = sub.hitboxes;
     } else {
       const hit = seq ? lastStart(pRow) : pRow.active.starts[0];
       primary = pRow.total - hit - maxOf(pRow.stun);
       worst = lateUnknown ? primary : Math.min.apply(null, use.map((r) => groundAdv(r, true)));
       detail = use.map((r) => ({ label: r.label || "本体", stun: r.stun, total: r.total, hitFrame: r.active.starts[0], adv: groundAdv(r, false) }));
       advOf = (s) => pRow.total - hit - s;
+      hitboxes = pairedHitboxes(pRow, advOf);
     }
     // 主数値に使った段だけ。硬直が違う判定の有利は、同じ発生F・同じ後隙から引く。多段の他の段は混ぜない
-    const hitboxes = pairedHitboxes(pRow, advOf);
-    const advs = hitboxes ? hitboxes.map((h) => h.adv) : null;
-    const advMin = advs ? minOf(advs) : primary;
-    const advMax = advs ? maxOf(advs) : primary;
+    // 着地の条件があるときは、条件ごとの有利（その条件のきびしい判定）も範囲に入れる
+    const pool = [];
+    if (hitboxes && hitboxes.length) for (let i = 0; i < hitboxes.length; i++) pool.push(hitboxes[i].adv);
+    else pool.push(primary);
+    if (landingCases) for (let i = 0; i < landingCases.length; i++) pool.push(landingCases[i].adv);
+    const advMin = minOf(pool);
+    const advMax = maxOf(pool);
+    const lagForAlt = harshLag != null ? harshLag : L;
     const alt = rows.filter((r) => use.indexOf(r) < 0).map((r) => ({
       label: r.label,
-      adv: isAir ? (L == null ? null : (r.label.includes("着地") ? L - r.active.starts[0] - maxOf(r.stun) : L - maxOf(r.stun))) : groundAdv(r, false),
+      adv: isAir ? (lagForAlt == null ? null : (r.label.includes("着地") ? lagForAlt - r.active.starts[0] - maxOf(r.stun) : lagForAlt - maxOf(r.stun))) : groundAdv(r, false),
     }));
     const damage = pRow.damage && pRow.damage.length ? maxOf(pRow.damage) : null;
     const total = pRow.total == null ? null : pRow.total;
-    return { ok: true, primary, worst: Math.min(worst, primary), lateUnknown, primaryStun: maxOf(pRow.stun), primaryLabel: pRow.label || "", multiHit: seq, aerial: isAir, landingLag: isAir ? move.landingLag : null, bounceLag: bounce ? bounce.total : null, alt, damage, total, detail, hitboxes, advMin, advMax, usedArsene };
+    const shownLag = isAir ? (harshLag != null ? harshLag : move.landingLag) : null;
+    return { ok: true, primary, worst: Math.min(worst, primary), lateUnknown, primaryStun: maxOf(pRow.stun), primaryLabel: pRow.label || "", multiHit: multi, aerial: isAir, landingLag: shownLag, landingName: landingName, landingCases: landingCases, bounceLag: bounce ? bounce.total : null, alt, damage, total, detail, hitboxes, advMin, advMax, usedArsene };
   }
 
   /** 表の1行分。読めない値は null（画面では —）。有利は shieldAdvantage と同じ */
@@ -211,15 +254,26 @@
     return null;
   }
 
-  /** きびしい判定では不可で、弱い判定の有利なら間に合うときの短い補足。確定側には付けない */
-  function weakSureNote(hitboxes, primary, bonus, need) {
-    if (!hitboxes) return "";
+  /** きびしい判定では不可で、弱い判定や別の着地条件なら間に合うときの短い補足。確定側には付けない */
+  function weakSureNote(hitboxes, primary, bonus, need, cases) {
     const names = [];
-    for (let i = 0; i < hitboxes.length; i++) {
-      const h = hitboxes[i];
-      if (h.adv > primary && h.adv + bonus - need >= 0) names.push(h.name);
+    if (hitboxes) {
+      for (let i = 0; i < hitboxes.length; i++) {
+        const h = hitboxes[i];
+        if (h.adv > primary && h.adv + bonus - need >= 0) names.push(h.name);
+      }
     }
-    return names.length ? names.join("・") + "なら確定" : "";
+    const lands = [];
+    if (cases) {
+      for (let i = 0; i < cases.length; i++) {
+        const c = cases[i];
+        if (c.adv > primary && c.adv + bonus - need >= 0) lands.push(c.name);
+      }
+    }
+    const bits = [];
+    if (names.length) bits.push(names.join("・") + "なら確定");
+    if (lands.length) bits.push(lands.join("・") + "なら確定");
+    return bits.join("。");
   }
 
   /** attacker の move をガードした defender の反撃一覧 */
@@ -235,7 +289,7 @@
       const marginWorst = adv.worst + bonus - need;
       // 密着を前提に、フレームが間に合えば「確定」（リーチ・ガードで押される距離は考慮しない）
       const status = margin >= 0 ? "sure" : "impossible";
-      const weakNote = status === "impossible" ? weakSureNote(adv.hitboxes, adv.primary, bonus, need) : "";
+      const weakNote = status === "impossible" ? weakSureNote(adv.hitboxes, adv.primary, bonus, need, adv.landingCases) : "";
       return { ...opt, cost, need, margin, marginWorst, status, tier: marginTier(margin), routeLabel: ROUTE_LABEL[opt.route], weakNote };
     });
     // 猶予の大きい順（同じなら必要Fの小さい順）。「不可」は後ろ

@@ -1,7 +1,7 @@
 :root{
   --bg:#0e1116;--card:#171c24;--line:#313846;--text:#f2f5f8;--sub:#c5ced8;
   --accent:#6cb4ff;--on-accent:#04121f;--sure:#3ddc84;--bad:#ff9b9b;
-  --cols:36px 168px 76px 52px 80px 64px 64px 168px 80px 104px 64px;
+  --cols:36px 168px 76px 52px 80px 64px 76px 168px 80px 104px 64px;
   color-scheme:dark
 }
 @media (prefers-color-scheme: light){
@@ -12,7 +12,7 @@
   }
 }
 @media (min-width:900px){
-  :root{--cols:44px 220px 96px 64px 96px 72px 72px 210px 96px 120px 72px}
+  :root{--cols:44px 220px 96px 64px 96px 72px 88px 210px 96px 120px 72px}
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;font-size:15px;line-height:1.35}
@@ -79,6 +79,9 @@ a.row > .c-name span{font-size:14px;color:var(--text)}
 .row:nth-child(odd) .c-rank,.row:nth-child(odd) .c-name{background:var(--bg)}
 .empty{padding:24px 12px;color:var(--sub)}
 footer{flex:none;padding:8px 12px calc(8px + env(safe-area-inset-bottom));border-top:1px solid var(--line);color:var(--sub);font-size:11px;background:var(--bg)}
+@media (max-width:480px){
+  footer{max-height:132px;overflow:auto}
+}
 #picker{position:fixed;inset:0;z-index:20;background:var(--bg);display:flex;flex-direction:column}
 #picker[hidden]{display:none}
 .pkHead{padding:max(10px,env(safe-area-inset-top)) 12px 8px;border-bottom:1px solid var(--line)}

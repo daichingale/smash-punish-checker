@@ -109,7 +109,10 @@
       const advCls = r.adv == null ? "" : r.adv > 0 ? "pos" : r.adv < 0 ? "neg" : "zero";
       const href = rowHref(r);
       h += `<a class="gridline row" style="height:${ROW}px" href="${esc(href)}"><span class="c-rank">${i + 1}</span><span class="c-name"><b>${esc(r.char)}</b><span>${esc(r.name)}</span>${r.sub ? `<small>${esc(r.sub)}</small>` : ""}</span><span class="c-kind">${esc(T.KIND_LABEL[r.kind])}</span>`;
-      for (const key of ["startup", "activeEnd", "total", "landing"]) h += `<span>${fmt(key, r[key])}</span>`;
+      for (const key of ["startup", "activeEnd", "total", "landing"]) {
+        const text = key === "landing" ? T.formatLanding(r) : fmt(key, r[key]);
+        h += `<span>${esc(text)}</span>`;
+      }
       const dmg = damageText(r);
       h += `<span class="c-dmg" title="${esc(dmg)}">${esc(dmg)}</span>`;
       h += `<span>${fmt("stun", r.stun)}</span>`;

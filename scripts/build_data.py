@@ -193,10 +193,21 @@ _LL_NOTE = re.compile(
     r"(?:\s*[（(]([^）)]*)[）)])?"
 )
 
+def _landing_cond(pre, post):
+    cond = " ".join(x.strip() for x in (pre, post) if x and x.strip())
+    return re.sub(r"\s+", " ", cond).strip()
+
+def _bad_landing_cond(cond):
+    """括弧の中が条件名として短く読めないとき。推測で埋めない。"""
+    if not cond or len(cond) > 40:
+        return True
+    return re.search(r"[？?]|状況|不明|Ver", cond) is not None
+
 def landing_variant_specs(text):
-    """備考の着地隙から「空中（着地）」を作る。
-    条件の無い着地隙がちょうど一つのときだけ返す。
-    複数、括弧付き（ヒットごと・状態ごと）、読みきれない『着地隙』は空（どれか一つに決めない）。"""
+    """備考の着地隙。
+    条件の無い着地隙が一つなら、従来どおり [{"lag", "label"}]。
+    名前つきが2つ以上なら、原文の括弧を name にして返す。
+    一つだけ括弧が付く、空と条件が混ざる、読みきれないものは空。"""
     if not text or "着地隙" not in text:
         return []
     mentions = len(re.findall("着地隙", text))
@@ -206,16 +217,141 @@ def landing_variant_specs(text):
     uniq = []
     seen = set()
     for m in found:
-        pre, n, post = m.group(1), int(m.group(2)), m.group(3)
-        cond = " ".join(x for x in (pre, post) if x)
-        key = (n, cond)
+        cond = _landing_cond(m.group(1), m.group(3))
+        key = (int(m.group(2)), cond)
         if key in seen:
             continue
         seen.add(key)
         uniq.append(key)
+    if any(cond and _bad_landing_cond(cond) for _, cond in uniq):
+        return []
     if len(uniq) == 1 and uniq[0][1] == "":
         return [{"lag": uniq[0][0], "label": "空中（着地）"}]
+    if len(uniq) >= 2 and all(cond for _, cond in uniq):
+        return [{"lag": n, "name": cond, "label": "空中（着地）"} for n, cond in uniq]
     return []
+
+_VERSION_WORDS = ("通常", "コマンド", "弱", "強")
+
+def _cond_tokens(cond):
+    return [t.strip() for t in re.split(r"[,、，]", cond or "") if t.strip()]
+
+def _move_version_tags(move):
+    """この技がすでに分かれている版。備考の『通常』『弱』を、その版の言葉とだけ突き合わせる。"""
+    tags = set()
+    if move.get("strength") in ("弱", "強"):
+        tags.add(move["strength"])
+    variant = move.get("variant") or ""
+    if variant in ("通常", "コマンド", "弱", "強"):
+        tags.add(variant)
+    if move.get("input") == "button":
+        tags.add("通常")
+    elif move.get("input") == "command":
+        tags.add("コマンド")
+    return tags
+
+def _filter_landing_version(move, specs):
+    """通常/コマンド、弱/強が備考で対になっているときだけ、この技の版に合うものだけ残す。
+    対が無い『通常』は着地の状態名なので残す。版が読めなければ None（この技は出さない）。"""
+    toksets = [_cond_tokens(s["name"]) for s in specs]
+    flat = [t for ts in toksets for t in ts]
+    has_io = "通常" in flat and "コマンド" in flat
+    has_str = "弱" in flat and "強" in flat
+    if not has_io and not has_str:
+        return specs
+    tags = _move_version_tags(move)
+    if has_io and not ({"通常", "コマンド"} & tags):
+        return None
+    if has_str and not ({"弱", "強"} & tags):
+        return None
+    kept = []
+    for spec, toks in zip(specs, toksets):
+        if has_io:
+            io = [t for t in toks if t in ("通常", "コマンド")]
+            if not io or any(t not in tags for t in io):
+                continue
+        if has_str:
+            st = [t for t in toks if t in ("弱", "強")]
+            if not st or any(t not in tags for t in st):
+                continue
+        kept.append(spec)
+    return kept or None
+
+def _usable_landing_row(row):
+    act = row.get("active") or {}
+    if not act.get("starts"):
+        return False
+    if not row.get("stun"):
+        return False
+    dmg = row.get("damage")
+    if dmg is not None and max(dmg) <= 0:
+        return False
+    return True
+
+def _match_landing_rows(cond, rows):
+    """条件の名前が行ラベルそのものを指しているときだけ、その行を返す。無ければ None。"""
+    parts = [p.strip() for p in re.split(r"[/／]", cond or "") if p.strip()]
+    if not parts:
+        return None
+    matched, seen = [], set()
+    for part in parts:
+        if len(part) < 2:
+            return None
+        hits = []
+        for i, row in enumerate(rows):
+            lab = (row.get("label") or "").strip()
+            if len(lab) < 2:
+                continue
+            if part in lab or lab in part:
+                hits.append(i)
+        if not hits:
+            return None
+        for i in hits:
+            if i not in seen:
+                seen.add(i)
+                matched.append(rows[i])
+    return matched
+
+def _scope_landing_cases(move, specs):
+    """全部の条件が別の行を指すなら、その行の硬直だけを使う。
+    どれも行を指さないなら、技全体の着地計算に各着地隙を載せる。
+    一部だけ行に当たる、当たった行に硬直が無いときは None。"""
+    rows = move.get("rows") or []
+    matches = [_match_landing_rows(s["name"], rows) for s in specs]
+    if any(m is None for m in matches) and any(m is not None for m in matches):
+        return None
+    if all(m is not None for m in matches):
+        cases = []
+        for spec, matched in zip(specs, matches):
+            if not any(_usable_landing_row(r) for r in matched):
+                return None
+            labels = []
+            for r in matched:
+                lab = r.get("label") or ""
+                if lab and lab not in labels:
+                    labels.append(lab)
+            cases.append({"name": spec["name"], "lag": spec["lag"], "labels": labels})
+        return {"cases": cases}
+    if not any(_usable_landing_row(r) for r in rows):
+        return None
+    return {"cases": [{"name": s["name"], "lag": s["lag"]} for s in specs]}
+
+def landing_plan(move):
+    """この技に足す着地版。{"lag"} か {"cases"}。出せないときは None。"""
+    text = "\n".join((r.get("rowNote") or "") for r in (move.get("rows") or []))
+    specs = landing_variant_specs(text)
+    if not specs:
+        return None
+    if all("name" not in s for s in specs):
+        return {"lag": specs[0]["lag"]} if len(specs) == 1 else None
+    chosen = _filter_landing_version(move, specs)
+    if not chosen:
+        return None
+    if len(chosen) == 1:
+        if not any(_usable_landing_row(r) for r in (move.get("rows") or [])):
+            return None
+        return {"lag": chosen[0]["lag"]}
+    return _scope_landing_cases(move, chosen)
 
 def _row_side(label):
     """行ラベルが地上版・空中版のどちらを指すか。トークンか括弧が『地上』『空中』そのもののときだけ。"""
@@ -343,7 +479,8 @@ def add_version_splits(moves):
     return out
 
 def add_landing_variants(moves):
-    """必殺ワザの備考に着地隙が一つだけあるとき、着地計算用の別技を直後に足す。
+    """必殺ワザの備考の着地隙から、着地計算用の別技を直後に足す。
+    条件の無い着地隙が一つ、または条件名つきが複数で原文どおり分けられるときだけ。
     すでに地上/空中で行が分かれている技には重ねない。反撃手段には入れない。"""
     split_ids = {m["id"][:-4] for m in moves if str(m.get("id", "")).endswith("~air") and m.get("versionLabel") == "空中"}
     out = []
@@ -353,22 +490,24 @@ def add_landing_variants(moves):
             continue
         if m.get("id") in split_ids:
             continue
+        plan = landing_plan(m)
+        if not plan:
+            continue
         v = m.get("variant") or ""
         air_only = v == "空中" or (v.startswith("空中") and "地上" not in v)
-        text = "\n".join((r.get("rowNote") or "") for r in m.get("rows") or [])
-        specs = landing_variant_specs(text)
-        if not specs:
-            continue
         if not air_only:
             m["versionLabel"] = "地上"
-        for i, spec in enumerate(specs):
-            clone = json.loads(json.dumps(m))
-            clone.pop("versionLabel", None)
-            clone["landingLag"] = spec["lag"]
-            clone["landingVariant"] = spec["label"]
-            clone["derivedAir"] = True
-            clone["id"] = f"{m['id']}~air" if len(specs) == 1 else f"{m['id']}~air{i}"
-            out.append(clone)
+        clone = json.loads(json.dumps(m))
+        clone.pop("versionLabel", None)
+        if plan.get("cases"):
+            clone["landingCases"] = plan["cases"]
+            clone["landingLag"] = min(c["lag"] for c in plan["cases"])
+        else:
+            clone["landingLag"] = plan["lag"]
+        clone["landingVariant"] = "空中（着地）"
+        clone["derivedAir"] = True
+        clone["id"] = f"{m['id']}~air"
+        out.append(clone)
     return out
 
 def apply_air_versions(moves):

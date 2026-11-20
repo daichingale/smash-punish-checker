@@ -54,7 +54,7 @@
 :root{
   --bg:#0e1116;--card:#171c24;--line:#313846;--text:#f2f5f8;--sub:#c5ced8;
   --accent:#6cb4ff;--on-accent:#04121f;--sure:#3ddc84;--bad:#ff9b9b;
-  --cols:36px 168px 76px 52px 80px 64px 64px 168px 80px 104px 64px;
+  --cols:36px 168px 76px 52px 80px 64px 76px 168px 80px 104px 64px;
   color-scheme:dark
 }
 @media (prefers-color-scheme: light){
@@ -65,7 +65,7 @@
   }
 }
 @media (min-width:900px){
-  :root{--cols:44px 220px 96px 64px 96px 72px 72px 210px 96px 120px 72px}
+  :root{--cols:44px 220px 96px 64px 96px 72px 88px 210px 96px 120px 72px}
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;font-size:15px;line-height:1.35}
@@ -132,6 +132,9 @@ a.row > .c-name span{font-size:14px;color:var(--text)}
 .row:nth-child(odd) .c-rank,.row:nth-child(odd) .c-name{background:var(--bg)}
 .empty{padding:24px 12px;color:var(--sub)}
 footer{flex:none;padding:8px 12px calc(8px + env(safe-area-inset-bottom));border-top:1px solid var(--line);color:var(--sub);font-size:11px;background:var(--bg)}
+@media (max-width:480px){
+  footer{max-height:132px;overflow:auto}
+}
 #picker{position:fixed;inset:0;z-index:20;background:var(--bg);display:flex;flex-direction:column}
 #picker[hidden]{display:none}
 .pkHead{padding:max(10px,env(safe-area-inset-top)) 12px 8px;border-bottom:1px solid var(--line)}
@@ -188,7 +191,7 @@ body.noscroll{overflow:hidden}
   <a href="index.html">反撃チェックに戻る</a> · <a href="tier.html">ティア表</a> · <a href="result.html">リザルト</a><br>
   フレームデータ: <a href="https://docs.google.com/spreadsheets/d/15SClMwvDIqovtO3DJnf1GGIteH35UX3IM7-mnbdG6eE/edit" target="_blank" rel="noopener">スマブラSP検証窓</a>（<a href="https://w.atwiki.jp/smashsp_kensyou/" target="_blank" rel="noopener">スマブラSPECIAL 検証wiki</a>）のフレームシートをもとに計算しています。<br>
   このページは個人が作った非公式の試作です。検証窓・任天堂とは関係ありません。表示内容の正確さは保証しません。実際の対戦ではトレーニングモードで確認してください。<br>
-  ガード有利は反撃チェックと同じ式（ガード側の有利。＋ならガードした側が有利）。多段は通常の最終段、前と後ろがある技は正面です。同じ段で硬直が違う技は、きびしい方〜弱い方の範囲を出します。並び順と確定数はきびしい方のままです。ダメージは判定ごとで、行の名前がシートにあるときだけ括弧で付けます。1on1補正ありは表示ダメージだけ基礎ダメージの1.2倍で、ガード硬直とガード有利は変わりません。攻撃側にジョーカーがいるときだけ「アルセーヌ」を切り替えられます。ありはアルセーヌの段のガード硬直と全体Fで有利と確定数を出し、段が無い技と他のキャラは通常のままです（初期はなし）。
+  ガード有利は反撃チェックと同じ式（ガード側の有利。＋ならガードした側が有利）。多段は通常の最終段、前と後ろがある技は正面です。同じ段で硬直が違う技は、きびしい方〜弱い方の範囲を出します。並び順と確定数はきびしい方のままです。着地隙が条件で複数ある空中必殺も、ガード有利ときびしい着地隙〜弱い着地隙を範囲で出します。並べ替えと確定数は、きびしい着地のままです。ダメージは判定ごとで、行の名前がシートにあるときだけ括弧で付けます。1on1補正ありは表示ダメージだけ基礎ダメージの1.2倍で、ガード硬直とガード有利は変わりません。攻撃側にジョーカーがいるときだけ「アルセーヌ」を切り替えられます。ありはアルセーヌの段のガード硬直と全体Fで有利と確定数を出し、段が無い技と他のキャラは通常のままです（初期はなし）。
 </footer>
 <div id="picker" hidden role="dialog" aria-modal="true" aria-labelledby="pkTitle">
   <div class="pkHead">
@@ -300,42 +303,85 @@ body.noscroll{overflow:hidden}
     if (use.some((r) => /（前）/.test(r.label)) && use.some((r) => /（後）/.test(r.label))) {
       use = use.filter((r) => !/（後）/.test(r.label));
     }
+    // 着地隙 L での空中有利。条件が複数あるときは、条件ごとにこの式を使う
+    function airBlock(useRows, lag) {
+      if (lag == null || !useRows.length) return null;
+      const seqAir = useRows.some((r) => SEQ_RE.test(r.label));
+      const row = seqAir ? useRows[useRows.length - 1] : useRows[0];
+      const late = useRows.some((r) => r.active && r.active.open);
+      const f = (r, atEnd) => (r.label.includes("着地") ? lag - (atEnd && !r.active.open ? r.active.end : r.active.starts[0]) - maxOf(r.stun) : lag - maxOf(r.stun));
+      const prim = f(row, false);
+      const worstAir = late ? prim : Math.min.apply(null, useRows.map((r) => f(r, true)));
+      const base = row.label.includes("着地") ? lag - row.active.starts[0] : lag;
+      const ofStun = (s) => base - s;
+      return {
+        seq: seqAir, pRow: row, lateUnknown: late, primary: prim, worst: worstAir,
+        detail: useRows.map((r) => ({ label: r.label || "本体", stun: r.stun, adv: f(r, false) })),
+        hitboxes: pairedHitboxes(row, ofStun), advOf: ofStun,
+      };
+    }
     const seq = use.some((r) => SEQ_RE.test(r.label));
-    const pRow = seq ? use[use.length - 1] : use[0];
-    // ヒットするとバウンドし、その行だけ全体Fが書いてあるときは、空振りの着地隙ではなくその全体F
-    const bounce = isAir ? move.rows.find((r) => r.label === "バウンド" && r.damage == null && !r.stun && r.total != null) : null;
+    const pRow0 = seq ? use[use.length - 1] : use[0];
+    const caseSpecs = isAir && Array.isArray(move.landingCases) && move.landingCases.length >= 2 ? move.landingCases : null;
+    // ヒットするとバウンドし、その行だけ全体Fが書いてあるときは、空振りの着地隙ではなくその全体F。
+    // 備考が条件別に着地隙を書いているときは、その数字を使う（バウンド行では置き換えない）
+    const bounce = isAir && !caseSpecs ? move.rows.find((r) => r.label === "バウンド" && r.damage == null && !r.stun && r.total != null) : null;
     const L = bounce ? bounce.total : move.landingLag;
     // 終わりが '*' の判定は、終わり際の有利Fを数字にしない
-    const lateUnknown = use.some((r) => r.active && r.active.open);
-    let primary, worst, detail = [], advOf;
+    let lateUnknown = use.some((r) => r.active && r.active.open);
+    let pRow = pRow0, multi = seq, primary, worst, detail = [], advOf, hitboxes;
+    let landingCases = null, landingName = "", harshLag = null;
     const groundAdv = (r, late) => r.total - (late ? r.active.end : r.active.starts[0]) - maxOf(r.stun);
-    if (isAir) {
+    if (isAir && caseSpecs) {
+      const computed = [];
+      for (let i = 0; i < caseSpecs.length; i++) {
+        const c = caseSpecs[i];
+        if (!c || typeof c.lag !== "number" || !c.name) continue;
+        let subset = use;
+        if (Array.isArray(c.labels) && c.labels.length) subset = use.filter((r) => c.labels.indexOf(r.label) >= 0);
+        const sub = airBlock(subset, c.lag);
+        if (!sub) continue;
+        computed.push({ name: String(c.name), lag: c.lag, adv: sub.primary, sub: sub });
+      }
+      if (computed.length < 2) return { ok: false, reason: "着地隙の条件を分けられない" };
+      let harsh = computed[0];
+      for (let i = 1; i < computed.length; i++) if (computed[i].adv < harsh.adv) harsh = computed[i];
+      landingCases = computed.map((c) => ({ name: c.name, lag: c.lag, adv: c.adv }));
+      landingName = computed.filter((c) => c.adv === harsh.adv).map((c) => c.name).join("・");
+      harshLag = harsh.lag;
+      const sub = harsh.sub;
+      multi = sub.seq; pRow = sub.pRow; lateUnknown = sub.lateUnknown;
+      primary = sub.primary; worst = sub.worst; detail = sub.detail; advOf = sub.advOf; hitboxes = sub.hitboxes;
+    } else if (isAir) {
       if (L == null) return { ok: false, reason: "着地隙がシートに無い" };
-      const f = (r, late) => (r.label.includes("着地") ? L - (late && !r.active.open ? r.active.end : r.active.starts[0]) - maxOf(r.stun) : L - maxOf(r.stun));
-      primary = f(pRow, false);
-      worst = lateUnknown ? primary : Math.min.apply(null, use.map((r) => f(r, true)));
-      detail = use.map((r) => ({ label: r.label || "本体", stun: r.stun, adv: f(r, false) }));
-      const base = pRow.label.includes("着地") ? L - pRow.active.starts[0] : L;
-      advOf = (s) => base - s;
+      const sub = airBlock(use, L);
+      multi = sub.seq; pRow = sub.pRow; lateUnknown = sub.lateUnknown;
+      primary = sub.primary; worst = sub.worst; detail = sub.detail; advOf = sub.advOf; hitboxes = sub.hitboxes;
     } else {
       const hit = seq ? lastStart(pRow) : pRow.active.starts[0];
       primary = pRow.total - hit - maxOf(pRow.stun);
       worst = lateUnknown ? primary : Math.min.apply(null, use.map((r) => groundAdv(r, true)));
       detail = use.map((r) => ({ label: r.label || "本体", stun: r.stun, total: r.total, hitFrame: r.active.starts[0], adv: groundAdv(r, false) }));
       advOf = (s) => pRow.total - hit - s;
+      hitboxes = pairedHitboxes(pRow, advOf);
     }
     // 主数値に使った段だけ。硬直が違う判定の有利は、同じ発生F・同じ後隙から引く。多段の他の段は混ぜない
-    const hitboxes = pairedHitboxes(pRow, advOf);
-    const advs = hitboxes ? hitboxes.map((h) => h.adv) : null;
-    const advMin = advs ? minOf(advs) : primary;
-    const advMax = advs ? maxOf(advs) : primary;
+    // 着地の条件があるときは、条件ごとの有利（その条件のきびしい判定）も範囲に入れる
+    const pool = [];
+    if (hitboxes && hitboxes.length) for (let i = 0; i < hitboxes.length; i++) pool.push(hitboxes[i].adv);
+    else pool.push(primary);
+    if (landingCases) for (let i = 0; i < landingCases.length; i++) pool.push(landingCases[i].adv);
+    const advMin = minOf(pool);
+    const advMax = maxOf(pool);
+    const lagForAlt = harshLag != null ? harshLag : L;
     const alt = rows.filter((r) => use.indexOf(r) < 0).map((r) => ({
       label: r.label,
-      adv: isAir ? (L == null ? null : (r.label.includes("着地") ? L - r.active.starts[0] - maxOf(r.stun) : L - maxOf(r.stun))) : groundAdv(r, false),
+      adv: isAir ? (lagForAlt == null ? null : (r.label.includes("着地") ? lagForAlt - r.active.starts[0] - maxOf(r.stun) : lagForAlt - maxOf(r.stun))) : groundAdv(r, false),
     }));
     const damage = pRow.damage && pRow.damage.length ? maxOf(pRow.damage) : null;
     const total = pRow.total == null ? null : pRow.total;
-    return { ok: true, primary, worst: Math.min(worst, primary), lateUnknown, primaryStun: maxOf(pRow.stun), primaryLabel: pRow.label || "", multiHit: seq, aerial: isAir, landingLag: isAir ? move.landingLag : null, bounceLag: bounce ? bounce.total : null, alt, damage, total, detail, hitboxes, advMin, advMax, usedArsene };
+    const shownLag = isAir ? (harshLag != null ? harshLag : move.landingLag) : null;
+    return { ok: true, primary, worst: Math.min(worst, primary), lateUnknown, primaryStun: maxOf(pRow.stun), primaryLabel: pRow.label || "", multiHit: multi, aerial: isAir, landingLag: shownLag, landingName: landingName, landingCases: landingCases, bounceLag: bounce ? bounce.total : null, alt, damage, total, detail, hitboxes, advMin, advMax, usedArsene };
   }
 
   /** 表の1行分。読めない値は null（画面では —）。有利は shieldAdvantage と同じ */
@@ -411,15 +457,26 @@ body.noscroll{overflow:hidden}
     return null;
   }
 
-  /** きびしい判定では不可で、弱い判定の有利なら間に合うときの短い補足。確定側には付けない */
-  function weakSureNote(hitboxes, primary, bonus, need) {
-    if (!hitboxes) return "";
+  /** きびしい判定では不可で、弱い判定や別の着地条件なら間に合うときの短い補足。確定側には付けない */
+  function weakSureNote(hitboxes, primary, bonus, need, cases) {
     const names = [];
-    for (let i = 0; i < hitboxes.length; i++) {
-      const h = hitboxes[i];
-      if (h.adv > primary && h.adv + bonus - need >= 0) names.push(h.name);
+    if (hitboxes) {
+      for (let i = 0; i < hitboxes.length; i++) {
+        const h = hitboxes[i];
+        if (h.adv > primary && h.adv + bonus - need >= 0) names.push(h.name);
+      }
     }
-    return names.length ? names.join("・") + "なら確定" : "";
+    const lands = [];
+    if (cases) {
+      for (let i = 0; i < cases.length; i++) {
+        const c = cases[i];
+        if (c.adv > primary && c.adv + bonus - need >= 0) lands.push(c.name);
+      }
+    }
+    const bits = [];
+    if (names.length) bits.push(names.join("・") + "なら確定");
+    if (lands.length) bits.push(lands.join("・") + "なら確定");
+    return bits.join("。");
   }
 
   /** attacker の move をガードした defender の反撃一覧 */
@@ -435,7 +492,7 @@ body.noscroll{overflow:hidden}
       const marginWorst = adv.worst + bonus - need;
       // 密着を前提に、フレームが間に合えば「確定」（リーチ・ガードで押される距離は考慮しない）
       const status = margin >= 0 ? "sure" : "impossible";
-      const weakNote = status === "impossible" ? weakSureNote(adv.hitboxes, adv.primary, bonus, need) : "";
+      const weakNote = status === "impossible" ? weakSureNote(adv.hitboxes, adv.primary, bonus, need, adv.landingCases) : "";
       return { ...opt, cost, need, margin, marginWorst, status, tier: marginTier(margin), routeLabel: ROUTE_LABEL[opt.route], weakNote };
     });
     // 猶予の大きい順（同じなら必要Fの小さい順）。「不可」は後ろ
@@ -683,6 +740,7 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
           slotGroup: m.group || "", miiSlot: Mii.miiSlot(m), sub: subLine(m, place),
           hay: norm(name + " " + (m.command || "") + " " + (m.material || "")),
           startup: f.startup, activeEnd: f.activeEnd, total: f.total, landing: f.landing,
+          landingMax: landingHi(m, f.landing),
           parts, damageMax: span.max, damageMin: span.min, damage: span.max,
           stun: f.stun, adv: f.adv, advMin: f.advMin == null ? null : f.advMin, advMax: f.advMax == null ? null : f.advMax, sure: null,
         });
@@ -722,7 +780,19 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     return rows;
   }
 
+  function landingHi(move, landing) {
+    const lags = (move.landingCases || []).map((c) => c.lag).filter((n) => typeof n === "number");
+    if (lags.length < 2 || landing == null) return landing;
+    return Math.max.apply(null, lags);
+  }
   function fmtSigned(v) { return (v > 0 ? "+" : "") + v; }
+  /** 着地隙が条件で複数あるときは「26〜40」。ソートに使う主数値は小さい方（landing） */
+  function formatLanding(row) {
+    if (!row || row.landing == null || Number.isNaN(row.landing)) return "—";
+    const hi = row.landingMax;
+    if (hi == null || hi === row.landing) return String(row.landing);
+    return Math.min(row.landing, hi) + "〜" + Math.max(row.landing, hi);
+  }
   /** 判定で有利が変わる技は「+14〜+16」。ソートに使う主数値は別（adv） */
   function formatAdvRange(row) {
     if (!row || row.adv == null || Number.isNaN(row.adv)) return "—";
@@ -834,7 +904,7 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
 
   const api = {
     KIND_LABEL, KIND_IDS, PLACE_LABEL, SORT_KEYS, FIRST_DIR, PRESETS, PRESET_BY_ID,
-    moveLabel, kindOf, placeOf, buildRows, punishNeeds, fillSure, sortRows, applyDamageKey, applyView, parseQuery, serialize, norm, formatAdvRange,
+    moveLabel, kindOf, placeOf, buildRows, punishNeeds, fillSure, sortRows, applyDamageKey, applyView, parseQuery, serialize, norm, formatAdvRange, formatLanding,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FrameTable = api;
@@ -950,7 +1020,10 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
       const advCls = r.adv == null ? "" : r.adv > 0 ? "pos" : r.adv < 0 ? "neg" : "zero";
       const href = rowHref(r);
       h += `<a class="gridline row" style="height:${ROW}px" href="${esc(href)}"><span class="c-rank">${i + 1}</span><span class="c-name"><b>${esc(r.char)}</b><span>${esc(r.name)}</span>${r.sub ? `<small>${esc(r.sub)}</small>` : ""}</span><span class="c-kind">${esc(T.KIND_LABEL[r.kind])}</span>`;
-      for (const key of ["startup", "activeEnd", "total", "landing"]) h += `<span>${fmt(key, r[key])}</span>`;
+      for (const key of ["startup", "activeEnd", "total", "landing"]) {
+        const text = key === "landing" ? T.formatLanding(r) : fmt(key, r[key]);
+        h += `<span>${esc(text)}</span>`;
+      }
       const dmg = damageText(r);
       h += `<span class="c-dmg" title="${esc(dmg)}">${esc(dmg)}</span>`;
       h += `<span>${fmt("stun", r.stun)}</span>`;
