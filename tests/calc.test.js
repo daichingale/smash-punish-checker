@@ -570,11 +570,17 @@ test("主数値は最大硬直のまま。1on1では判定ごとの有利は変�
   for (const ch of data.chars) for (const m of ch.moves) {
     const a = C.shieldAdvantage(m);
     if (!a.ok) continue;
+    const lands = (a.landingCases || []).map((c) => c.adv);
     if (a.hitboxes) {
       const advs = a.hitboxes.map((h) => h.adv);
       assert.equal(a.primary, Math.min.apply(null, advs));
       assert.equal(a.advMin, a.primary);
-      assert.equal(a.advMax, Math.max.apply(null, advs));
+      assert.equal(a.advMax, Math.max.apply(null, advs.concat(lands)));
+      if (a.advMin !== a.advMax) spread++;
+    } else if (lands.length) {
+      assert.equal(a.primary, Math.min.apply(null, lands));
+      assert.equal(a.advMin, a.primary);
+      assert.equal(a.advMax, Math.max.apply(null, lands));
       if (a.advMin !== a.advMax) spread++;
     } else {
       assert.equal(a.advMin, a.primary);
@@ -586,4 +592,44 @@ test("主数値は最大硬直のまま。1on1では判定ごとの有利は変�
   assert.deepEqual(ft.hitboxes.map((h) => h.adv), [16, 16, 14]);
   assert.equal(C.scaleDamage(ft.hitboxes[0].damage, true), 10.8);
   assert.equal(ft.hitboxes[0].adv, 16);
+});
+
+test("条件つき着地隙は条件ごとに有利を出し、表示と確定はいちばんきびしい着地", () => {
+  const mv = {
+    name: "上B", category: "special", landingVariant: "空中（着地）", landingLag: 20,
+    landingCases: [{ name: "空振り", lag: 20 }, { name: "ヒット時", lag: 28 }],
+    rows: [row({ active: act([10], 12), stun: [5], damage: [8] })],
+  };
+  const a = C.shieldAdvantage(mv);
+  assert.equal(a.ok, true);
+  assert.equal(a.primary, 15);
+  assert.equal(a.landingLag, 20);
+  assert.equal(a.landingName, "空振り");
+  assert.deepEqual(a.landingCases.map((c) => [c.name, c.lag, c.adv]), [["空振り", 20, 15], ["ヒット時", 28, 23]]);
+  assert.equal(a.advMin, 15);
+  assert.equal(a.advMax, 23);
+  assert.equal(a.bounceLag, null);
+  const withBounce = {
+    name: "上B", category: "special", landingVariant: "空中（着地）", landingLag: 20,
+    landingCases: [{ name: "空振り", lag: 20 }, { name: "ヒット時", lag: 28 }],
+    rows: [
+      row({ active: act([10], 12), stun: [5], damage: [8] }),
+      row({ label: "バウンド", active: null, damage: null, stun: null, total: 40 }),
+    ],
+  };
+  assert.equal(C.shieldAdvantage(withBounce).primary, 15);
+  const mk = (name, s) => ({ name, category: "ground", rows: [row({ active: act([s], s), damage: [1], stun: [1], total: 40 })] });
+  const def = { name: "D", jumpsquat: 3, moves: [mk("上スマッシュ", 16), mk("上スマッシュ遅", 24)] };
+  const by = Object.fromEntries(C.evaluate({ name: "A", moves: [] }, mv, def, {}).list.map((x) => [x.move.name, x]));
+  assert.equal(by["上スマッシュ"].status, "impossible");
+  assert.equal(by["上スマッシュ"].margin, -1);
+  assert.equal(by["上スマッシュ"].weakNote, "ヒット時なら確定");
+  assert.equal(by["上スマッシュ"].tier, null);
+  assert.equal(by["上スマッシュ遅"].status, "impossible");
+  assert.equal(by["上スマッシュ遅"].weakNote, "");
+  const frames = C.listFrames(mv);
+  assert.equal(frames.adv, 15);
+  assert.equal(frames.advMin, 15);
+  assert.equal(frames.advMax, 23);
+  assert.equal(frames.landing, 20);
 });

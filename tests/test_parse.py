@@ -131,13 +131,79 @@ class LandingNote(unittest.TestCase):
             [{"lag": 12, "label": "空中（着地）"}],
         )
 
-    def test_skip_multiple_and_conditional(self):
-        self.assertEqual(bd.landing_variant_specs("着地隙：26F（傘・開） 着地隙：40F（傘・閉）"), [])
+    def test_named_pair_keeps_each_label(self):
+        self.assertEqual(
+            bd.landing_variant_specs("着地隙：26F（傘・開） 着地隙：40F（傘・閉）"),
+            [
+                {"lag": 26, "name": "傘・開", "label": "空中（着地）"},
+                {"lag": 40, "name": "傘・閉", "label": "空中（着地）"},
+            ],
+        )
+        self.assertEqual(
+            bd.landing_variant_specs("着地隙(小)：16F 着地隙(大)：20F"),
+            [
+                {"lag": 16, "name": "小", "label": "空中（着地）"},
+                {"lag": 20, "name": "大", "label": "空中（着地）"},
+            ],
+        )
+        self.assertEqual(
+            bd.landing_variant_specs("着地隙：20F (弱, 空振り) 着地隙：28F (弱, ヒット時)"),
+            [
+                {"lag": 20, "name": "弱, 空振り", "label": "空中（着地）"},
+                {"lag": 28, "name": "弱, ヒット時", "label": "空中（着地）"},
+            ],
+        )
+
+    def test_skip_unreadable_and_single_conditional(self):
         self.assertEqual(bd.landing_variant_specs("着地隙：7F (パラシュート)"), [])
-        self.assertEqual(bd.landing_variant_specs("着地隙(小)：16F 着地隙(大)：20F"), [])
-        self.assertEqual(bd.landing_variant_specs("着地隙：20F (弱, 空振り) 着地隙：28F (弱, ヒット時)"), [])
+        self.assertEqual(bd.landing_variant_specs("着地隙：15F 着地隙：22F"), [])
         self.assertEqual(bd.landing_variant_specs("着地隙は状況による"), [])
         self.assertEqual(bd.landing_variant_specs("着地は相殺なし。"), [])
+
+    def test_plan_splits_named_and_keeps_plain(self):
+        plain = {"category": "special", "rows": [
+            {"label": "始", "rowNote": "着地隙：12F", "active": {"starts": [8]}, "stun": [3], "damage": [4]},
+        ]}
+        self.assertEqual(bd.landing_plan(plain), {"lag": 12})
+        peach = {"variant": "地上・空中", "rows": [
+            {"label": "〆", "rowNote": "着地隙：26F（傘・開） 着地隙：40F（傘・閉）", "active": {"starts": [31]}, "stun": [5], "damage": [4]},
+        ]}
+        self.assertEqual(bd.landing_plan(peach), {"cases": [
+            {"name": "傘・開", "lag": 26}, {"name": "傘・閉", "lag": 40},
+        ]})
+        one = {"rows": [{"label": "Hit 1", "rowNote": "着地隙：7F (パラシュート)", "active": {"starts": [3]}, "stun": [4], "damage": [3]}]}
+        self.assertIsNone(bd.landing_plan(one))
+        empty = {"rows": [{"label": "", "rowNote": "着地隙：19F (飛行) 着地隙：30F (尻もち)"}]}
+        self.assertIsNone(bd.landing_plan(empty))
+
+    def test_plan_keeps_only_the_version_named_in_the_note(self):
+        note = "着地隙：15F (通常, 弱) 着地隙：23F (通常, 強) 着地隙：10F (コマンド, 弱) 着地隙：15F (コマンド, 強)"
+        weak = {"variant": "通常", "input": "button", "strength": "弱", "rows": [
+            {"label": "Hit 1", "rowNote": note, "active": {"starts": [10]}, "stun": [5], "damage": [4]},
+        ]}
+        self.assertEqual(bd.landing_plan(weak), {"lag": 15})
+        down = {"variant": "弱", "input": "button", "rows": [
+            {"label": "Hit 1", "rowNote": "着地隙：20F (弱, 空振り) 着地隙：28F (弱, ヒット時) 着地隙：24F (強, 空振り)", "active": {"starts": [6]}, "stun": [2], "damage": [1]},
+        ]}
+        self.assertEqual(bd.landing_plan(down), {"cases": [
+            {"name": "弱, 空振り", "lag": 20}, {"name": "弱, ヒット時", "lag": 28},
+        ]})
+
+    def test_plan_defers_when_only_some_conditions_name_a_row(self):
+        move = {"variant": "地上・空中", "rows": [
+            {"label": "移動", "rowNote": "着地隙：8F (移動) 着地隙：35F (攻撃)", "active": None, "stun": None},
+            {"label": "攻撃, 対地", "rowNote": "", "active": {"starts": [9]}, "stun": [13], "damage": [14]},
+        ]}
+        self.assertIsNone(bd.landing_plan(move))
+        gun = {"variant": "ガン", "rows": [
+            {"label": "通常射撃", "rowNote": "着地隙：10F (通常射撃/回避射撃) 着地隙：20F (乱れ撃ち)", "active": {"starts": [12]}, "stun": [6], "damage": [5]},
+            {"label": "前回避射撃", "rowNote": "", "active": {"starts": [20]}, "stun": [6], "damage": [6]},
+            {"label": "乱れ撃ち (空中上入力)", "rowNote": "", "active": {"starts": [14]}, "stun": [4], "damage": [3]},
+        ]}
+        plan = bd.landing_plan(gun)
+        self.assertEqual(plan["cases"][0]["lag"], 10)
+        self.assertEqual(plan["cases"][0]["labels"], ["通常射撃", "前回避射撃"])
+        self.assertEqual(plan["cases"][1]["labels"], ["乱れ撃ち (空中上入力)"])
 
 
 class ParseDamage(unittest.TestCase):

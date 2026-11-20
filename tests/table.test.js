@@ -113,6 +113,39 @@ test("1on1補正とダメージの並べ方はURLに残り、空のcはキャラ
   assert.equal(T.parseQuery("#c=").chars.length, 0);
 });
 
+test("ピーチ上Bの着地は傘の開閉で有利が変わり、表は範囲、確定数はきびしい方", () => {
+  const rows = T.buildRows(data, C);
+  const air = rows.find((r) => r.char === "ピーチ" && r.id.endsWith("~air") && r.name.includes("上B"));
+  assert.ok(air);
+  assert.equal(air.landing, 26);
+  assert.equal(air.landingMax, 40);
+  assert.equal(T.formatLanding(air), "26〜40");
+  assert.equal(air.adv, 23);
+  assert.equal(air.advMin, 23);
+  assert.equal(air.advMax, 37);
+  assert.equal(T.formatAdvRange(air), "+23〜+37");
+  const needs = T.punishNeeds(data.chars, C);
+  const mario = data.chars.findIndex((c) => c.name === "マリオ");
+  T.fillSure([air], needs, mario);
+  const loose = Object.assign({}, air, { adv: 37 });
+  T.fillSure([loose], needs, mario);
+  assert.ok(air.sure < loose.sure);
+});
+
+test("着地隙が条件で複数あるときは着地隙も有利も範囲で、主数値は小さい方", () => {
+  const row = { landing: 20, landingMax: 28, adv: 15, advMin: 15, advMax: 23 };
+  assert.equal(T.formatLanding(row), "20〜28");
+  assert.equal(T.formatLanding({ landing: 12, landingMax: 12 }), "12");
+  assert.equal(T.formatLanding({ landing: null, landingMax: null }), "—");
+  assert.equal(T.formatAdvRange(row), "+15〜+23");
+  const rows = [
+    { order: 0, name: "幅", landing: 20, adv: 15 },
+    { order: 1, name: "短", landing: 12, adv: 9 },
+  ];
+  assert.deepEqual(T.sortRows(rows, "landing", "asc").map((r) => r.name), ["短", "幅"]);
+  assert.deepEqual(T.sortRows(rows, "adv", "asc").map((r) => r.name), ["短", "幅"]);
+});
+
 test("同じ段で有利が変わる技は範囲を出し、並べ替えと確定数はきびしい方", () => {
   const rows = T.buildRows(data, C);
   const ft = rows.find((r) => r.char === "マルス" && r.name === "横強");

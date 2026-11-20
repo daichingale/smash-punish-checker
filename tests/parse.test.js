@@ -69,7 +69,7 @@ test("着地版と空中ブロックを除くと、計算できる技は 1754（
   assert.equal(ok, 1754);
 });
 
-test("ネス PKファイヤーの空中（着地）は備考の着地隙12F。条件付きの着地隙は作らない", () => {
+test("ネス PKファイヤーの空中（着地）は備考の着地隙12F。条件名つきの着地隙は条件ごとに分ける", () => {
   const ness = ch("ネス");
   const ground = mv(ness, "横B");
   const air = ness.moves.find((m) => m.id === ground.id + "~air");
@@ -77,20 +77,33 @@ test("ネス PKファイヤーの空中（着地）は備考の着地隙12F。�
   assert.equal(C.shieldAdvantage(ground).primary, 34); // 全体55 − 発生18 − 硬直3
   assert.equal(air.landingVariant, "空中（着地）");
   assert.equal(air.landingLag, 12);
+  assert.equal(air.landingCases, undefined);
   const a = C.shieldAdvantage(air);
   assert.equal(a.ok, true);
   assert.equal(a.aerial, true);
   assert.equal(a.primary, 9); // 着地隙12 − 硬直3
   assert.ok(!C.punishOptions(ness).some((o) => o.move.landingVariant));
-  const peach = ch("ピーチ").moves.find((m) => m.name === "上B");
-  assert.equal(peach.rows.some((r) => (r.rowNote || "").includes("着地隙")), true);
-  assert.ok(!ch("ピーチ").moves.some((m) => m.landingVariant && m.name === "上B"));
+  const peach = ch("ピーチ").moves.find((m) => m.landingCases);
+  assert.equal(peach.landingVariant, "空中（着地）");
+  const pa = C.shieldAdvantage(peach);
+  assert.equal(pa.primary, 23); // 傘・開 26 − 硬直3
+  assert.equal(pa.landingName, "傘・開");
+  assert.deepEqual(pa.landingCases.map((c) => [c.name, c.lag, c.adv]), [["傘・開", 26, 23], ["傘・閉", 40, 37]]);
+  const watch = ch("Mr.ゲーム&ウォッチ");
+  assert.equal(watch.moves.some((m) => (m.rows || []).some((r) => (r.rowNote || "").includes("パラシュート"))), true);
+  assert.ok(!watch.moves.some((m) => m.landingVariant && m.name === "上B"));
   const mario = ch("マリオ");
   const rev = C.evaluate(ness, air, mario, {});
   assert.equal(rev.adv.primaryEff, 9);
   assert.ok(rev.list.some((x) => x.status === "sure"));
+  const umbrella = C.evaluate(ch("ピーチ"), peach, mario, {});
+  const slow = umbrella.list.find((x) => x.weakNote.includes("傘・閉なら確定"));
+  assert.ok(slow);
+  assert.equal(slow.status, "impossible");
   const n = data.chars.reduce((s, c) => s + c.moves.filter((m) => m.landingVariant).length, 0);
-  assert.equal(n, 97);
+  const multi = data.chars.reduce((s, c) => s + c.moves.filter((m) => m.landingCases && m.landingCases.length >= 2).length, 0);
+  assert.equal(n, 115);
+  assert.equal(multi, 12);
 });
 
 test("カズヤ NB デビルブラスター: 空中版は全体67F・地上版の判定27F。着地隙は使わない", () => {
