@@ -68,15 +68,36 @@ class ParseTotal(unittest.TestCase):
         self.assertEqual(bd.parse_total("19 (6)"), 19)
         self.assertEqual(bd.parse_total("42 (+30)"), 42)
 
+    def test_closed_range_is_the_smaller_end(self):
+        self.assertEqual(bd.closed_ends("7 ~ 24", "plain"), (7, 24))
+        self.assertEqual(bd.closed_ends("66 ~ 48", "plain"), (48, 66))
+        self.assertEqual(bd.closed_ends("10F ~ 24F", "plain"), (10, 24))
+        self.assertEqual(bd.closed_ends("7〜24", "plain"), (7, 24))
+        self.assertEqual(bd.parse_total("7 ~ 24"), 7)
+
     def test_reject_dual_and_delta(self):
         self.assertIsNone(bd.parse_total("地上：21 空中：19"))
         self.assertIsNone(bd.parse_total("(+20)"))
+        self.assertIsNone(bd.closed_ends("49 (+9~20)", "plain"))
+        self.assertEqual(bd.parse_total("49 (+9~20)"), 49)
+        self.assertIsNone(bd.closed_ends("20 (8)", "plain"))
+        self.assertIsNone(bd.closed_ends("10 ~ 24F", "plain"))
 
 
 class ParseStun(unittest.TestCase):
     def test_range_uses_both_ends(self):
         self.assertEqual(bd.parse_stun("10F ~ 24F"), ([10, 24], None, None))
         self.assertEqual(bd.parse_stun("5 ~ 6F"), ([5, 6], None, None))
+        self.assertEqual(bd.closed_ends("10F 〜 24F", "stun"), (10, 24))
+        self.assertIsNone(bd.closed_ends("~ 5F", "stun"))
+        self.assertIsNone(bd.closed_ends("8F ~ (10F)", "stun"))
+        self.assertIsNone(bd.closed_ends("10F+", "stun"))
+
+    def test_skip_reasons(self):
+        self.assertEqual(bd.span_skip_reason("49 (+9~20)"), "加算の幅（基準値に足す量で、全体の両端ではない）")
+        self.assertEqual(bd.span_skip_reason("8F ~ (10F)"), "片側が括弧（ボタン/コマンドか幅か決められない）")
+        self.assertEqual(bd.span_skip_reason("~ 5F"), "起点が無い")
+        self.assertIn("疑問符", bd.span_skip_reason("7 ~ 10?"))
 
     def test_glued_frames(self):
         self.assertEqual(bd.parse_stun("10F10F/12F"), ([10, 10, 12], None, None))

@@ -507,6 +507,11 @@
   }
 
   function fmtAdv(v) { return v > 0 ? `+${v}` : `${v}`; }
+  function fmtAdvSpan(harsh, loose) {
+    if (loose == null || loose === harsh) return fmtAdv(harsh);
+    const lo = Math.min(harsh, loose), hi = Math.max(harsh, loose);
+    return fmtAdv(lo) + "〜" + fmtAdv(hi);
+  }
   function fmtM(v) { return `${v >= 0 ? "+" : ""}${v}F`; }
   function dmgText(n) {
     const v = C.scaleDamage(n, state.oo);
@@ -544,7 +549,7 @@
     const hits = C.formatHitboxes(move, state.oo);
     if (hits.text) h += `<div class="cmd">ダメージ ${esc(hits.text)}${state.oo ? "（1on1・基礎×1.2）" : ""}</div>`;
     const hitList = hits.items.map((it) => {
-      const stunTxt = it.stuns ? it.stuns.map((s) => s + "F").join(" / ") : "—";
+      const stunTxt = it.stunSpan ? it.stunSpan[0] + "〜" + it.stunSpan[1] + "F" : it.stuns ? it.stuns.map((s) => s + "F").join(" / ") : "—";
       const base = state.oo ? `（基礎 ${it.base.map((n) => String(Math.round(n * 100) / 100)).join(" / ")}）` : "";
       return `<li>${esc(it.text)}${base}　ガード硬直 ${stunTxt}</li>`;
     }).join("");
@@ -557,7 +562,10 @@
       return;
     }
     const cls = a.primaryEff > 0 ? "pos" : a.primaryEff < 0 ? "neg" : "zero";
-    h += `<div class="big ${cls}">${fmtAdv(a.primaryEff)}<span>F</span></div>`;
+    const advText = fmtAdvSpan(a.primaryEff, a.looseEff);
+    const wide = a.looseEff != null && a.looseEff !== a.primaryEff;
+    h += `<div class="big ${cls}${wide ? " wide" : ""}">${advText}<span>F</span></div>`;
+    if (wide) h += `<div class="late">溜め・状況によって ${advText}F。表示の色と確定は、いちばんきびしい側です。</div>`;
     const landBoxes = landingBreakdown(a);
     if (landBoxes) {
       const bonus = state.ps ? C.PERFECT_SHIELD_BONUS : 0;
@@ -593,8 +601,9 @@
       const tier = x.tier === "severe" ? `<span class="t2 severe" title="猶予${T.severeMax}F以下。最速入力が必要">シビア</span>` : x.tier === "easy" ? `<span class="t2 easy" title="猶予${T.easyMin}F以上">余裕</span>` : "";
       const late = !a.lateUnknown && x.marginWorst !== x.margin ? `<div class="row3">終わり際の猶予 ${fmtM(x.marginWorst)}</div>` : "";
       const weak = x.weakNote ? `<div class="row3">${esc(x.weakNote)}</div>` : "";
+      const span = x.spanNote ? `<div class="row3">${esc(x.spanNote)}</div>` : "";
       return `<li class="${x.status}"><div class="row1"><span class="b ${x.status}">${lbl}</span><span class="n">${esc(shortName(x.move))}${x.move.material ? `【${esc(x.move.material)}】` : ""}</span>${tier}<span class="m ${mcls}">${fmtM(x.margin)}</span></div>` +
-        `<div class="row2">${esc(routeTxt)} ／ 発生${x.startup}F → 必要${x.need}F</div>${weak}${late}` +
+        `<div class="row2">${esc(routeTxt)} ／ 発生${x.startup}F → 必要${x.need}F</div>${span}${weak}${late}` +
         (x.move.input === "button" ? `<div class="cmd">ボタン入力</div>` : x.move.command ? `<div class="cmd">${x.move.input === "command" ? "コマンド入力" : "入力"}: ${esc(x.move.command)}</div>` : "") +
         `</li>`;
     };
@@ -618,7 +627,11 @@
         : `空中必殺の着地。着地隙${a.landingLag}Fからガード硬直を引いた値で、着地直前に当てた場合の最小です。空中にいる時間は含みません。`)
       : `空中攻撃。着地隙${a.landingLag}Fからガード硬直を引いた値で、着地直前に当てた場合の最小です。`;
     $("sheetTitle").textContent = shortName(move);
-    $("sheetBody").innerHTML = `<p>${a.aerial ? airTxt : `地上の技。最速の判定${a.multiHit ? "（多段の最終段）" : ""}をガードした場合の有利は ${fmtAdv(a.primaryEff)}F。`}</p>` +
+    const spanTxt = wide
+      ? `<p>シートの値が幅で書かれています。有利は ${advText}F で、確定・色・猶予はいちばんきびしい側（${fmtAdv(a.primaryEff)}F）です。両端で確定が変わる反撃には「溜め・状況しだい」と付けています。</p>`
+      : "";
+    $("sheetBody").innerHTML = `<p>${a.aerial ? airTxt : `地上の技。最速の判定${a.multiHit ? "（多段の最終段）" : ""}をガードした場合の有利は ${wide ? advText + "F" : fmtAdv(a.primaryEff) + "F"}。`}</p>` +
+      spanTxt +
       `<p>${state.oo ? "ダメージはシートの基礎ダメージ×1.2（1on1補正）です。ガード硬直はシートの値のままなので、有利と確定は変わりません。" : "ダメージはシートの基礎ダメージです。1on1補正は掛けていません。"}</p>` +
       (a.bounceLag != null && a.landingLag != null && a.bounceLag !== a.landingLag ? `<p>この技はヒットするとバウンドします。シートのバウンド行の全体Fは${a.bounceLag}Fなので、有利は ${a.bounceLag}F − ガード硬直です。空振りの着地隙${a.landingLag}Fは使っていません。</p>` : "") +
       (a.usedArsene ? `<p>アルセーヌの段のガード硬直と全体Fで有利と確定を出しています。アルセーヌの段が無い技は、この切り替えでも通常の値のままです。</p>` : "") +

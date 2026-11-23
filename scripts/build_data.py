@@ -13,11 +13,14 @@
   「共通」と書かれた行は全分割先に、それ以外は直前のキーの技に属させる。
 - リュウ等のガード硬直「10F/(12F)」はボタン入力/コマンド入力。→ ボタン版・コマンド版の2技にする。
 """
-import csv, json, re, pathlib, datetime
+import collections, csv, json, re, pathlib, datetime
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 RAW, OUT, LOG = ROOT / "raw", ROOT / "data", ROOT / "logs"
 log_lines = []
+# 閉じた範囲（「10 ~ 24」「10F ~ 24F」）だけ両端にする。見送った理由の件数。
+span_kept = collections.Counter()
+span_skipped = collections.Counter()
 
 # 公式更新データで個別調整されたファイター（シートの古さ判定用）
 ADJUSTED = {
@@ -106,10 +109,58 @@ def parse_active(raw):
         out["open"] = True
     return out
 
+def closed_ends(raw, kind):
+    """セル全体が閉じた範囲のとき (小さい方, 大きい方)。それ以外は None。
+    plain は全体F・着地隙: 『7 ~ 24』または『10F ~ 24F』だけ。
+    stun はガード硬直: 『10F ~ 24F』『5 ~ 6F』（右端に F）。『10F+』『~ 5F』『8F ~ (10F)』は None。"""
+    s = one_line(raw)
+    if kind == "stun":
+        m = re.fullmatch(r"(\d+)F?\s*[~〜]\s*(\d+)F", s)
+    else:
+        m = re.fullmatch(r"(\d+)\s*[~〜]\s*(\d+)", s) or re.fullmatch(r"(\d+)F\s*[~〜]\s*(\d+)F", s)
+    if not m:
+        return None
+    a, b = int(m.group(1)), int(m.group(2))
+    return (a, b) if a <= b else (b, a)
+
+
+def span_skip_reason(raw):
+    """『~』があるのに閉じた両端にしない理由。範囲でないセルには使わない。"""
+    s = one_line(raw)
+    if re.search(r"[？?]", s):
+        return "疑問符があり端が確定できない"
+    if re.fullmatch(r"\d+\s*\(\+\d+\s*[~〜]\s*\d+\)", s):
+        return "加算の幅（基準値に足す量で、全体の両端ではない）"
+    if re.fullmatch(r"\d+F?\s*[~〜]\s*\(\d+F?\)", s):
+        return "片側が括弧（ボタン/コマンドか幅か決められない）"
+    if re.search(r"(^|[^\d])[~〜]\s*\d", s) and not re.search(r"\d\s*[~〜]", s):
+        return "起点が無い"
+    if "+" in s:
+        return "上限が無い（+）"
+    if re.search(r"[\u3040-\u30ff\u4e00-\u9fff]", s):
+        return "文章が混ざる"
+    return "閉じた両端ではない"
+
+
+def note_span(field, raw, ends, inherited):
+    s = one_line(raw)
+    if "~" not in s and "〜" not in s:
+        return
+    if inherited:
+        return
+    if ends:
+        span_kept[field] += 1
+    else:
+        span_skipped[f"{field}: {span_skip_reason(raw)}"] += 1
+
+
 def parse_total(raw):
     s = one_line(raw)
     if not s or s == "-":
         return None
+    ends = closed_ends(raw, "plain")
+    if ends:
+        return ends[0]
     m = re.match(r"^(\d+)", s)
     if m:
         return int(m.group(1))
@@ -133,17 +184,15 @@ def parse_stun(raw):
     """戻り値 (button, command, note)。
     '7F' / '7F/6F' → ([7,6], None)。'10F/(12F)' → ([10],[12])（ボタン/コマンド）。
     '(16F)' → (None,[16])（コマンド専用技）。
-    '10F ~ 24F' / '5 ~ 6F' → 両端（画面は大きい方＝ガード側に不利な方を使う）。
+    '10F ~ 24F' / '5 ~ 6F' → 両端。画面は小さい方〜大きい方、確定の基準は大きい方（ガード側に不利）。
     '10F+' や '~ 5F' は上限または起点が無いので解釈しない（最小値を確定扱いしない）。"""
     s = one_line(raw)
     if not s or s == "-":
         return None, None, None
+    ends = closed_ends(raw, "stun")
+    if ends:
+        return [ends[0], ends[1]], None, None
     s = re.sub(r"F(?=\d)", "F/", s)  # '10F10F/12F' のような区切り落ち
-    m = re.fullmatch(r"(\d+)F?\s*~\s*(\d+)F", s)
-    if m:
-        a, b = int(m.group(1)), int(m.group(2))
-        lo, hi = (a, b) if a <= b else (b, a)
-        return [lo, hi], None, None
     if "~" in s or "+" in s:
         return None, None, "上限がない、または片側だけの幅"
     m = re.fullmatch(r"(\d+F(?:/\d+F)*)[\s/]*\((\d+F(?:/\d+F)*)\)", s)
@@ -752,7 +801,11 @@ def parse_char(name, gid):
             row["active"] = parse_active(row["activeRaw"])
             if row["activeRaw"] and row["active"] is None:
                 log(ch["name"], lbl, "判定持続", row["activeRaw"], "解釈不能（この行は計算に使わない）")
-            row["total"] = parse_total(row["totalRaw"])
+            total_ends = closed_ends(row["totalRaw"], "plain")
+            note_span("全体フレーム", row["totalRaw"], total_ends, "全体フレーム" in row.get("inherited", []))
+            row["total"] = total_ends[0] if total_ends else parse_total(row["totalRaw"])
+            if total_ends and total_ends[1] != total_ends[0]:
+                row["totalHi"] = total_ends[1]
             if row["totalRaw"] and row["total"] is None:
                 log(ch["name"], lbl, "全体フレーム", row["totalRaw"], "数値で始まらない（不明扱い）")
             row["damage"] = parse_damage(row["damageRaw"])
@@ -760,16 +813,30 @@ def parse_char(name, gid):
                 log(ch["name"], lbl, "基礎ダメージ", row["damageRaw"], "解釈不能")
             b, c, why = parse_stun(row["stunRaw"])
             row["stun"], row["stunCmd"] = b, c
+            stun_ends = closed_ends(row["stunRaw"], "stun")
+            note_span("ガード硬直", row["stunRaw"], stun_ends, False)
+            if stun_ends and b is not None and stun_ends[1] != stun_ends[0]:
+                row["stunSpan"] = True
             if c is not None:
                 has_cmd = True
             if row["stunRaw"] and b is None and c is None:
                 log(ch["name"], lbl, "ガード硬直", row["stunRaw"], f"解釈不能（{why}）→ この行は硬直差計算に使わない")
             ll = row.pop("landingLagRaw", "")
-            row["landingLag"] = int(ll) if re.fullmatch(r"\d+", ll or "") else None
+            ll_ends = closed_ends(ll, "plain")
+            note_span("着地隙", ll, ll_ends, "着地隙" in row.get("inherited", []))
+            if ll_ends:
+                row["landingLag"] = ll_ends[0]
+                if ll_ends[1] != ll_ends[0]:
+                    row["landingLagHi"] = ll_ends[1]
+            else:
+                row["landingLag"] = int(ll) if re.fullmatch(r"\d+", ll or "") else None
             if ll and row["landingLag"] is None:
                 log(ch["name"], lbl, "着地隙", ll, "解釈不能")
         if m["category"] == "aerial":
-            m["landingLag"] = next((x["landingLag"] for x in m["rows"] if x["landingLag"] is not None), None)
+            src = next((x for x in m["rows"] if x["landingLag"] is not None), None)
+            m["landingLag"] = src["landingLag"] if src else None
+            if src and src.get("landingLagHi") is not None:
+                m["landingLagHi"] = src["landingLagHi"]
             if m["landingLag"] is None:
                 log(ch["name"], m["name"], "着地隙", None, "見つからない → 相手側の硬直差は計算しない")
         if has_cmd:
@@ -841,6 +908,8 @@ def main():
     for c in chars:
         print(c["name"], c["lastUpdated"], "JS", c["jumpsquat"], "moves", len(c["moves"]), "stale" if c["stale"] else "", c["materials"] or "")
     print("log lines:", len(log_lines))
+    print("span kept:", dict(span_kept))
+    print("span skipped:", dict(span_skipped))
 
 if __name__ == "__main__":
     main()
