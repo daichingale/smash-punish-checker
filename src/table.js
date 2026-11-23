@@ -75,10 +75,13 @@
           group: groupIndex(m), material: m.material || "", command: m.command || "",
           slotGroup: m.group || "", miiSlot: Mii.miiSlot(m), sub: subLine(m, place),
           hay: norm(name + " " + (m.command || "") + " " + (m.material || "")),
-          startup: f.startup, activeEnd: f.activeEnd, total: f.total, landing: f.landing,
+          startup: f.startup, activeEnd: f.activeEnd, total: f.total,
+          totalMax: f.totalMax == null ? f.total : f.totalMax,
+          landing: f.landing,
           landingMax: landingHi(m, f.landing),
           parts, damageMax: span.max, damageMin: span.min, damage: span.max,
-          stun: f.stun, adv: f.adv, advMin: f.advMin == null ? null : f.advMin, advMax: f.advMax == null ? null : f.advMax, sure: null,
+          stun: f.stun, stunMax: f.stunMax == null ? f.stun : f.stunMax,
+          adv: f.adv, advMin: f.advMin == null ? null : f.advMin, advMax: f.advMax == null ? null : f.advMax, sure: null,
         });
       });
     });
@@ -118,16 +121,31 @@
 
   function landingHi(move, landing) {
     const lags = (move.landingCases || []).map((c) => c.lag).filter((n) => typeof n === "number");
-    if (lags.length < 2 || landing == null) return landing;
-    return Math.max.apply(null, lags);
+    if (lags.length >= 2 && landing != null) return Math.max.apply(null, lags);
+    if (landing != null && typeof move.landingLagHi === "number" && move.landingLagHi !== landing) {
+      return Math.max(landing, move.landingLagHi);
+    }
+    return landing;
   }
   function fmtSigned(v) { return (v > 0 ? "+" : "") + v; }
+  /** 範囲は小さい方〜大きい方。ソートキーは小さい方 */
+  function formatSpan(lo, hi) {
+    if (lo == null || Number.isNaN(lo)) return "—";
+    if (hi == null || hi === lo || Number.isNaN(hi)) return String(lo);
+    return Math.min(lo, hi) + "〜" + Math.max(lo, hi);
+  }
   /** 着地隙が条件で複数あるときは「26〜40」。ソートに使う主数値は小さい方（landing） */
   function formatLanding(row) {
     if (!row || row.landing == null || Number.isNaN(row.landing)) return "—";
-    const hi = row.landingMax;
-    if (hi == null || hi === row.landing) return String(row.landing);
-    return Math.min(row.landing, hi) + "〜" + Math.max(row.landing, hi);
+    return formatSpan(row.landing, row.landingMax);
+  }
+  function formatTotal(row) {
+    if (!row) return "—";
+    return formatSpan(row.total, row.totalMax);
+  }
+  function formatStun(row) {
+    if (!row) return "—";
+    return formatSpan(row.stun, row.stunMax);
   }
   /** 判定で有利が変わる技は「+14〜+16」。ソートに使う主数値は別（adv） */
   function formatAdvRange(row) {
@@ -240,7 +258,7 @@
 
   const api = {
     KIND_LABEL, KIND_IDS, PLACE_LABEL, SORT_KEYS, FIRST_DIR, PRESETS, PRESET_BY_ID,
-    moveLabel, kindOf, placeOf, buildRows, punishNeeds, fillSure, sortRows, applyDamageKey, applyView, parseQuery, serialize, norm, formatAdvRange, formatLanding,
+    moveLabel, kindOf, placeOf, buildRows, punishNeeds, fillSure, sortRows, applyDamageKey, applyView, parseQuery, serialize, norm, formatAdvRange, formatLanding, formatTotal, formatStun,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FrameTable = api;

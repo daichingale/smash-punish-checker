@@ -146,6 +146,35 @@ test("着地隙が条件で複数あるときは着地隙も有利も範囲で�
   assert.deepEqual(T.sortRows(rows, "adv", "asc").map((r) => r.name), ["短", "幅"]);
 });
 
+test("溜めの幅は有利・硬直・全体Fを小さい方〜大きい方で出し、並べ替えは小さい方", () => {
+  const rows = T.buildRows(data, C);
+  const dk = rows.find((r) => r.char === "ドンキーコング" && r.name.includes("ジャイアント") && r.name.includes("地上"));
+  assert.ok(dk);
+  assert.equal(dk.adv, 19);
+  assert.equal(dk.advMin, 19);
+  assert.equal(dk.advMax, 33);
+  assert.equal(T.formatAdvRange(dk), "+19〜+33");
+  assert.equal(dk.stun, 10);
+  assert.equal(dk.stunMax, 24);
+  assert.equal(T.formatStun(dk), "10〜24");
+  assert.equal(T.formatTotal({ total: 48, totalMax: 66 }), "48〜66");
+  assert.equal(T.formatTotal({ total: 62, totalMax: 62 }), "62");
+  assert.equal(T.formatStun({ stun: null, stunMax: null }), "—");
+  assert.equal(T.formatLanding({ landing: 10, landingMax: 18 }), "10〜18");
+  const sample = [
+    { order: 0, name: "幅", stun: 10, total: 48, adv: 19 },
+    { order: 1, name: "単", stun: 12, total: 50, adv: 20 },
+    { order: 2, name: "空", stun: null, total: null, adv: null },
+  ];
+  assert.deepEqual(T.sortRows(sample, "stun", "asc").map((r) => r.name), ["幅", "単", "空"]);
+  assert.deepEqual(T.sortRows(sample, "total", "asc").map((r) => r.name), ["幅", "単", "空"]);
+  assert.deepEqual(T.sortRows(sample, "adv", "asc").map((r) => r.name), ["幅", "単", "空"]);
+  const bayo = rows.find((r) => r.char === "ベヨネッタ" && r.name.includes("ヒールスライド") && r.name.includes("地上"));
+  assert.ok(bayo);
+  assert.equal(bayo.total, 67);
+  assert.equal(T.formatTotal(bayo), "67");
+});
+
 test("同じ段で有利が変わる技は範囲を出し、並べ替えと確定数はきびしい方", () => {
   const rows = T.buildRows(data, C);
   const ft = rows.find((r) => r.char === "マルス" && r.name === "横強");

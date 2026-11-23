@@ -33,6 +33,8 @@
   }
   /** ダメージと硬直の個数が一致するときだけ、同じ行の判定を対応づける。合わなければ null（推測しない） */
   function pairedHitboxes(row, advOf) {
+    // 溜め・状況の幅は判定が2つあるのではない。対にすると名前を作ることになる
+    if (row && row.stunSpan) return null;
     const damages = row && Array.isArray(row.damage) ? row.damage : null;
     const stuns = row && Array.isArray(row.stun) ? row.stun : null;
     if (!damages || !stuns || !damages.length || damages.length !== stuns.length) return null;
@@ -101,7 +103,17 @@
       use = use.filter((r) => !/（後）/.test(r.label));
     }
     // 着地隙 L での空中有利。条件が複数あるときは、条件ごとにこの式を使う
-    function airBlock(useRows, lag) {
+    function stunEnds(row) {
+      const hi = maxOf(row.stun);
+      const lo = row.stunSpan ? minOf(row.stun) : hi;
+      return { lo: lo, hi: hi, span: lo !== hi };
+    }
+    // 幅が1つだけのとき、きびしい端の反対。全体Fと硬直が両方幅のときは null（対応を作らない）
+    function otherEnd(harsh, loose, spans) {
+      if (spans !== 1 || loose == null || loose === harsh) return null;
+      return loose;
+    }
+    function airBlock(useRows, lag, lagHi) {
       if (lag == null || !useRows.length) return null;
       const seqAir = useRows.some((r) => SEQ_RE.test(r.label));
       const row = seqAir ? useRows[useRows.length - 1] : useRows[0];
@@ -111,8 +123,12 @@
       const worstAir = late ? prim : Math.min.apply(null, useRows.map((r) => f(r, true)));
       const base = row.label.includes("着地") ? lag - row.active.starts[0] : lag;
       const ofStun = (s) => base - s;
+      const se = stunEnds(row);
+      const lagSpan = typeof lagHi === "number" && lagHi !== lag;
+      const at = (lg, st) => (row.label.includes("着地") ? lg - row.active.starts[0] - st : lg - st);
+      const loose = otherEnd(prim, se.span ? at(lag, se.lo) : (lagSpan ? at(lagHi, se.hi) : prim), (se.span ? 1 : 0) + (lagSpan ? 1 : 0));
       return {
-        seq: seqAir, pRow: row, lateUnknown: late, primary: prim, worst: worstAir,
+        seq: seqAir, pRow: row, lateUnknown: late, primary: prim, worst: worstAir, loose: loose,
         detail: useRows.map((r) => ({ label: r.label || "本体", stun: r.stun, adv: f(r, false) })),
         hitboxes: pairedHitboxes(row, ofStun), advOf: ofStun,
       };
@@ -126,7 +142,7 @@
     const L = bounce ? bounce.total : move.landingLag;
     // 終わりが '*' の判定は、終わり際の有利Fを数字にしない
     let lateUnknown = use.some((r) => r.active && r.active.open);
-    let pRow = pRow0, multi = seq, primary, worst, detail = [], advOf, hitboxes;
+    let pRow = pRow0, multi = seq, primary, worst, loose = null, detail = [], advOf, hitboxes;
     let landingCases = null, landingName = "", harshLag = null;
     const groundAdv = (r, late) => r.total - (late ? r.active.end : r.active.starts[0]) - maxOf(r.stun);
     if (isAir && caseSpecs) {
@@ -148,18 +164,26 @@
       harshLag = harsh.lag;
       const sub = harsh.sub;
       multi = sub.seq; pRow = sub.pRow; lateUnknown = sub.lateUnknown;
-      primary = sub.primary; worst = sub.worst; detail = sub.detail; advOf = sub.advOf; hitboxes = sub.hitboxes;
+      primary = sub.primary; worst = sub.worst; loose = sub.loose; detail = sub.detail; advOf = sub.advOf; hitboxes = sub.hitboxes;
     } else if (isAir) {
       if (L == null) return { ok: false, reason: "着地隙がシートに無い" };
-      const sub = airBlock(use, L);
+      const lagHi = bounce
+        ? (typeof bounce.totalHi === "number" ? bounce.totalHi : null)
+        : (typeof move.landingLagHi === "number" ? move.landingLagHi : null);
+      const sub = airBlock(use, L, lagHi);
       multi = sub.seq; pRow = sub.pRow; lateUnknown = sub.lateUnknown;
-      primary = sub.primary; worst = sub.worst; detail = sub.detail; advOf = sub.advOf; hitboxes = sub.hitboxes;
+      primary = sub.primary; worst = sub.worst; loose = sub.loose; detail = sub.detail; advOf = sub.advOf; hitboxes = sub.hitboxes;
     } else {
       const hit = seq ? lastStart(pRow) : pRow.active.starts[0];
-      primary = pRow.total - hit - maxOf(pRow.stun);
+      const se = stunEnds(pRow);
+      const totalLo = pRow.total;
+      const totalHi = typeof pRow.totalHi === "number" ? pRow.totalHi : totalLo;
+      const totalSpan = totalHi !== totalLo;
+      primary = totalLo - hit - se.hi;
+      loose = otherEnd(primary, se.span ? totalLo - hit - se.lo : totalHi - hit - se.hi, (se.span ? 1 : 0) + (totalSpan ? 1 : 0));
       worst = lateUnknown ? primary : Math.min.apply(null, use.map((r) => groundAdv(r, true)));
       detail = use.map((r) => ({ label: r.label || "本体", stun: r.stun, total: r.total, hitFrame: r.active.starts[0], adv: groundAdv(r, false) }));
-      advOf = (s) => pRow.total - hit - s;
+      advOf = (s) => totalLo - hit - s;
       hitboxes = pairedHitboxes(pRow, advOf);
     }
     // 主数値に使った段だけ。硬直が違う判定の有利は、同じ発生F・同じ後隙から引く。多段の他の段は混ぜない
@@ -167,6 +191,7 @@
     const pool = [];
     if (hitboxes && hitboxes.length) for (let i = 0; i < hitboxes.length; i++) pool.push(hitboxes[i].adv);
     else pool.push(primary);
+    if (loose != null) pool.push(loose);
     if (landingCases) for (let i = 0; i < landingCases.length; i++) pool.push(landingCases[i].adv);
     const advMin = minOf(pool);
     const advMax = maxOf(pool);
@@ -178,7 +203,13 @@
     const damage = pRow.damage && pRow.damage.length ? maxOf(pRow.damage) : null;
     const total = pRow.total == null ? null : pRow.total;
     const shownLag = isAir ? (harshLag != null ? harshLag : move.landingLag) : null;
-    return { ok: true, primary, worst: Math.min(worst, primary), lateUnknown, primaryStun: maxOf(pRow.stun), primaryLabel: pRow.label || "", multiHit: multi, aerial: isAir, landingLag: shownLag, landingName: landingName, landingCases: landingCases, bounceLag: bounce ? bounce.total : null, alt, damage, total, detail, hitboxes, advMin, advMax, usedArsene };
+    const seOut = stunEnds(pRow);
+    const totalHi = typeof pRow.totalHi === "number" && pRow.totalHi !== pRow.total ? pRow.totalHi : null;
+    return {
+      ok: true, primary, loose, worst: Math.min(worst, primary), lateUnknown, primaryStun: maxOf(pRow.stun),
+      stunSpan: seOut.span, stunLo: seOut.lo, stunHi: seOut.hi,
+      primaryLabel: pRow.label || "", multiHit: multi, aerial: isAir, landingLag: shownLag, landingName: landingName, landingCases: landingCases, bounceLag: bounce ? bounce.total : null, alt, damage, total, totalHi, detail, hitboxes, advMin, advMax, usedArsene,
+    };
   }
 
   /** 表の1行分。読めない値は null（画面では —）。有利は shieldAdvantage と同じ */
@@ -189,16 +220,28 @@
     const adv = shieldAdvantage(move, o);
     const activeRows = (move.rows || []).filter((r) => r.active);
     const activeEnd = !activeRows.length || activeRows.some((r) => r.active.open) ? null : Math.max.apply(null, activeRows.map((r) => r.active.end));
+    const landingMax = isAir && move.landingLagHi != null && landing != null && move.landingLagHi !== landing ? move.landingLagHi : null;
     if (!adv.ok) {
       const r = firstHitRow(move);
+      const span = r && r.stunSpan && r.stun && r.stun.length > 1;
       return {
-        startup, activeEnd, landing, adv: null, advMin: null, advMax: null,
+        startup, activeEnd, landing, landingMax, adv: null, advMin: null, advMax: null,
         total: r && r.total != null ? r.total : null,
+        totalMax: r && r.totalHi != null && r.totalHi !== r.total ? r.totalHi : (r && r.total != null ? r.total : null),
         damage: r && r.damage && r.damage.length ? maxOf(r.damage) : null,
-        stun: r && r.stun && r.stun.length ? maxOf(r.stun) : null,
+        stun: r && r.stun && r.stun.length ? (span ? minOf(r.stun) : maxOf(r.stun)) : null,
+        stunMax: r && r.stun && r.stun.length ? maxOf(r.stun) : null,
       };
     }
-    return { startup, activeEnd, total: adv.total, landing, damage: adv.damage, stun: adv.primaryStun, adv: adv.primary, advMin: adv.advMin, advMax: adv.advMax };
+    return {
+      startup, activeEnd, total: adv.total,
+      totalMax: adv.totalHi != null ? adv.totalHi : adv.total,
+      landing, landingMax,
+      damage: adv.damage,
+      stun: adv.stunSpan ? adv.stunLo : adv.primaryStun,
+      stunMax: adv.stunSpan ? adv.stunHi : adv.primaryStun,
+      adv: adv.primary, advMin: adv.advMin, advMax: adv.advMax,
+    };
   }
 
   function isStarter(move) {
@@ -287,14 +330,18 @@
       const need = opt.startup + cost;
       const margin = adv.primary + bonus - need;
       const marginWorst = adv.worst + bonus - need;
+      const marginLoose = adv.loose == null ? null : adv.loose + bonus - need;
       // 密着を前提に、フレームが間に合えば「確定」（リーチ・ガードで押される距離は考慮しない）
+      // 幅のある値は、きびしい端で確定・色・猶予ラベルを決める。ゆるい端だけ間に合うときは補足だけ足す
       const status = margin >= 0 ? "sure" : "impossible";
+      const looseStatus = marginLoose == null ? status : (marginLoose >= 0 ? "sure" : "impossible");
+      const spanNote = looseStatus !== status ? "溜め・状況しだい" : "";
       const weakNote = status === "impossible" ? weakSureNote(adv.hitboxes, adv.primary, bonus, need, adv.landingCases) : "";
-      return { ...opt, cost, need, margin, marginWorst, status, tier: marginTier(margin), routeLabel: ROUTE_LABEL[opt.route], weakNote };
+      return { ...opt, cost, need, margin, marginWorst, marginLoose, status, tier: marginTier(margin), routeLabel: ROUTE_LABEL[opt.route], weakNote, spanNote };
     });
     // 猶予の大きい順（同じなら必要Fの小さい順）。「不可」は後ろ
     list.sort((a, b) => (a.status === b.status ? 0 : a.status === "sure" ? -1 : 1) || b.margin - a.margin || a.need - b.need);
-    return { adv: { ...adv, primaryEff: adv.primary + bonus, worstEff: adv.worst + bonus }, list };
+    return { adv: { ...adv, primaryEff: adv.primary + bonus, worstEff: adv.worst + bonus, looseEff: adv.loose == null ? null : adv.loose + bonus }, list };
   }
 
   /** アイテムなしの1対1で与ダメージに掛かる倍率。ガード硬直の式には入らない（検証wiki「ガード硬直」） */
@@ -315,10 +362,12 @@
       const damages = (row.damage || []).filter((d) => typeof d === "number" && !Number.isNaN(d));
       if (!damages.length) continue;
       const stuns = (row.stun || []).filter((s) => typeof s === "number" && !Number.isNaN(s));
+      const span = row.stunSpan && stuns.length >= 2 ? [minOf(stuns), maxOf(stuns)] : null;
       parts.push({
         label: String(row.label || "").trim(),
         damages,
-        stuns: stuns.length === damages.length ? stuns.slice() : null,
+        stuns: span ? null : (stuns.length === damages.length ? stuns.slice() : null),
+        stunSpan: span,
       });
     }
     return parts;
@@ -339,7 +388,7 @@
       if (p.label) body = nums.map(fmtDamageNum).join(" / ") + " (" + p.label + ")";
       else if (unlabeled <= 1) body = fmtDamageNum(nums[0]);
       else body = nums.map((n) => "hit" + (++hit) + " " + fmtDamageNum(n)).join(" / ");
-      return { label: p.label, damages: nums, base: p.damages.slice(), stuns: p.stuns, text: body };
+      return { label: p.label, damages: nums, base: p.damages.slice(), stuns: p.stuns, stunSpan: p.stunSpan || null, text: body };
     });
     return { text: items.map((it) => it.text).join(" · "), items, max, min };
   }

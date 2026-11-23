@@ -152,6 +152,68 @@ test("空中着地の必殺は着地隙−ガード硬直で、反撃手段に�
   assert.deepEqual(C.punishOptions(ch).map((o) => o.move.name), ["上B"]);
 });
 
+test("硬直の幅は両端の有利。確定・猶予ラベルはきびしい端で、変わるときだけ補足", () => {
+  const mv = { name: "NB", category: "special", rows: [row({ label: "溜めなし", active: act([19], 20), total: 62, stun: [10, 24], stunSpan: true, damage: [10, 28] })] };
+  const a = C.shieldAdvantage(mv);
+  assert.equal(a.ok, true);
+  assert.equal(a.primary, 19); // 62 − 19 − 24
+  assert.equal(a.loose, 33); // 62 − 19 − 10
+  assert.equal(a.hitboxes, null);
+  assert.equal(a.advMin, 19);
+  assert.equal(a.advMax, 33);
+  assert.equal(a.stunLo, 10);
+  assert.equal(a.stunHi, 24);
+  const mk = (name, category, s, extra = {}) => ({ name, category, rows: [row({ active: act([s], s), label: extra.label || "" })], ...extra });
+  const def = { name: "D", jumpsquat: 3, moves: [
+    mk("上B", "special", 5, { group: "上B", variant: "地上" }),
+    mk("上スマッシュ", "ground", 22),
+    mk("横スマッシュ", "ground", 40),
+  ] };
+  const list = Object.fromEntries(C.evaluate({ name: "A" }, mv, def, {}).list.map((x) => [x.move.name, x]));
+  assert.equal(list["上B"].status, "sure");
+  assert.equal(list["上B"].spanNote, "");
+  assert.equal(list["上B"].tier, "easy"); // 猶予 14F。ゆるい端ではさらに大きいが、ラベルはきびしい端
+  assert.equal(list["上B"].margin, 14);
+  assert.equal(list["上スマッシュ"].status, "impossible");
+  assert.equal(list["上スマッシュ"].spanNote, "溜め・状況しだい");
+  assert.equal(list["上スマッシュ"].tier, null);
+  assert.equal(list["上スマッシュ"].margin, -3);
+  assert.ok(list["上スマッシュ"].marginLoose >= 0);
+  assert.equal(list["横スマッシュ"].status, "impossible");
+  assert.equal(list["横スマッシュ"].spanNote, "");
+});
+
+test("全体Fの幅も両端。硬直と全体Fが両方幅のときは対応を作らない", () => {
+  const total = { name: "横B", category: "special", rows: [row({ active: act([16], 18), total: 48, totalHi: 66, stun: [8] })] };
+  const a = C.shieldAdvantage(total);
+  assert.equal(a.primary, 24); // 48 − 16 − 8
+  assert.equal(a.loose, 42); // 66 − 16 − 8
+  assert.equal(a.totalHi, 66);
+  const both = { name: "NB", category: "special", rows: [row({ active: act([19], 20), total: 48, totalHi: 66, stun: [10, 24], stunSpan: true })] };
+  const b = C.shieldAdvantage(both);
+  assert.equal(b.primary, 5); // 小さい全体Fと大きい硬直。きびしい端だけ
+  assert.equal(b.loose, null);
+});
+
+test("着地隙の幅は両端。硬直も幅なら着地の対応は作らない", () => {
+  const lag = { name: "空前", category: "aerial", landingLag: 10, landingLagHi: 18, rows: [row({ active: act([6], 8), stun: [4] })] };
+  const a = C.shieldAdvantage(lag);
+  assert.equal(a.primary, 6);
+  assert.equal(a.loose, 14);
+  const both = { name: "空前", category: "aerial", landingLag: 10, landingLagHi: 18, rows: [row({ active: act([6], 8), stun: [4, 8], stunSpan: true })] };
+  const b = C.shieldAdvantage(both);
+  assert.equal(b.primary, 2); // 着地隙10 − 硬直8
+  assert.equal(b.loose, null);
+});
+
+test("幅でない複数硬直は、これまでどおり大きい方を一つの有利にする", () => {
+  const mv = { name: "下強", category: "ground", rows: [row({ active: act([5], 7), total: 27, stun: [7, 6], damage: [7, 5] })] };
+  const a = C.shieldAdvantage(mv);
+  assert.equal(a.primary, 15); // 27 − 5 − 7
+  assert.equal(a.loose, null);
+  assert.equal(a.hitboxes.length, 2);
+});
+
 test("飛び道具・ガード時特殊仕様・全体F不明は計算対象外（数値を作らない）", () => {
   assert.equal(C.shieldAdvantage({ name: "NB", category: "special", projectile: true, rows: [] }).ok, false);
   assert.equal(C.shieldAdvantage({ name: "最速風神拳", category: "command", specialShield: true, rows: [] }).ok, false);
@@ -582,6 +644,11 @@ test("主数値は最大硬直のまま。1on1では判定ごとの有利は変�
       assert.equal(a.advMin, a.primary);
       assert.equal(a.advMax, Math.max.apply(null, lands));
       if (a.advMin !== a.advMax) spread++;
+    } else if (a.loose != null) {
+      assert.equal(a.advMin, a.primary);
+      assert.ok(a.loose > a.primary);
+      assert.equal(a.advMax, a.loose);
+      spread++;
     } else {
       assert.equal(a.advMin, a.primary);
       assert.equal(a.advMax, a.primary);

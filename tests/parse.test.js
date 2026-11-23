@@ -37,10 +37,18 @@ test("10F+ は上限が無いので硬直にしない（ヨッシー横B 転が�
   assert.equal(C.shieldAdvantage(m).ok, false);
 });
 
-test("幅のある硬直は大きい方を使い、読めなかった技が計算に戻る", () => {
-  const dk = C.shieldAdvantage(mv(ch("ドンキーコング"), "NB（地上）"));
+test("幅のある硬直は両端の有利にし、基準は大きい方（きびしい側）", () => {
+  const dkMove = mv(ch("ドンキーコング"), "NB（地上）");
+  assert.equal(dkMove.rows[0].stunSpan, true);
+  assert.deepEqual(dkMove.rows[0].stun, [10, 24]);
+  const dk = C.shieldAdvantage(dkMove);
   assert.equal(dk.ok, true);
-  assert.equal(dk.primary, 19); // 62 − 19 − 24（10F~24F の大きい方）
+  assert.equal(dk.primary, 19); // 62 − 19 − 24
+  assert.equal(dk.loose, 33); // 62 − 19 − 10
+  assert.equal(dk.hitboxes, null);
+  const flipped = C.evaluate(ch("ドンキーコング"), dkMove, ch("マリオ"), {}).list.filter((x) => x.spanNote);
+  assert.ok(flipped.length > 0);
+  assert.ok(flipped.every((x) => x.status === "impossible" && x.tier == null && x.margin < 0 && x.marginLoose >= 0));
   const ness = C.shieldAdvantage(mv(ch("ネス"), "下B"));
   assert.equal(ness.ok, true);
   assert.equal(ness.primary, 12);

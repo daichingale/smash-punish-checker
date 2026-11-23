@@ -1975,7 +1975,8 @@
         10,
         24
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "最大溜め",
@@ -2047,7 +2048,8 @@
         6,
         21
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "最大溜め",
@@ -3744,7 +3746,8 @@
         2,
         4
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "弓2本時, 溜め無し",
@@ -3770,7 +3773,8 @@
         2,
         4
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "",
@@ -3798,7 +3802,8 @@
         2,
         4
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       }
      ],
      "command": null,
@@ -14700,7 +14705,8 @@
         6,
         19
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "衝突後",
@@ -16021,7 +16027,8 @@
         6,
         18
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "暴発, 溜め無し",
@@ -16198,7 +16205,8 @@
         6,
         18
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "暴発, 溜め無し",
@@ -20931,7 +20939,8 @@
         10,
         18
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       }
      ],
      "command": null,
@@ -20968,7 +20977,8 @@
         10,
         18
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       }
      ],
      "command": null,
@@ -46733,7 +46743,8 @@
         14,
         40
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "放出, 持続1",
@@ -49542,7 +49553,8 @@
         2,
         3
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "上, 最速",
@@ -57864,7 +57876,8 @@
         9,
         14
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       }
      ],
      "command": null,
@@ -57920,7 +57933,8 @@
         6,
         12
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       }
      ],
      "command": null,
@@ -66825,7 +66839,8 @@
         7,
         10
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "ダッシュ, 空中",
@@ -66852,7 +66867,8 @@
         7,
         10
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "ダッシュ, 地上, 最終",
@@ -67117,7 +67133,8 @@
         2,
         3
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "ダッシュ, 空中",
@@ -67144,7 +67161,8 @@
         3,
         4
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "ダッシュ, 地上, 最終",
@@ -74789,7 +74807,8 @@
         2,
         4
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       }
      ],
      "command": null,
@@ -84983,7 +85002,8 @@
         11,
         25
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "",
@@ -85011,7 +85031,8 @@
         10,
         22
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "",
@@ -85039,7 +85060,8 @@
         8,
         21
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "非最大溜め, 反転",
@@ -85065,7 +85087,8 @@
         10,
         23
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "",
@@ -85093,7 +85116,8 @@
         8,
         19
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "",
@@ -85121,7 +85145,8 @@
         6,
         16
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "最大溜め",
@@ -85211,7 +85236,8 @@
         10,
         17
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "",
@@ -85239,7 +85265,8 @@
         8,
         14
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "非最大溜め, 反転",
@@ -85265,7 +85292,8 @@
         8,
         15
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "",
@@ -85293,7 +85321,8 @@
         6,
         12
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "最大溜め",
@@ -85461,7 +85490,8 @@
         0.0
        ],
        "stun": null,
-       "landingLag": null
+       "landingLag": null,
+       "totalHi": 24
       },
       {
        "label": "攻撃",
@@ -85515,7 +85545,8 @@
        "total": 7,
        "damage": null,
        "stun": null,
-       "landingLag": null
+       "landingLag": null,
+       "totalHi": 24
       },
       {
        "label": "攻撃",
@@ -86974,7 +87005,8 @@
         2,
         4
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "最大溜め, 連",
@@ -87066,7 +87098,8 @@
         2,
         4
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "最大溜め, 連",
@@ -92281,7 +92314,8 @@
         8,
         16
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       }
      ],
      "command": null,
@@ -92347,7 +92381,8 @@
         8,
         16
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       }
      ],
      "command": null,
@@ -98203,7 +98238,8 @@
         5,
         6
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "最速, エサ取得",
@@ -98257,7 +98293,8 @@
         6,
         11
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "突進2後",
@@ -116439,7 +116476,8 @@
         2,
         4
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "噛み, 溜め無し",
@@ -116467,7 +116505,8 @@
         10,
         16
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "弾, 最大溜め",
@@ -118792,7 +118831,8 @@
        "stun": [
         8
        ],
-       "landingLag": null
+       "landingLag": null,
+       "totalHi": 66
       },
       {
        "label": "派生なし2",
@@ -118818,7 +118858,8 @@
        "stun": [
         8
        ],
-       "landingLag": null
+       "landingLag": null,
+       "totalHi": 66
       },
       {
        "label": "派生なし3",
@@ -118844,7 +118885,8 @@
        "stun": [
         8
        ],
-       "landingLag": null
+       "landingLag": null,
+       "totalHi": 66
       },
       {
        "label": "派生なし4",
@@ -118870,7 +118912,8 @@
        "stun": [
         7
        ],
-       "landingLag": null
+       "landingLag": null,
+       "totalHi": 66
       },
       {
        "label": "壁激突",
@@ -121440,7 +121483,8 @@
         4,
         5
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "インク切れ",
@@ -121576,7 +121620,8 @@
         4,
         5
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "インク切れ",
@@ -153536,7 +153581,8 @@
         3,
         6
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "破壊",
@@ -162519,7 +162565,8 @@
         9,
         26
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       },
       {
        "label": "カウンター, 飛び道具",
@@ -162545,7 +162592,8 @@
         9,
         26
        ],
-       "landingLag": null
+       "landingLag": null,
+       "stunSpan": true
       }
      ],
      "command": null,
