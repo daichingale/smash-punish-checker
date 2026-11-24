@@ -67,7 +67,7 @@ test("実データのMii必殺だけ番号が付き、剣術の横2は疾風突�
   }
   assert.equal(specialNo, 0);
   assert.equal(stranger, 0);
-  assert.equal(specialYes, 57);
+  assert.equal(specialYes, 58);
   assert.equal(otherMii, 48);
   const sword = data.chars.find((c) => c.name === "剣術Mii");
   const specs = sword.moves.filter((m) => m.category === "special");

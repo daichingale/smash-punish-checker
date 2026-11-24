@@ -135,7 +135,7 @@
     }
     const seq = use.some((r) => SEQ_RE.test(r.label));
     const pRow0 = seq ? use[use.length - 1] : use[0];
-    const caseSpecs = isAir && Array.isArray(move.landingCases) && move.landingCases.length >= 2 ? move.landingCases : null;
+    const caseSpecs = isAir && Array.isArray(move.landingCases) && move.landingCases.length >= 1 ? move.landingCases : null;
     // ヒットするとバウンドし、その行だけ全体Fが書いてあるときは、空振りの着地隙ではなくその全体F。
     // 備考が条件別に着地隙を書いているときは、その数字を使う（バウンド行では置き換えない）
     const bounce = isAir && !caseSpecs ? move.rows.find((r) => r.label === "バウンド" && r.damage == null && !r.stun && r.total != null) : null;
@@ -156,7 +156,7 @@
         if (!sub) continue;
         computed.push({ name: String(c.name), lag: c.lag, adv: sub.primary, sub: sub });
       }
-      if (computed.length < 2) return { ok: false, reason: "着地隙の条件を分けられない" };
+      if (computed.length < 1) return { ok: false, reason: "着地隙の条件を分けられない" };
       let harsh = computed[0];
       for (let i = 1; i < computed.length; i++) if (computed[i].adv < harsh.adv) harsh = computed[i];
       landingCases = computed.map((c) => ({ name: c.name, lag: c.lag, adv: c.adv }));

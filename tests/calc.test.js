@@ -661,6 +661,24 @@ test("主数値は最大硬直のまま。1on1では判定ごとの有利は変�
   assert.equal(ft.hitboxes[0].adv, 16);
 });
 
+test("着地の条件が1つで行が指定されているときは、その行の硬直だけを引く", () => {
+  const mv = {
+    name: "下B", category: "special", landingVariant: "空中（着地）", landingLag: 35,
+    landingCases: [{ name: "攻撃", lag: 35, labels: ["攻撃, 対地"] }],
+    rows: [
+      row({ label: "踏みつけ", active: act([1], 2), stun: [8], damage: [8] }),
+      row({ label: "攻撃, 対地", active: act([9], 12), stun: [13], damage: [14] }),
+    ],
+  };
+  const a = C.shieldAdvantage(mv);
+  assert.equal(a.ok, true);
+  assert.equal(a.primary, 22);
+  assert.equal(a.landingLag, 35);
+  assert.equal(a.landingName, "攻撃");
+  assert.deepEqual(a.landingCases.map((c) => [c.name, c.lag, c.adv]), [["攻撃", 35, 22]]);
+  assert.deepEqual(a.detail.map((d) => d.label), ["攻撃, 対地"]);
+});
+
 test("条件つき着地隙は条件ごとに有利を出し、表示と確定はいちばんきびしい着地", () => {
   const mv = {
     name: "上B", category: "special", landingVariant: "空中（着地）", landingLag: 20,

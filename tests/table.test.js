@@ -132,6 +132,27 @@ test("ピーチ上Bの着地は傘の開閉で有利が変わり、表は範囲�
   assert.ok(air.sure < loose.sure);
 });
 
+test("対応した着地は表で範囲になり、見送りの技は着地隙が空", () => {
+  const rows = T.buildRows(data, C);
+  const gun = rows.find((r) => r.char === "ジョーカー" && r.name.includes("ガン") && r.name.includes("着地"));
+  assert.equal(gun.landing, 10);
+  assert.equal(gun.landingMax, 20);
+  assert.equal(T.formatLanding(gun), "10〜20");
+  assert.equal(gun.adv, 4);
+  assert.equal(gun.advMax, 16);
+  assert.equal(T.formatAdvRange(gun), "+4〜+16");
+  const zss = rows.find((r) => r.char === "ゼロスーツサムス" && r.name.includes("下B") && r.name.includes("着地"));
+  assert.equal(zss.landing, 35);
+  assert.equal(T.formatLanding(zss), "35");
+  assert.equal(zss.adv, 22);
+  assert.equal(T.formatAdvRange(zss), "+22");
+  const sheik = rows.find((r) => r.char === "シーク" && r.name.startsWith("下B"));
+  assert.equal(sheik.landing, null);
+  const oli = rows.find((r) => r.char === "ピクミン&オリマー" && r.name.startsWith("上B"));
+  assert.equal(oli.landing, null);
+  assert.equal(oli.adv, null);
+});
+
 test("着地隙が条件で複数あるときは着地隙も有利も範囲で、主数値は小さい方", () => {
   const row = { landing: 20, landingMax: 28, adv: 15, advMin: 15, advMax: 23 };
   assert.equal(T.formatLanding(row), "20〜28");

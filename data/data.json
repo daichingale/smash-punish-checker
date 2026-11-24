@@ -3,8 +3,8 @@
   "source": "スマブラSP フレームデータ（スマブラSPECIAL 検証wiki / 検証窓 フレームシート）",
   "sourceUrl": "https://docs.google.com/spreadsheets/d/15SClMwvDIqovtO3DJnf1GGIteH35UX3IM7-mnbdG6eE/edit",
   "wikiUrl": "https://w.atwiki.jp/smashsp_kensyou/",
-  "fetchedAt": "2026-10-19T08:37:56+0900",
-  "builtAt": "2026-10-19T09:08:06+00:00",
+  "fetchedAt": "2026-11-24T01:27:09+0000",
+  "builtAt": "2026-11-24T01:30:12+00:00",
   "gameVersionNote": "最終バランス調整は Ver.13.0.1 (2021/12/02)。"
  },
  "chars": [
@@ -1975,8 +1975,8 @@
         10,
         24
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "最大溜め",
@@ -2048,8 +2048,8 @@
         6,
         21
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "最大溜め",
@@ -3746,8 +3746,8 @@
         2,
         4
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "弓2本時, 溜め無し",
@@ -3773,8 +3773,8 @@
         2,
         4
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "",
@@ -3802,8 +3802,8 @@
         2,
         4
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       }
      ],
      "command": null,
@@ -14705,8 +14705,8 @@
         6,
         19
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "衝突後",
@@ -16027,8 +16027,8 @@
         6,
         18
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "暴発, 溜め無し",
@@ -16205,8 +16205,8 @@
         6,
         18
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "暴発, 溜め無し",
@@ -20939,8 +20939,8 @@
         10,
         18
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       }
      ],
      "command": null,
@@ -20977,8 +20977,8 @@
         10,
         18
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       }
      ],
      "command": null,
@@ -21736,7 +21736,6 @@
          10,
          14,
          18,
-         22,
          26
         ],
         "end": 27,
@@ -23473,7 +23472,6 @@
          10,
          14,
          18,
-         22,
          26
         ],
         "end": 27,
@@ -25573,10 +25571,9 @@
         "starts": [
          30,
          37,
-         44,
-         51
+         44
         ],
-        "end": 22,
+        "end": 48,
         "rehit": false
        },
        "total": 77,
@@ -25602,10 +25599,9 @@
         "starts": [
          30,
          37,
-         44,
-         51
+         44
         ],
-        "end": 22,
+        "end": 48,
         "rehit": false
        },
        "total": 31,
@@ -46743,8 +46739,8 @@
         14,
         40
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "放出, 持続1",
@@ -49553,8 +49549,8 @@
         2,
         3
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "上, 最速",
@@ -53402,7 +53398,84 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "1381351225-19"
+     "id": "1381351225-19",
+     "versionLabel": "地上"
+    },
+    {
+     "name": "下B",
+     "category": "special",
+     "group": "下B",
+     "variant": "地上・空中",
+     "title": "フリップジャンプ",
+     "projectile": false,
+     "rows": [
+      {
+       "label": "攻撃, 対地",
+       "activeRaw": "9-12",
+       "totalRaw": "59",
+       "damageRaw": "14",
+       "stunRaw": "13F",
+       "inherited": [],
+       "rowNote": "",
+       "active": {
+        "starts": [
+         9
+        ],
+        "end": 12,
+        "rehit": false
+       },
+       "total": 59,
+       "damage": [
+        14.0
+       ],
+       "stun": [
+        13
+       ],
+       "landingLag": null
+      },
+      {
+       "label": "攻撃, 対空",
+       "activeRaw": "9-12",
+       "totalRaw": "59",
+       "damageRaw": "",
+       "stunRaw": "",
+       "inherited": [
+        "判定持続",
+        "全体フレーム"
+       ],
+       "rowNote": "",
+       "active": {
+        "starts": [
+         9
+        ],
+        "end": 12,
+        "rehit": false
+       },
+       "total": 59,
+       "damage": null,
+       "stun": null,
+       "landingLag": null
+      }
+     ],
+     "command": null,
+     "inputNote": null,
+     "specialShield": false,
+     "guardNote": null,
+     "input": null,
+     "id": "1381351225-19~air",
+     "landingCases": [
+      {
+       "name": "攻撃",
+       "lag": 35,
+       "labels": [
+        "攻撃, 対地",
+        "攻撃, 対空"
+       ]
+      }
+     ],
+     "landingLag": 35,
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "つかみ",
@@ -57876,8 +57949,8 @@
         9,
         14
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       }
      ],
      "command": null,
@@ -57933,8 +58006,8 @@
         6,
         12
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       }
      ],
      "command": null,
@@ -63207,7 +63280,91 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "824127703-16"
+     "id": "824127703-16",
+     "versionLabel": "地上"
+    },
+    {
+     "name": "横B",
+     "category": "special",
+     "group": "横B",
+     "variant": "地上・空中",
+     "title": "モンキーフリップ",
+     "projectile": false,
+     "rows": [
+      {
+       "label": "キック",
+       "activeRaw": "6-10",
+       "totalRaw": "32",
+       "damageRaw": "14/12",
+       "stunRaw": "13F/11F",
+       "inherited": [],
+       "rowNote": "",
+       "active": {
+        "starts": [
+         6
+        ],
+        "end": 10,
+        "rehit": false
+       },
+       "total": 32,
+       "damage": [
+        14.0,
+        12.0
+       ],
+       "stun": [
+        13,
+        11
+       ],
+       "landingLag": null
+      },
+      {
+       "label": "キック, 持続",
+       "activeRaw": "11-25",
+       "totalRaw": "32",
+       "damageRaw": "12/10",
+       "stunRaw": "11F/10F",
+       "inherited": [
+        "全体フレーム"
+       ],
+       "rowNote": "",
+       "active": {
+        "starts": [
+         11
+        ],
+        "end": 25,
+        "rehit": false
+       },
+       "total": 32,
+       "damage": [
+        12.0,
+        10.0
+       ],
+       "stun": [
+        11,
+        10
+       ],
+       "landingLag": null
+      }
+     ],
+     "command": null,
+     "inputNote": null,
+     "specialShield": false,
+     "guardNote": null,
+     "input": null,
+     "id": "824127703-16~air",
+     "landingCases": [
+      {
+       "name": "キック",
+       "lag": 18,
+       "labels": [
+        "キック",
+        "キック, 持続"
+       ]
+      }
+     ],
+     "landingLag": 18,
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "横B（拘束）",
@@ -66839,8 +66996,8 @@
         7,
         10
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "ダッシュ, 空中",
@@ -66867,8 +67024,8 @@
         7,
         10
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "ダッシュ, 地上, 最終",
@@ -67133,8 +67290,8 @@
         2,
         3
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "ダッシュ, 空中",
@@ -67161,8 +67318,8 @@
         3,
         4
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "ダッシュ, 地上, 最終",
@@ -74807,8 +74964,8 @@
         2,
         4
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       }
      ],
      "command": null,
@@ -85002,8 +85159,8 @@
         11,
         25
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "",
@@ -85031,8 +85188,8 @@
         10,
         22
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "",
@@ -85060,8 +85217,8 @@
         8,
         21
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "非最大溜め, 反転",
@@ -85087,8 +85244,8 @@
         10,
         23
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "",
@@ -85116,8 +85273,8 @@
         8,
         19
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "",
@@ -85145,8 +85302,8 @@
         6,
         16
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "最大溜め",
@@ -85236,8 +85393,8 @@
         10,
         17
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "",
@@ -85265,8 +85422,8 @@
         8,
         14
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "非最大溜め, 反転",
@@ -85292,8 +85449,8 @@
         8,
         15
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "",
@@ -85321,8 +85478,8 @@
         6,
         12
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "最大溜め",
@@ -85486,12 +85643,12 @@
         "rehit": false
        },
        "total": 7,
+       "totalHi": 24,
        "damage": [
         0.0
        ],
        "stun": null,
-       "landingLag": null,
-       "totalHi": 24
+       "landingLag": null
       },
       {
        "label": "攻撃",
@@ -85543,10 +85700,10 @@
        "rowNote": "",
        "active": null,
        "total": 7,
+       "totalHi": 24,
        "damage": null,
        "stun": null,
-       "landingLag": null,
-       "totalHi": 24
+       "landingLag": null
       },
       {
        "label": "攻撃",
@@ -87005,8 +87162,8 @@
         2,
         4
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "最大溜め, 連",
@@ -87098,8 +87255,8 @@
         2,
         4
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "最大溜め, 連",
@@ -90910,7 +91067,84 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "286122033-31"
+     "id": "286122033-31",
+     "versionLabel": "地上"
+    },
+    {
+     "name": "下B2 (反転キック)",
+     "category": "special",
+     "group": "下B2 (反転キック)",
+     "variant": "地上・空中",
+     "title": "",
+     "projectile": false,
+     "rows": [
+      {
+       "label": "攻撃, 対地",
+       "activeRaw": "8-21",
+       "totalRaw": "52",
+       "damageRaw": "10",
+       "stunRaw": "10F",
+       "inherited": [],
+       "rowNote": "",
+       "active": {
+        "starts": [
+         8
+        ],
+        "end": 21,
+        "rehit": false
+       },
+       "total": 52,
+       "damage": [
+        10.0
+       ],
+       "stun": [
+        10
+       ],
+       "landingLag": null
+      },
+      {
+       "label": "攻撃, 対空",
+       "activeRaw": "8-21",
+       "totalRaw": "52",
+       "damageRaw": "",
+       "stunRaw": "",
+       "inherited": [
+        "判定持続",
+        "全体フレーム"
+       ],
+       "rowNote": "",
+       "active": {
+        "starts": [
+         8
+        ],
+        "end": 21,
+        "rehit": false
+       },
+       "total": 52,
+       "damage": null,
+       "stun": null,
+       "landingLag": null
+      }
+     ],
+     "command": null,
+     "inputNote": null,
+     "specialShield": false,
+     "guardNote": null,
+     "input": null,
+     "id": "286122033-31~air",
+     "landingCases": [
+      {
+       "name": "攻撃",
+       "lag": 37,
+       "labels": [
+        "攻撃, 対地",
+        "攻撃, 対空"
+       ]
+      }
+     ],
+     "landingLag": 37,
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "下B3 (カウンター投げ)",
@@ -92314,8 +92548,8 @@
         8,
         16
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       }
      ],
      "command": null,
@@ -92381,8 +92615,8 @@
         8,
         16
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       }
      ],
      "command": null,
@@ -98238,8 +98472,8 @@
         5,
         6
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "最速, エサ取得",
@@ -98293,8 +98527,8 @@
         6,
         11
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "突進2後",
@@ -116476,8 +116710,8 @@
         2,
         4
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "噛み, 溜め無し",
@@ -116505,8 +116739,8 @@
         10,
         16
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "弾, 最大溜め",
@@ -118825,14 +119059,14 @@
         "rehit": false
        },
        "total": 48,
+       "totalHi": 66,
        "damage": [
         8.0
        ],
        "stun": [
         8
        ],
-       "landingLag": null,
-       "totalHi": 66
+       "landingLag": null
       },
       {
        "label": "派生なし2",
@@ -118852,14 +119086,14 @@
         "rehit": false
        },
        "total": 48,
+       "totalHi": 66,
        "damage": [
         8.0
        ],
        "stun": [
         8
        ],
-       "landingLag": null,
-       "totalHi": 66
+       "landingLag": null
       },
       {
        "label": "派生なし3",
@@ -118879,14 +119113,14 @@
         "rehit": false
        },
        "total": 48,
+       "totalHi": 66,
        "damage": [
         7.5
        ],
        "stun": [
         8
        ],
-       "landingLag": null,
-       "totalHi": 66
+       "landingLag": null
       },
       {
        "label": "派生なし4",
@@ -118906,14 +119140,14 @@
         "rehit": false
        },
        "total": 48,
+       "totalHi": 66,
        "damage": [
         7.0
        ],
        "stun": [
         7
        ],
-       "landingLag": null,
-       "totalHi": 66
+       "landingLag": null
       },
       {
        "label": "壁激突",
@@ -121483,8 +121717,8 @@
         4,
         5
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "インク切れ",
@@ -121620,8 +121854,8 @@
         4,
         5
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "インク切れ",
@@ -134353,7 +134587,24 @@
        "stunRaw": "4F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         12,
+         15,
+         18,
+         24,
+         27,
+         30,
+         36,
+         39,
+         42,
+         48,
+         51,
+         54
+        ],
+        "end": 54,
+        "rehit": true
+       },
        "total": 69,
        "damage": [
         3.0
@@ -134425,7 +134676,193 @@
      "specialShield": false,
      "guardNote": null,
      "input": null,
-     "id": "512914968-15"
+     "id": "512914968-15",
+     "versionLabel": "地上"
+    },
+    {
+     "name": "NB（ガン）",
+     "category": "special",
+     "group": "NB",
+     "variant": "ガン",
+     "title": "ガン / ガンスペシャル",
+     "projectile": false,
+     "rows": [
+      {
+       "label": "通常射撃",
+       "activeRaw": "12",
+       "totalRaw": "36",
+       "damageRaw": "5/3/1",
+       "stunRaw": "6F/4F/2F",
+       "inherited": [],
+       "rowNote": "全身無敵：4-13F (地上前回避, ペナルティ無) 全身無敵：5-14F (地上後回避, ペナルティ無) 全身無敵：5-16F (空中前回避, ペナルティ無) 全身無敵：5-16F (空中後回避, ペナルティ無) 全身無敵：1-6F (ジャンプ直下射撃) 着地隙：10F (通常射撃/回避射撃/空中直下射撃) 着地隙：20F (乱れ撃ち) 回避ペナルティは通常回避と共有。 ペナルティに応じて全体F増加・無敵F減少。 一連の動作で回避は最大で4回まで。 押しっぱなし派生までに1度入力で連打派生。 派生タイミング (ガン, 連打/押しっぱなし) 通常→通常・前・後：26F目/31F目 地上通常→ジャンプ直下射撃：26F目 地上前→全：33F目 地上後→全：39F目 空中通常→乱れ撃ち：14F目/17F目 空中通常→空中直下射撃：14F目/17F目 空中前→全：33F目 空中後→全：39F目 派生タイミング (ガンスペシャル, 連打/押しっぱなし) 地上通常→通常・前・後：31F目/36F目 地上通常→ジャンプ直下射撃：31F目 地上前→全：41F目 地上後→全：44F目 空中通常→通常・前・後：29F目/32F目 空中通常→乱れ撃ち：15F目/18F目 空中通常→空中直下射撃：15F目/18F目 空中前→全：37F目 空中後→全：41F目 相殺なし。",
+       "active": {
+        "starts": [
+         12
+        ],
+        "end": 12,
+        "rehit": false
+       },
+       "total": 36,
+       "damage": [
+        5.0,
+        3.0,
+        1.0
+       ],
+       "stun": [
+        6,
+        4,
+        2
+       ],
+       "landingLag": null
+      },
+      {
+       "label": "前回避射撃",
+       "activeRaw": "20",
+       "totalRaw": "39+",
+       "damageRaw": "6/4/2",
+       "stunRaw": "6F/5F/3F",
+       "inherited": [],
+       "rowNote": "",
+       "active": {
+        "starts": [
+         20
+        ],
+        "end": 20,
+        "rehit": false
+       },
+       "total": 39,
+       "damage": [
+        6.0,
+        4.0,
+        2.0
+       ],
+       "stun": [
+        6,
+        5,
+        3
+       ],
+       "landingLag": null
+      },
+      {
+       "label": "後回避射撃",
+       "activeRaw": "22",
+       "totalRaw": "45+",
+       "damageRaw": "5/3/1",
+       "stunRaw": "6F/4F/2F",
+       "inherited": [],
+       "rowNote": "",
+       "active": {
+        "starts": [
+         22
+        ],
+        "end": 22,
+        "rehit": false
+       },
+       "total": 45,
+       "damage": [
+        5.0,
+        3.0,
+        1.0
+       ],
+       "stun": [
+        6,
+        4,
+        2
+       ],
+       "landingLag": null
+      },
+      {
+       "label": "乱れ撃ち (空中上入力)",
+       "activeRaw": "12, 15, 18, 24, 27, 30, 36, 39, 42, 48, 51, 54 (, 60, 63, 66...) (Rehit: 12)",
+       "totalRaw": "69 (+48)",
+       "damageRaw": "3",
+       "stunRaw": "4F",
+       "inherited": [],
+       "rowNote": "",
+       "active": {
+        "starts": [
+         12,
+         15,
+         18,
+         24,
+         27,
+         30,
+         36,
+         39,
+         42,
+         48,
+         51,
+         54
+        ],
+        "end": 54,
+        "rehit": true
+       },
+       "total": 69,
+       "damage": [
+        3.0
+       ],
+       "stun": [
+        4
+       ],
+       "landingLag": null
+      },
+      {
+       "label": "空中直下射撃 (空中下入力)",
+       "activeRaw": "7, 21, 35 (, 49, 63, 77)",
+       "totalRaw": "48 (+36)",
+       "damageRaw": "4/1.2",
+       "stunRaw": "5F/2F",
+       "inherited": [],
+       "rowNote": "",
+       "active": {
+        "starts": [
+         7,
+         21,
+         35
+        ],
+        "end": 35,
+        "rehit": false
+       },
+       "total": 48,
+       "damage": [
+        4.0,
+        1.2
+       ],
+       "stun": [
+        5,
+        2
+       ],
+       "landingLag": null
+      }
+     ],
+     "command": null,
+     "inputNote": null,
+     "specialShield": false,
+     "guardNote": null,
+     "input": null,
+     "id": "512914968-15~air",
+     "landingCases": [
+      {
+       "name": "通常射撃/回避射撃/空中直下射撃",
+       "lag": 10,
+       "labels": [
+        "通常射撃",
+        "前回避射撃",
+        "後回避射撃",
+        "空中直下射撃 (空中下入力)"
+       ]
+      },
+      {
+       "name": "乱れ撃ち",
+       "lag": 20,
+       "labels": [
+        "乱れ撃ち (空中上入力)"
+       ]
+      }
+     ],
+     "landingLag": 10,
+     "landingVariant": "空中（着地）",
+     "derivedAir": true
     },
     {
      "name": "NB（ガンスペシャル）",
@@ -134738,7 +135175,24 @@
        "stunRaw": "5F",
        "inherited": [],
        "rowNote": "",
-       "active": null,
+       "active": {
+        "starts": [
+         12,
+         15,
+         18,
+         24,
+         27,
+         30,
+         36,
+         39,
+         42,
+         48,
+         51,
+         54
+        ],
+        "end": 54,
+        "rehit": true
+       },
        "total": 69,
        "damage": [
         4.5
@@ -153581,8 +154035,8 @@
         3,
         6
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "破壊",
@@ -162565,8 +163019,8 @@
         9,
         26
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       },
       {
        "label": "カウンター, 飛び道具",
@@ -162592,8 +163046,8 @@
         9,
         26
        ],
-       "landingLag": null,
-       "stunSpan": true
+       "stunSpan": true,
+       "landingLag": null
       }
      ],
      "command": null,

@@ -517,10 +517,10 @@
     const v = C.scaleDamage(n, state.oo);
     return String(Math.round(v * 100) / 100);
   }
-  /** 着地隙が条件で複数あるとき、条件名と有利。1条件は空 */
+  /** 着地隙に条件名があるとき、条件名と有利 */
   function landingBreakdown(a) {
     const cs = a.landingCases;
-    if (!cs || cs.length < 2) return "";
+    if (!cs || !cs.length) return "";
     const bonus = state.ps ? C.PERFECT_SHIELD_BONUS : 0;
     return cs.map((c) => `<li>${esc(c.name)}　着地隙 ${c.lag}F　ガード有利 ${fmtAdv(c.adv + bonus)}F</li>`).join("");
   }
@@ -571,7 +571,9 @@
       const bonus = state.ps ? C.PERFECT_SHIELD_BONUS : 0;
       const advs = a.landingCases.map((c) => c.adv + bonus);
       const lo = Math.min.apply(null, advs), hi = Math.max.apply(null, advs);
-      const span = lo === hi
+      const span = a.landingCases.length < 2
+        ? `着地の条件は「${esc(a.landingName || a.landingCases[0].name)}」です。表示と確定はこの着地です。`
+        : lo === hi
         ? `着地の条件は${a.landingCases.length}つで、有利は同じです。表示と確定はこの値です。`
         : `着地の条件によって ${fmtAdv(lo)}〜${fmtAdv(hi)}F。表示と確定はいちばんきびしい着地です。`;
       h += `<div class="late">${span}</div><ul class="hbox">${landBoxes}</ul>`;
@@ -624,6 +626,8 @@
     const airTxt = move.landingVariant
       ? (a.landingCases && a.landingCases.length >= 2
         ? `空中必殺の着地。備考の着地隙は条件で違います。表示の ${fmtAdv(a.primaryEff)}F は、いちばんきびしい着地（${esc(a.landingName)}、着地隙${a.landingLag}F）からガード硬直を引いた値です。着地までの時間は含みません。`
+        : a.landingCases && a.landingCases.length === 1
+        ? `空中必殺の着地。備考の着地隙は「${esc(a.landingCases[0].name)}」の ${a.landingLag}F です。表示の ${fmtAdv(a.primaryEff)}F は、その着地隙からガード硬直を引いた値です。着地までの時間は含みません。`
         : `空中必殺の着地。着地隙${a.landingLag}Fからガード硬直を引いた値で、着地直前に当てた場合の最小です。空中にいる時間は含みません。`)
       : `空中攻撃。着地隙${a.landingLag}Fからガード硬直を引いた値で、着地直前に当てた場合の最小です。`;
     $("sheetTitle").textContent = shortName(move);
@@ -637,7 +641,9 @@
       (a.usedArsene ? `<p>アルセーヌの段のガード硬直と全体Fで有利と確定を出しています。アルセーヌの段が無い技は、この切り替えでも通常の値のままです。</p>` : "") +
       (altLine.length ? `<p>${altLine.map((x) => `${esc(x.label)}をガードした有利は ${fmtAdv(x.adv)}F`).join("。")}。${a.usedArsene ? "この段は確定の数に入れていません。" : "確定の数は通常の段だけです。"}</p>` : "") +
       (hitList ? `<ul class="hits">${hitList}</ul>` : `<p>基礎ダメージはシートにありません。</p>`) +
-      (landBoxes ? `<p>着地隙は条件ごとに違います。下は、それぞれからガード硬直を引いた有利です。確定と不可は、いちばんきびしい着地（${fmtAdv(a.primaryEff)}F）で分けています。</p><ul class="hbox">${landBoxes}</ul>` : "") +
+      (landBoxes ? (a.landingCases.length >= 2
+        ? `<p>着地隙は条件ごとに違います。下は、それぞれからガード硬直を引いた有利です。確定と不可は、いちばんきびしい着地（${fmtAdv(a.primaryEff)}F）で分けています。</p>`
+        : `<p>備考に着地隙が書いてある条件のうち、ガード硬直と対応するのは「${esc(a.landingCases[0].name)}」です。有利は、その着地隙からガード硬直を引いた値です。</p>`) + `<ul class="hbox">${landBoxes}</ul>` : "") +
       (boxes ? `<p>この段は判定ごとにガード硬直が違います。下は、それぞれをガードしたときの有利です。確定と不可は、ガード硬直が大きい方（${fmtAdv(a.primaryEff)}F）で分けています。</p><ul class="hbox">${boxes}</ul>` : "") +
       `<p>${a.lateUnknown ? "判定の終わりがシート上で不定なので、終わり際の数字は出していません。" : `判定の終わり際をガードした場合の有利は ${fmtAdv(a.worstEff)}F。カードの2行目は、そのときの猶予です。`}</p>` +
       `<p>密着が前提です。リーチと、ガードで押される距離は見ていません。コマンド入力の時間も含めていません。</p>` +
