@@ -56,8 +56,22 @@ class ParseActive(unittest.TestCase):
         self.assertEqual(a["end"], 12)
 
     def test_reject_ambiguous(self):
-        for raw in ("1-2 (生成：14F)", "*", "1-?", "20-* ~ 30", "生成：17F", ""):
+        for raw in ("1-2 (生成：14F)", "*", "1-?", "20-* ~ 30", "生成：17F", "", "9-11, 14-16, ..."):
             self.assertIsNone(bd.parse_active(raw), raw)
+
+    def test_skip_window_whose_end_is_before_the_start(self):
+        a = bd.parse_active("6-7, 10-11, 14-15, 18-19, 22-12, 26-27")
+        self.assertEqual(a["starts"], [6, 10, 14, 18, 26])
+        self.assertEqual(a["end"], 27)
+        self.assertIsNone(bd.parse_active("22-12"))
+
+    def test_ellipsis_inside_paren_keeps_the_outside_frames(self):
+        raw = "12, 15, 18, 24, 27, 30, 36, 39, 42, 48, 51, 54 (, 60, 63, 66...) (Rehit: 12)"
+        a = bd.parse_active(raw)
+        self.assertEqual(a["starts"], [12, 15, 18, 24, 27, 30, 36, 39, 42, 48, 51, 54])
+        self.assertEqual(a["end"], 54)
+        self.assertTrue(a["rehit"])
+        self.assertNotIn("open", a)
 
 
 class ParseTotal(unittest.TestCase):
@@ -210,16 +224,45 @@ class LandingNote(unittest.TestCase):
             {"name": "弱, 空振り", "lag": 20}, {"name": "弱, ヒット時", "lag": 28},
         ]})
 
-    def test_plan_defers_when_only_some_conditions_name_a_row(self):
+    def test_plan_keeps_the_named_hit_and_drops_a_row_with_no_stun(self):
+        # 移動は行があるが判定も硬直も無い。攻撃は行名と一致する。踏みつけは着地隙が書いていない。
         move = {"variant": "地上・空中", "rows": [
             {"label": "移動", "rowNote": "着地隙：8F (移動) 着地隙：35F (攻撃)", "active": None, "stun": None},
             {"label": "攻撃, 対地", "rowNote": "", "active": {"starts": [9]}, "stun": [13], "damage": [14]},
+            {"label": "踏みつけ", "rowNote": "", "active": {"starts": [1]}, "stun": [8], "damage": [8]},
         ]}
-        self.assertIsNone(bd.landing_plan(move))
+        self.assertEqual(bd.landing_plan(move), {"cases": [
+            {"name": "攻撃", "lag": 35, "labels": ["攻撃, 対地"]},
+        ]})
+
+    def test_plan_keeps_a_kick_when_the_other_lag_has_no_shield_row(self):
+        move = {"variant": "地上・空中", "rows": [
+            {"label": "つかみ, 対地", "rowNote": "着地隙：26F (移行前) 着地隙：18F (キック)", "active": {"starts": [18]}, "stun": None, "damage": None},
+            {"label": "キック", "rowNote": "", "active": {"starts": [6]}, "stun": [13, 11], "damage": [14, 12]},
+            {"label": "キック, 持続", "rowNote": "", "active": {"starts": [11]}, "stun": [11, 10], "damage": [12, 10]},
+        ]}
+        self.assertEqual(bd.landing_plan(move), {"cases": [
+            {"name": "キック", "lag": 18, "labels": ["キック", "キック, 持続"]},
+        ]})
+
+    def test_plan_defers_when_an_unnamed_hit_could_belong_to_another_lag(self):
+        # 通常・攻撃はどの行にも当たらない。最速はガードできるので、バウンドだけにすると対応が推測になる。
+        sheik = {"variant": "地上・空中", "rows": [
+            {"label": "最速", "rowNote": "着地隙：21F (通常) 着地隙：35F (攻撃) 着地隙：19F (バウンド)", "active": {"starts": [18]}, "stun": [10], "damage": [11]},
+            {"label": "バウンド, 最速", "rowNote": "", "active": {"starts": [22]}, "stun": [12], "damage": [13]},
+        ]}
+        self.assertIsNone(bd.landing_plan(sheik))
+        # 行が空で硬直も無い回復は、条件が読めても計算しない。
+        empty = {"rows": [{"label": "", "rowNote": "着地隙：19F (飛行) 着地隙：30F (尻もち)"}]}
+        self.assertIsNone(bd.landing_plan(empty))
+
+    def test_plan_scopes_gun_shots_including_a_parsed_burst(self):
+        burst = bd.parse_active("12, 15, 18, 24, 27, 30, 36, 39, 42, 48, 51, 54 (, 60, 63, 66...) (Rehit: 12)")
+        self.assertIsNotNone(burst)
         gun = {"variant": "ガン", "rows": [
             {"label": "通常射撃", "rowNote": "着地隙：10F (通常射撃/回避射撃) 着地隙：20F (乱れ撃ち)", "active": {"starts": [12]}, "stun": [6], "damage": [5]},
             {"label": "前回避射撃", "rowNote": "", "active": {"starts": [20]}, "stun": [6], "damage": [6]},
-            {"label": "乱れ撃ち (空中上入力)", "rowNote": "", "active": {"starts": [14]}, "stun": [4], "damage": [3]},
+            {"label": "乱れ撃ち (空中上入力)", "rowNote": "", "active": burst, "stun": [4], "damage": [3]},
         ]}
         plan = bd.landing_plan(gun)
         self.assertEqual(plan["cases"][0]["lag"], 10)

@@ -110,8 +110,71 @@ test("ネス PKファイヤーの空中（着地）は備考の着地隙12F。�
   assert.equal(slow.status, "impossible");
   const n = data.chars.reduce((s, c) => s + c.moves.filter((m) => m.landingVariant).length, 0);
   const multi = data.chars.reduce((s, c) => s + c.moves.filter((m) => m.landingCases && m.landingCases.length >= 2).length, 0);
-  assert.equal(n, 115);
-  assert.equal(multi, 12);
+  assert.equal(n, 119);
+  assert.equal(multi, 13);
+});
+
+test("行と着地隙が対応する見送り分だけを条件ごとの有利にし、曖昧なものは計算対象外のまま", () => {
+  const zss = ch("ゼロスーツサムス");
+  const zAir = zss.moves.find((m) => m.landingVariant && m.group === "下B");
+  const zGround = zss.moves.find((m) => m.group === "下B" && !m.landingVariant);
+  assert.equal(zAir.landingLag, 35);
+  assert.deepEqual(zAir.landingCases.map((c) => [c.name, c.lag]), [["攻撃", 35]]);
+  assert.ok(zAir.rows.every((r) => r.label.startsWith("攻撃")));
+  assert.equal(C.shieldAdvantage(zAir).primary, 22); // 着地隙35 − 硬直13
+  assert.equal(C.shieldAdvantage(zAir).landingName, "攻撃");
+  assert.equal(zGround.versionLabel, "地上");
+  assert.equal(C.shieldAdvantage(zGround).primary, 37); // 全体59 − 発生9 − 硬直13
+  assert.equal(C.shieldAdvantage(zGround).aerial, false);
+
+  const diddy = ch("ディディーコング");
+  const dAir = diddy.moves.find((m) => m.landingVariant && m.group === "横B");
+  assert.equal(dAir.landingLag, 18);
+  assert.deepEqual(dAir.rows.map((r) => r.label), ["キック", "キック, 持続"]);
+  const da = C.shieldAdvantage(dAir);
+  assert.equal(da.primary, 5); // 着地隙18 − 硬直13
+  assert.equal(da.landingName, "キック");
+  assert.deepEqual(da.hitboxes.map((h) => h.adv), [5, 7]);
+
+  const brawler = ch("格闘Mii");
+  const bAir = brawler.moves.find((m) => m.landingVariant && (m.name || "").includes("反転キック"));
+  assert.equal(bAir.landingLag, 37);
+  assert.ok(bAir.rows.every((r) => r.label.startsWith("攻撃")));
+  assert.equal(C.shieldAdvantage(bAir).primary, 27); // 着地隙37 − 硬直10
+  assert.ok(!brawler.moves.some((m) => m.landingVariant && (m.name || "").includes("スープレックス")));
+
+  const joker = ch("ジョーカー");
+  const gun = joker.moves.find((m) => m.landingVariant && m.variant === "ガン");
+  assert.equal(gun.landingLag, 10);
+  assert.ok(gun.rows.some((r) => r.label.startsWith("乱れ撃ち") && r.active && r.active.starts[0] === 12));
+  assert.ok(!gun.rows.some((r) => (r.label || "").includes("ジャンプ直下")));
+  const ga = C.shieldAdvantage(gun);
+  assert.equal(ga.primary, 4); // 通常射撃 着地隙10 − 硬直6
+  assert.equal(ga.landingLag, 10);
+  assert.equal(ga.landingCases[0].name, "通常射撃/回避射撃/空中直下射撃");
+  assert.equal(ga.landingCases[0].adv, 4);
+  assert.equal(ga.landingCases[1].name, "乱れ撃ち");
+  assert.equal(ga.landingCases[1].lag, 20);
+  assert.equal(ga.landingCases[1].adv, 16);
+  const burst = C.evaluate(joker, gun, ch("マリオ"), {}).list.filter((x) => x.weakNote.includes("乱れ撃ちなら確定"));
+  assert.ok(burst.length > 0);
+  assert.ok(burst.every((x) => x.status === "impossible"));
+
+  const deferred = [
+    ["Mr.ゲーム&ウォッチ", (m) => m.group === "上B"],
+    ["シーク", (m) => m.group === "下B"],
+    ["ピクミン&オリマー", (m) => m.group === "上B"],
+    ["むらびと", (m) => m.group === "上B"],
+    ["しずえ", (m) => m.group === "上B"],
+    ["リドリー", (m) => m.group === "上B"],
+    ["スティーブ／アレックス", (m) => m.group === "上B"],
+    ["クッパ Jr.", (m) => m.group === "上B"],
+    ["カムイ", (m) => m.name === "横B（地上）"],
+    ["剣術Mii", (m) => (m.name || "").includes("疾風突き")],
+  ];
+  for (const [name, pred] of deferred) {
+    assert.ok(!ch(name).moves.some((m) => m.landingVariant && pred(m)), name);
+  }
 });
 
 test("カズヤ NB デビルブラスター: 空中版は全体67F・地上版の判定27F。着地隙は使わない", () => {

@@ -49,7 +49,9 @@ SEQ_KEY = re.compile(r"^(弱\d|横強\d|空N\d|空前\d|百裂)")
 RYU_JAB = re.compile(r"^(弱\d)\s*\((強|弱)\)")
 
 def _frame_windows(s):
-    """'15-22 15-17' や '4-6, 7-9' を (start, end, open) の列にする。1トークンでも読めなければ None。"""
+    """'15-22 15-17' や '4-6, 7-9' を (start, end, open) の列にする。
+    終わりが開始より前の窓（'22-12' など）だけは捨て、他の窓が残ればそれを返す。
+    読める窓が一つも無い、形が違うトークンがあるときは None。"""
     parts = [p for p in re.split(r"[\s,]+", s.strip()) if p]
     if not parts:
         return None
@@ -67,9 +69,9 @@ def _frame_windows(s):
         else:
             end = int(b)
             if end < a:
-                return None
+                continue
             out.append((a, end, False))
-    return out
+    return out or None
 
 def parse_active(raw):
     """判定フレーム。自信を持って読める形だけ返す。
@@ -78,6 +80,7 @@ def parse_active(raw):
     - '79-126 (199-246)' … 括弧の外（溜めなし＝最速）だけ使う
     - '16-* (Rehit: 40)' … Rehit 注記を外してから同じ
     - '7 (-)' … 単独F
+    - '12, 15 (, 60, 63, 66...) (Rehit: 12)' … 括弧内の続きは使わず、外のFだけ
     生成タイミング・'+'・'?'・'~'・文章が混ざるセルは None（計算対象外のまま）。"""
     s = one_line(raw)
     if not s or s in ("-", "?", "*", "＊"):
@@ -86,6 +89,15 @@ def parse_active(raw):
     s = re.sub(r"\s*\((?:Rehit|反射)[^)]*\)", "", s)
     s = s.replace(",.", ",").replace("/", " ")
     s = re.sub(r"\s*\(-\)", "", s).strip().strip(",").strip()
+    # 括弧の中だけが「...」のときは、その続きを数値にしない。括弧の外に書いてあるFだけ読む。
+    # 外に「...」が残るセルは、終わりが読めないので None のまま。
+    while True:
+        m = re.search(r"\(([^()]*)\)", s)
+        if not m or ("..." not in m.group(1) and "…" not in m.group(1)):
+            break
+        if not s[:m.start()].strip():
+            break
+        s = (s[:m.start()] + " " + s[m.end():]).strip()
     if not s or any(x in s for x in ("?", "+", "~", "...", "…", "：", ":")):
         return None
     if re.search(r"[\u3040-\u30ff\u4e00-\u9fff]", s):
@@ -362,28 +374,39 @@ def _match_landing_rows(cond, rows):
     return matched
 
 def _scope_landing_cases(move, specs):
-    """全部の条件が別の行を指すなら、その行の硬直だけを使う。
-    どれも行を指さないなら、技全体の着地計算に各着地隙を載せる。
-    一部だけ行に当たる、当たった行に硬直が無いときは None。"""
+    """全部の条件が行を指さないなら、技全体の着地計算に各着地隙を載せる。
+    行に当たった条件は、その行の硬直だけを使う。判定も硬直も無い行はガードの計算から外す。
+    行に当たらない条件が残り、かつどの条件にも入らないガードできる行があるときは None。
+    その行に、当たっていない着地隙を割り当てることはしない。"""
     rows = move.get("rows") or []
     matches = [_match_landing_rows(s["name"], rows) for s in specs]
-    if any(m is None for m in matches) and any(m is not None for m in matches):
+    if all(m is None for m in matches):
+        if not any(_usable_landing_row(r) for r in rows):
+            return None
+        return {"cases": [{"name": s["name"], "lag": s["lag"]} for s in specs]}
+    covered = set()
+    cases = []
+    orphans = False
+    for spec, matched in zip(specs, matches):
+        if matched is None:
+            orphans = True
+            continue
+        usable = [r for r in matched if _usable_landing_row(r)]
+        if not usable:
+            continue
+        labels = []
+        for r in matched:
+            lab = (r.get("label") or "").strip()
+            if lab and lab not in labels:
+                labels.append(lab)
+            if _usable_landing_row(r):
+                covered.add(id(r))
+        cases.append({"name": spec["name"], "lag": spec["lag"], "labels": labels})
+    if not cases:
         return None
-    if all(m is not None for m in matches):
-        cases = []
-        for spec, matched in zip(specs, matches):
-            if not any(_usable_landing_row(r) for r in matched):
-                return None
-            labels = []
-            for r in matched:
-                lab = r.get("label") or ""
-                if lab and lab not in labels:
-                    labels.append(lab)
-            cases.append({"name": spec["name"], "lag": spec["lag"], "labels": labels})
-        return {"cases": cases}
-    if not any(_usable_landing_row(r) for r in rows):
+    if orphans and any(_usable_landing_row(r) and id(r) not in covered for r in rows):
         return None
-    return {"cases": [{"name": s["name"], "lag": s["lag"]} for s in specs]}
+    return {"cases": cases}
 
 def landing_plan(move):
     """この技に足す着地版。{"lag"} か {"cases"}。出せないときは None。"""
@@ -529,8 +552,9 @@ def add_version_splits(moves):
 
 def add_landing_variants(moves):
     """必殺ワザの備考の着地隙から、着地計算用の別技を直後に足す。
-    条件の無い着地隙が一つ、または条件名つきが複数で原文どおり分けられるときだけ。
-    すでに地上/空中で行が分かれている技には重ねない。反撃手段には入れない。"""
+    条件の無い着地隙が一つ、または条件名と行の対応が原文から一意なときだけ。
+    条件が行を指す着地版は、その行だけを残す。すでに地上/空中で行が分かれている技には重ねない。
+    反撃手段には入れない。"""
     split_ids = {m["id"][:-4] for m in moves if str(m.get("id", "")).endswith("~air") and m.get("versionLabel") == "空中"}
     out = []
     for m in moves:
@@ -551,6 +575,19 @@ def add_landing_variants(moves):
         if plan.get("cases"):
             clone["landingCases"] = plan["cases"]
             clone["landingLag"] = min(c["lag"] for c in plan["cases"])
+            # 条件が行を指しているときは、その行だけを着地版に残す。
+            # 書いていない技（踏みつけなど）に、別の条件の着地隙を当てない。
+            labels = []
+            for c in plan["cases"]:
+                for lab in c.get("labels") or []:
+                    if lab not in labels:
+                        labels.append(lab)
+            if labels:
+                kept = [r for r in clone["rows"] if (r.get("label") or "").strip() in labels]
+                if not kept:
+                    m.pop("versionLabel", None)
+                    continue
+                clone["rows"] = kept
         else:
             clone["landingLag"] = plan["lag"]
         clone["landingVariant"] = "空中（着地）"
