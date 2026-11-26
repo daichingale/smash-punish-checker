@@ -56,6 +56,16 @@
       <button type="button" id="arsOff" data-ars="0" aria-pressed="true">なし</button>
       <button type="button" id="arsOn" data-ars="1" aria-pressed="false">あり</button>
     </div>
+    <div class="oo" id="crit" role="group" aria-label="会心の一撃" hidden>
+      <span>会心の一撃</span>
+      <button type="button" id="critOff" data-crit="0" aria-pressed="true">なし</button>
+      <button type="button" id="critOn" data-crit="1" aria-pressed="false">あり</button>
+    </div>
+    <div class="oo" id="ink" role="group" aria-label="インク" hidden>
+      <span>インク</span>
+      <button type="button" id="inkOff" data-ink="0" aria-pressed="true">あり</button>
+      <button type="button" id="inkOn" data-ink="1" aria-pressed="false">切れ</button>
+    </div>
   </div>
   <p class="hint" id="lead"></p>
   <div id="groups" class="segs" role="tablist" aria-label="技の種類"></div>
@@ -67,6 +77,7 @@
     <ul>
       <li><b>ガード側の有利F</b> ＝ 攻撃側の後隙 − ガード硬直。ヒットストップは双方に同じだけかかるので無視します（スマブラSPECIAL 検証wiki「ガード硬直差の計算方法」の式）。</li>
       <li>地上技・必殺ワザの後隙 ＝ <code>全体F − 判定が出たF</code>。表示の大きい数字は<b>最速の判定</b>をガードした場合（多段技は最終段）。シートが通常とアルセーヌを同じ技に並べているときは、アルセーヌの切り替えが「なし」（初期）なら通常の最終段を使い、アルセーヌの段は内訳に出します（確定の数は通常時です）。攻撃側がジョーカーで「あり」のときは、アルセーヌの段のガード硬直と全体Fで有利と確定を出します。アルセーヌの段が無い技は通常の値のままです。シートに無い数値は作りません。前と後ろの両方がある技は、密着している正面の段を使います。判定の終わり際をガードした場合の値も併記します。<code>20-*</code> は開始Fだけを使い、終わり際は出しません。<code>79-126 (199-246)</code> のように括弧で溜め最大が併記されているときは、括弧の外（最速）を使います。</li>
+      <li>勇者のスマッシュは、シートが「会心の一撃」の行に別のガード硬直とダメージを書いています。攻撃側が勇者のときだけ切り替えられ、初期は「なし」（通常の段）です。「あり」はその行の硬直とダメージで有利・確定・ダメージを出します。インクリングのスマッシュは「インク切れ」の行が同じです。攻撃側がインクリングのとき「インク」を切れにするとその行を使い、初期は「あり」（通常の段）です。行が無い技は通常のままです。全体Fが空欄の行は、シートの結合セルとして通常の段と同じ全体Fです。モナドアーツ、リミットの能力倍率、レイジ、ためる、バイキルトのように倍率だけで技ごとの硬直が無い状態は、数値を作らないので切り替えません。</li>
       <li>空中攻撃は <code>着地隙 − ガード硬直</code>（着地直前に当てた場合の最小値。実際は着地までの時間ぶん有利が増えます）。ヒットするとバウンドし、その行の全体Fだけがシートに別に書いてあるときは、空振りの着地隙ではなくその全体Fからガード硬直を引きます。</li>
       <li>空中で出した技を着地直前に当てた場合も、空中攻撃と同じ <code>着地隙 − ガード硬直</code> です（着地までの時間は含みません）。備考に条件のない着地隙が一つだけある技は「空中（着地）」を選べます。備考が着地隙を条件の名前つきで複数書いているときは、条件ごとの有利を出します。表示と確定は有利がいちばん小さい着地で、それより有利な条件でだけ間に合う反撃には「傘・閉なら確定」のように条件名を付けます。条件の名前が括弧から読めないもの、着地隙が一つだけで括弧が付いているもの、どの行の硬直を使うか決められないもの、ガード硬直が無いものは出しません。シートが地上と空中で全体Fや判定を分けて書いている技は、それぞれの数値で計算します（着地隙が無い空中版は <code>全体F − 発生F</code> で、着地直前とはみなしていません）。空中版の判定欄が空で、行の名前が地上版と一致するときは、地上版の判定フレームを使います。行の一部だけが地上／空中で、共有行の属先が決められないものは分けません。</li>
       <li>シートのダメージは<b>基礎ダメージ</b>で、1on1補正（アイテムなしの1対1で与ダメージが1.2倍になる補正）は掛かっていません。スマブラSPECIAL 検証wiki「ガード硬直」は「攻撃判定のダメージは、1on1補正の影響を受けない」としています。ガード硬直の式は <code>INT(基礎ダメージ×0.8×補正倍率)+2</code> で、シートの値はこの式と一致します（スマッシュは0.725、空中攻撃は0.33、飛び道具は0.29、それ以外は1.0。着地判定・空中必殺・空中の吸着は空中の0.33には入りません。ダッシュ攻撃など技ごとの倍率はシートの備考にあるものだけが別です）。1.2倍したダメージで同じ式を計算すると、シートの硬直と合いません。</li>
@@ -121,6 +132,16 @@
     <span>アルセーヌ</span>
     <button type="button" id="arsOffDock" data-ars="0" aria-pressed="true">なし</button>
     <button type="button" id="arsOnDock" data-ars="1" aria-pressed="false">あり</button>
+  </div>
+  <div class="oo" id="critDock" role="group" aria-label="会心の一撃" hidden>
+    <span>会心の一撃</span>
+    <button type="button" id="critOffDock" data-crit="0" aria-pressed="true">なし</button>
+    <button type="button" id="critOnDock" data-crit="1" aria-pressed="false">あり</button>
+  </div>
+  <div class="oo" id="inkDock" role="group" aria-label="インク" hidden>
+    <span>インク</span>
+    <button type="button" id="inkOffDock" data-ink="0" aria-pressed="true">あり</button>
+    <button type="button" id="inkOnDock" data-ink="1" aria-pressed="false">切れ</button>
   </div>
 </nav>
 <div id="picker" hidden role="dialog" aria-modal="true" aria-labelledby="pkTitle">

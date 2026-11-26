@@ -119,8 +119,8 @@ body.has-move #swap{height:44px}
 .oo button{min-height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);white-space:nowrap}
 .oo button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:750}
 #dock .oo{margin-top:6px}
-body.has-move.has-ars main{padding-bottom:168px}
-body.has-move.has-ars footer{padding-bottom:calc(160px + env(safe-area-inset-bottom))}
+body.has-move.has-form main{padding-bottom:168px}
+body.has-move.has-form footer{padding-bottom:calc(160px + env(safe-area-inset-bottom))}
 main{padding:10px 12px 24px}
 body.has-move main{padding-bottom:96px}
 body.has-move footer{padding-bottom:calc(88px + env(safe-area-inset-bottom))}
@@ -277,6 +277,16 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
       <button type="button" id="arsOff" data-ars="0" aria-pressed="true">なし</button>
       <button type="button" id="arsOn" data-ars="1" aria-pressed="false">あり</button>
     </div>
+    <div class="oo" id="crit" role="group" aria-label="会心の一撃" hidden>
+      <span>会心の一撃</span>
+      <button type="button" id="critOff" data-crit="0" aria-pressed="true">なし</button>
+      <button type="button" id="critOn" data-crit="1" aria-pressed="false">あり</button>
+    </div>
+    <div class="oo" id="ink" role="group" aria-label="インク" hidden>
+      <span>インク</span>
+      <button type="button" id="inkOff" data-ink="0" aria-pressed="true">あり</button>
+      <button type="button" id="inkOn" data-ink="1" aria-pressed="false">切れ</button>
+    </div>
   </div>
   <p class="hint" id="lead"></p>
   <div id="groups" class="segs" role="tablist" aria-label="技の種類"></div>
@@ -288,6 +298,7 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
     <ul>
       <li><b>ガード側の有利F</b> ＝ 攻撃側の後隙 − ガード硬直。ヒットストップは双方に同じだけかかるので無視します（スマブラSPECIAL 検証wiki「ガード硬直差の計算方法」の式）。</li>
       <li>地上技・必殺ワザの後隙 ＝ <code>全体F − 判定が出たF</code>。表示の大きい数字は<b>最速の判定</b>をガードした場合（多段技は最終段）。シートが通常とアルセーヌを同じ技に並べているときは、アルセーヌの切り替えが「なし」（初期）なら通常の最終段を使い、アルセーヌの段は内訳に出します（確定の数は通常時です）。攻撃側がジョーカーで「あり」のときは、アルセーヌの段のガード硬直と全体Fで有利と確定を出します。アルセーヌの段が無い技は通常の値のままです。シートに無い数値は作りません。前と後ろの両方がある技は、密着している正面の段を使います。判定の終わり際をガードした場合の値も併記します。<code>20-*</code> は開始Fだけを使い、終わり際は出しません。<code>79-126 (199-246)</code> のように括弧で溜め最大が併記されているときは、括弧の外（最速）を使います。</li>
+      <li>勇者のスマッシュは、シートが「会心の一撃」の行に別のガード硬直とダメージを書いています。攻撃側が勇者のときだけ切り替えられ、初期は「なし」（通常の段）です。「あり」はその行の硬直とダメージで有利・確定・ダメージを出します。インクリングのスマッシュは「インク切れ」の行が同じです。攻撃側がインクリングのとき「インク」を切れにするとその行を使い、初期は「あり」（通常の段）です。行が無い技は通常のままです。全体Fが空欄の行は、シートの結合セルとして通常の段と同じ全体Fです。モナドアーツ、リミットの能力倍率、レイジ、ためる、バイキルトのように倍率だけで技ごとの硬直が無い状態は、数値を作らないので切り替えません。</li>
       <li>空中攻撃は <code>着地隙 − ガード硬直</code>（着地直前に当てた場合の最小値。実際は着地までの時間ぶん有利が増えます）。ヒットするとバウンドし、その行の全体Fだけがシートに別に書いてあるときは、空振りの着地隙ではなくその全体Fからガード硬直を引きます。</li>
       <li>空中で出した技を着地直前に当てた場合も、空中攻撃と同じ <code>着地隙 − ガード硬直</code> です（着地までの時間は含みません）。備考に条件のない着地隙が一つだけある技は「空中（着地）」を選べます。備考が着地隙を条件の名前つきで複数書いているときは、条件ごとの有利を出します。表示と確定は有利がいちばん小さい着地で、それより有利な条件でだけ間に合う反撃には「傘・閉なら確定」のように条件名を付けます。条件の名前が括弧から読めないもの、着地隙が一つだけで括弧が付いているもの、どの行の硬直を使うか決められないもの、ガード硬直が無いものは出しません。シートが地上と空中で全体Fや判定を分けて書いている技は、それぞれの数値で計算します（着地隙が無い空中版は <code>全体F − 発生F</code> で、着地直前とはみなしていません）。空中版の判定欄が空で、行の名前が地上版と一致するときは、地上版の判定フレームを使います。行の一部だけが地上／空中で、共有行の属先が決められないものは分けません。</li>
       <li>シートのダメージは<b>基礎ダメージ</b>で、1on1補正（アイテムなしの1対1で与ダメージが1.2倍になる補正）は掛かっていません。スマブラSPECIAL 検証wiki「ガード硬直」は「攻撃判定のダメージは、1on1補正の影響を受けない」としています。ガード硬直の式は <code>INT(基礎ダメージ×0.8×補正倍率)+2</code> で、シートの値はこの式と一致します（スマッシュは0.725、空中攻撃は0.33、飛び道具は0.29、それ以外は1.0。着地判定・空中必殺・空中の吸着は空中の0.33には入りません。ダッシュ攻撃など技ごとの倍率はシートの備考にあるものだけが別です）。1.2倍したダメージで同じ式を計算すると、シートの硬直と合いません。</li>
@@ -343,6 +354,16 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
     <button type="button" id="arsOffDock" data-ars="0" aria-pressed="true">なし</button>
     <button type="button" id="arsOnDock" data-ars="1" aria-pressed="false">あり</button>
   </div>
+  <div class="oo" id="critDock" role="group" aria-label="会心の一撃" hidden>
+    <span>会心の一撃</span>
+    <button type="button" id="critOffDock" data-crit="0" aria-pressed="true">なし</button>
+    <button type="button" id="critOnDock" data-crit="1" aria-pressed="false">あり</button>
+  </div>
+  <div class="oo" id="inkDock" role="group" aria-label="インク" hidden>
+    <span>インク</span>
+    <button type="button" id="inkOffDock" data-ink="0" aria-pressed="true">あり</button>
+    <button type="button" id="inkOnDock" data-ink="1" aria-pressed="false">切れ</button>
+  </div>
 </nav>
 <div id="picker" hidden role="dialog" aria-modal="true" aria-labelledby="pkTitle">
   <div class="pkHead">
@@ -380,6 +401,20 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
   const THRESHOLDS = { severeMax: 2, easyMin: 8 };
   const SEQ_RE = /Hit|連|〆|派生/;
   const STARTER_SEQ = /^(弱1|横強1|空N1|空前1)/;
+  // シートが同じ技に別行で書いた状態。倍率しか無い状態はここへ足さない。
+  const CRIT_RE = /会心の一撃/;
+  const INK_RE = /インク切れ/;
+  /** 印の行があるとき、on ならその行だけ、off なら印の行を除く。印が無ければそのまま */
+  function applyMark(current, source, re, on) {
+    const marked = [];
+    for (let i = 0; i < source.length; i++) if (re.test(source[i].label || "")) marked.push(source[i]);
+    if (!marked.length) return { rows: current, used: false };
+    if (on) return { rows: marked, used: true };
+    const rest = [];
+    for (let i = 0; i < current.length; i++) if (!re.test(current[i].label || "")) rest.push(current[i]);
+    if (!rest.length) return { rows: current, used: false };
+    return { rows: rest, used: false };
+  }
 
   const maxOf = (a) => Math.max.apply(null, a);
   const minOf = (a) => Math.min.apply(null, a);
@@ -426,7 +461,9 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
 
   /** 攻撃側の技をガードしたときのガード側有利F。
    * primary: 最速判定（多段技は最終段）をガードした場合 / worst: いちばん遅い判定の終わり際をガードした場合
-   * o.arsene: 真のとき、アルセーヌの段がある技はその段のガード硬直と全体Fを使う。段が無い技は通常のまま */
+   * o.arsene: 真のとき、アルセーヌの段がある技はその段のガード硬直と全体Fを使う。段が無い技は通常のまま
+   * o.crit: 真のとき、会心の一撃の行がある技はその行の硬直とダメージを使う。初期は通常の段
+   * o.ink: 真のとき、インク切れの行がある技はその行を使う。初期はインクあり（通常の段）。硬直か全体Fが読めない行は使わない */
   function shieldAdvantage(move, o) {
     o = o || {};
     if (move.category === "grab") return { ok: false, reason: "つかみはガードできない" };
@@ -460,6 +497,14 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
       use = rows.slice(arseneAt);
       usedArsene = true;
     }
+    // 会心・インク切れは通常の段と交互に並ぶ。アルセーヌのように「最初の印から末尾」にはしない。
+    // 印の行だけ硬直とダメージが違い、全体Fの空欄は結合セル（直前行と同じ）として既に入っている。
+    const critPick = applyMark(use, rows, CRIT_RE, !!o.crit);
+    use = critPick.rows;
+    const usedCrit = critPick.used;
+    const inkPick = applyMark(use, rows, INK_RE, !!o.ink);
+    use = inkPick.rows;
+    const usedInk = inkPick.used;
     // 前と後ろの両方がある技は、密着している正面の段だけを使う
     if (use.some((r) => /（前）/.test(r.label)) && use.some((r) => /（後）/.test(r.label))) {
       use = use.filter((r) => !/（後）/.test(r.label));
@@ -495,7 +540,9 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
         hitboxes: pairedHitboxes(row, ofStun), advOf: ofStun,
       };
     }
-    const seq = use.some((r) => SEQ_RE.test(r.label));
+    // 会心・インク切れだけの複数行は、ラベルに Hit が残らない。シートの並びの最後を最終段にする
+    const formSeq = use.length > 1 && (use.every((r) => CRIT_RE.test(r.label || "")) || use.every((r) => INK_RE.test(r.label || "")));
+    const seq = use.some((r) => SEQ_RE.test(r.label)) || formSeq;
     const pRow0 = seq ? use[use.length - 1] : use[0];
     const caseSpecs = isAir && Array.isArray(move.landingCases) && move.landingCases.length >= 1 ? move.landingCases : null;
     // ヒットするとバウンドし、その行だけ全体Fが書いてあるときは、空振りの着地隙ではなくその全体F。
@@ -570,7 +617,7 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
     return {
       ok: true, primary, loose, worst: Math.min(worst, primary), lateUnknown, primaryStun: maxOf(pRow.stun),
       stunSpan: seOut.span, stunLo: seOut.lo, stunHi: seOut.hi,
-      primaryLabel: pRow.label || "", multiHit: multi, aerial: isAir, landingLag: shownLag, landingName: landingName, landingCases: landingCases, bounceLag: bounce ? bounce.total : null, alt, damage, total, totalHi, detail, hitboxes, advMin, advMax, usedArsene,
+      primaryLabel: pRow.label || "", multiHit: multi, aerial: isAir, landingLag: shownLag, landingName: landingName, landingCases: landingCases, bounceLag: bounce ? bounce.total : null, alt, damage, total, totalHi, detail, hitboxes, advMin, advMax, usedArsene, usedCrit, usedInk,
     };
   }
 
@@ -684,7 +731,7 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
   /** attacker の move をガードした defender の反撃一覧 */
   function evaluate(attacker, move, defender, o) {
     o = o || {};
-    const adv = shieldAdvantage(move, { arsene: !!o.arsene });
+    const adv = shieldAdvantage(move, { arsene: !!o.arsene, crit: !!o.crit, ink: !!o.ink });
     if (!adv.ok) return { adv, list: [] };
     const bonus = o.perfectShield ? PERFECT_SHIELD_BONUS : 0;
     const list = punishOptions(defender, o.defenderMaterial).map((opt) => {
@@ -718,9 +765,24 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
   }
 
   /** シートの行ラベルと基礎ダメージ。行メモからは名前を作らない。硬直は個数がダメージと一致するときだけ対応づける */
-  function hitboxParts(move) {
+  /** ダメージ表示用。印の行にダメージが無いときは、ありにしても通常の段のダメージを残す */
+  function applyMarkDamage(rows, re, on) {
+    const marked = [];
+    for (let i = 0; i < rows.length; i++) if (re.test(rows[i].label || "")) marked.push(rows[i]);
+    if (!marked.length) return rows;
+    const usable = on && marked.some((r) => Array.isArray(r.damage) && r.damage.some((d) => typeof d === "number" && !Number.isNaN(d)));
+    if (usable) return marked;
+    const rest = [];
+    for (let i = 0; i < rows.length; i++) if (!re.test(rows[i].label || "")) rest.push(rows[i]);
+    return rest.length ? rest : rows;
+  }
+  function hitboxParts(move, o) {
+    o = o || {};
+    let rows = (move && move.rows) || [];
+    rows = applyMarkDamage(rows, CRIT_RE, !!o.crit);
+    rows = applyMarkDamage(rows, INK_RE, !!o.ink);
     const parts = [];
-    for (const row of (move && move.rows) || []) {
+    for (const row of rows) {
       const damages = (row.damage || []).filter((d) => typeof d === "number" && !Number.isNaN(d));
       if (!damages.length) continue;
       const stuns = (row.stun || []).filter((s) => typeof s === "number" && !Number.isNaN(s));
@@ -754,8 +816,8 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
     });
     return { text: items.map((it) => it.text).join(" · "), items, max, min };
   }
-  function formatHitboxes(move, oneOnOne) {
-    return formatParts(hitboxParts(move), oneOnOne);
+  function formatHitboxes(move, oneOnOne, o) {
+    return formatParts(hitboxParts(move, o), oneOnOne);
   }
 
   const api = {
@@ -877,7 +939,7 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
   const Mii = window.MiiSlots;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const state = { me: 0, opp: 0, mode: "A", moveId: null, ps: false, oo: false, arsene: false, mat: {}, group: 0, slot: "" };
+  const state = { me: 0, opp: 0, mode: "A", moveId: null, ps: false, oo: false, arsene: false, crit: false, ink: false, mat: {}, group: 0, slot: "" };
   const OO_KEY = "punish.oo";
   let D, pushNext = false, overlay = null;
 
@@ -924,6 +986,8 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     state.mode = q.get("mode") === "B" ? "B" : "A";
     state.ps = q.get("ps") === "1";
     state.arsene = q.get("ars") === "1";
+    state.crit = q.get("crit") === "1";
+    state.ink = q.get("ink") === "1";
     if (q.has("oo")) state.oo = q.get("oo") === "1";
     else { try { state.oo = localStorage.getItem(OO_KEY) === "1"; } catch (e) { state.oo = false; } }
     try { localStorage.setItem(OO_KEY, state.oo ? "1" : "0"); } catch (e) {}
@@ -951,6 +1015,8 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     if (state.moveId) p.set("move", state.moveId);
     if (state.ps) p.set("ps", "1");
     if (state.arsene) p.set("ars", "1");
+    if (state.crit) p.set("crit", "1");
+    if (state.ink) p.set("ink", "1");
     p.set("oo", state.oo ? "1" : "0");
     const meC = D.chars[state.me], oppC = D.chars[state.opp];
     if (meC.materials.length) p.set("mm", matOf(state.me));
@@ -1007,6 +1073,10 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     $("ooDock").onclick = (e) => { const b = e.target.closest("[data-oo]"); if (b) setOo(b.dataset.oo === "1"); };
     $("ars").onclick = (e) => { const b = e.target.closest("[data-ars]"); if (b) setArs(b.dataset.ars === "1"); };
     $("arsDock").onclick = (e) => { const b = e.target.closest("[data-ars]"); if (b) setArs(b.dataset.ars === "1"); };
+    $("crit").onclick = (e) => { const b = e.target.closest("[data-crit]"); if (b) setCrit(b.dataset.crit === "1"); };
+    $("critDock").onclick = (e) => { const b = e.target.closest("[data-crit]"); if (b) setCrit(b.dataset.crit === "1"); };
+    $("ink").onclick = (e) => { const b = e.target.closest("[data-ink]"); if (b) setInk(b.dataset.ink === "1"); };
+    $("inkDock").onclick = (e) => { const b = e.target.closest("[data-ink]"); if (b) setInk(b.dataset.ink === "1"); };
     $("flip").onclick = () => setMode(state.mode === "A" ? "B" : "A");
     $("slots").onclick = (e) => {
       const b = e.target.closest("[data-slot]");
@@ -1082,7 +1152,28 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     pushNext = true;
     render();
   }
-  function useArsene() { return state.arsene && attackerChar().name === "ジョーカー"; }
+  function setCrit(on) {
+    on = !!on;
+    if (state.crit === on) return;
+    state.crit = on;
+    pushNext = true;
+    render();
+  }
+  function setInk(on) {
+    on = !!on;
+    if (state.ink === on) return;
+    state.ink = on;
+    pushNext = true;
+    render();
+  }
+  function formOpts() {
+    const name = attackerChar().name;
+    return {
+      arsene: state.arsene && name === "ジョーカー",
+      crit: state.crit && name === "勇者",
+      ink: state.ink && name === "インクリング",
+    };
+  }
   function setGroup(i) {
     if (!GROUPS[i] || state.group === i) return;
     state.group = i;
@@ -1216,17 +1307,32 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
       const el = $(id);
       if (el) el.setAttribute("aria-pressed", (id.indexOf("On") >= 0) === state.oo ? "true" : "false");
     }
-    const jokerAtt = attackerChar().name === "ジョーカー";
+    const attName = attackerChar().name;
+    const jokerAtt = attName === "ジョーカー";
+    const heroAtt = attName === "勇者";
+    const inkAtt = attName === "インクリング";
     for (const id of ["ars", "arsDock"]) { const el = $(id); if (el) el.hidden = !jokerAtt; }
-    document.body.classList.toggle("has-ars", jokerAtt && !!state.moveId);
+    for (const id of ["crit", "critDock"]) { const el = $(id); if (el) el.hidden = !heroAtt; }
+    for (const id of ["ink", "inkDock"]) { const el = $(id); if (el) el.hidden = !inkAtt; }
+    document.body.classList.toggle("has-form", (jokerAtt || heroAtt || inkAtt) && !!state.moveId);
     for (const id of ["arsOff", "arsOn", "arsOffDock", "arsOnDock"]) {
       const el = $(id);
       if (el) el.setAttribute("aria-pressed", (id.indexOf("On") >= 0) === state.arsene ? "true" : "false");
+    }
+    for (const id of ["critOff", "critOn", "critOffDock", "critOnDock"]) {
+      const el = $(id);
+      if (el) el.setAttribute("aria-pressed", (id.indexOf("On") >= 0) === state.crit ? "true" : "false");
+    }
+    for (const id of ["inkOff", "inkOn", "inkOffDock", "inkOnDock"]) {
+      const el = $(id);
+      if (el) el.setAttribute("aria-pressed", (id.indexOf("On") >= 0) === state.ink ? "true" : "false");
     }
     document.querySelectorAll('a[href^="table.html"]').forEach((a) => {
       const p = new URLSearchParams();
       p.set("oo", state.oo ? "1" : "0");
       if (state.arsene) p.set("ars", "1");
+      if (state.crit) p.set("crit", "1");
+      if (state.ink) p.set("ink", "1");
       a.hash = p.toString();
     });
     $("modeA").classList.toggle("on", state.mode === "A");
@@ -1267,7 +1373,7 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
       ? (slotExists ? "この番号の必殺は、当たる判定がシートに無いため一覧にありません。" : "この番号の必殺はありません。")
       : "この種類の技はありません。";
     $("moveArea").innerHTML = shown.length ? `<div class="moves">` + shown.map((m) => {
-      const a = C.shieldAdvantage(m, { arsene: useArsene() });
+      const a = C.shieldAdvantage(m, formOpts());
       const sub = [m.input === "button" ? "ボタン" : m.input === "command" ? (m.command ? "コマンド " + m.command : "コマンド") : m.command || "", m.material || ""].filter(Boolean).join("・");
       return `<button type="button" class="mv ${m.id === state.moveId ? "on" : ""} ${a.ok ? "" : "na"}" data-id="${m.id}">${esc(shortName(m))}${sub ? `<small>${esc(sub)}</small>` : ""}</button>`;
     }).join("") + `</div>` : `<p class="empty">${emptyMsg}</p>`;
@@ -1324,7 +1430,7 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     const attIdx = D.chars.indexOf(att), defIdx = D.chars.indexOf(def);
     const attWho = state.mode === "A" ? "相手" : "自分";
     const defWho = state.mode === "A" ? "自分" : "相手";
-    const opts = { perfectShield: state.ps, defenderMaterial: matOf(defIdx), arsene: useArsene() };
+    const opts = Object.assign({ perfectShield: state.ps, defenderMaterial: matOf(defIdx) }, formOpts());
     const rows = [];
     for (const m of visibleMoves()) {
       const r = C.evaluate(att, m, def, opts);
@@ -1348,7 +1454,10 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     else if (can.length) say += "シールドを解かずに返せる技が" + can.length + "個あります。";
     else say += "シールドを解かずに間に合う反撃はありません。下の技を開くと、理由が分かります。";
     if (state.ps) say += "ジャストシールドした場合です。";
-    if (useArsene()) say += "アルセーヌありで見ています。";
+    const form = formOpts();
+    if (form.arsene) say += "アルセーヌありで見ています。";
+    if (form.crit) say += "会心の一撃ありで見ています。";
+    if (form.ink) say += "インク切れで見ています。";
     const buckets = GROUPS.map(() => []);
     for (const row of can) buckets[groupOf(row.move)].push(row);
     for (const b of buckets) b.sort((a, c) => familiarRank(a.move) - familiarRank(c.move) || c.adv - a.adv);
@@ -1412,13 +1521,13 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     const move = att.moves.find((m) => m.id === state.moveId);
     if (!move) { $("result").innerHTML = ""; $("sheetBody").innerHTML = ""; return; }
     const defIdx = D.chars.indexOf(def);
-    const r = C.evaluate(att, move, def, { perfectShield: state.ps, defenderMaterial: matOf(defIdx), arsene: useArsene() });
+    const r = C.evaluate(att, move, def, Object.assign({ perfectShield: state.ps, defenderMaterial: matOf(defIdx) }, formOpts()));
     const a = r.adv;
     const attWho = state.mode === "A" ? "相手" : "自分", defWho = state.mode === "A" ? "自分" : "相手";
     const name = `${esc(shortName(move))}${move.input === "button" ? "［ボタン］" : move.input === "command" && move.category !== "command" ? "［コマンド］" : ""}`;
     let h = `<button type="button" class="backlist" data-act="back">例の一覧に戻る</button><div class="sum"><div class="t">${attWho}の ${esc(att.name)}「${name}」${move.material ? "【" + esc(move.material) + "】" : ""}を${defWho}（${esc(def.name)}）がガード${state.ps ? "（ジャストシールド）" : ""}</div>`;
     if (move.command) h += `<div class="cmd">入力: ${esc(move.command)}${move.commandDerived ? "（シート備考から作成）" : ""}</div>`;
-    const hits = C.formatHitboxes(move, state.oo);
+    const hits = C.formatHitboxes(move, state.oo, formOpts());
     if (hits.text) h += `<div class="cmd">ダメージ ${esc(hits.text)}${state.oo ? "（1on1・基礎×1.2）" : ""}</div>`;
     const hitList = hits.items.map((it) => {
       const stunTxt = it.stunSpan ? it.stunSpan[0] + "〜" + it.stunSpan[1] + "F" : it.stuns ? it.stuns.map((s) => s + "F").join(" / ") : "—";
@@ -1460,8 +1569,10 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     }
     h += `<div class="late">${a.lateUnknown ? "終わり際はシート上で不定" : a.worstEff === a.primaryEff ? "終わり際をガードしても同じ" : `終わり際をガードすると ${fmtAdv(a.worstEff)}F`}</div>`;
     if (a.bounceLag != null && a.landingLag != null && a.bounceLag !== a.landingLag) h += `<div class="note">ヒット時はバウンドの全体${a.bounceLag}Fから硬直を引いています。空振りの着地隙は${a.landingLag}Fです。</div>`;
-    const altLine = (a.alt || []).filter((x) => x.adv != null && /アルセーヌ|（後）/.test(x.label));
+    const altLine = (a.alt || []).filter((x) => x.adv != null && /アルセーヌ|会心の一撃|インク切れ|（後）/.test(x.label));
     if (a.usedArsene) h += `<div class="note">アルセーヌの段のガード硬直と全体Fで計算しています。</div>`;
+    if (a.usedCrit) h += `<div class="note">会心の一撃の行のガード硬直とダメージで計算しています。</div>`;
+    if (a.usedInk) h += `<div class="note">インク切れの行のガード硬直とダメージで計算しています。</div>`;
     if (altLine.length) h += `<div class="note">${altLine.map((x) => `${esc(x.label)}は ${fmtAdv(x.adv + (state.ps ? C.PERFECT_SHIELD_BONUS : 0))}F`).join("、")}（確定の数には入れていません）</div>`;
     if (move.guardNote) h += `<div class="note">${esc(move.guardNote)}</div>`;
     h += `</div>`;
@@ -1511,6 +1622,8 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
       `<p>${state.oo ? "ダメージはシートの基礎ダメージ×1.2（1on1補正）です。ガード硬直はシートの値のままなので、有利と確定は変わりません。" : "ダメージはシートの基礎ダメージです。1on1補正は掛けていません。"}</p>` +
       (a.bounceLag != null && a.landingLag != null && a.bounceLag !== a.landingLag ? `<p>この技はヒットするとバウンドします。シートのバウンド行の全体Fは${a.bounceLag}Fなので、有利は ${a.bounceLag}F − ガード硬直です。空振りの着地隙${a.landingLag}Fは使っていません。</p>` : "") +
       (a.usedArsene ? `<p>アルセーヌの段のガード硬直と全体Fで有利と確定を出しています。アルセーヌの段が無い技は、この切り替えでも通常の値のままです。</p>` : "") +
+      (a.usedCrit ? `<p>会心の一撃の行に書いてあるガード硬直とダメージで有利と確定を出しています。その行が無い技は、この切り替えでも通常の値のままです。</p>` : "") +
+      (a.usedInk ? `<p>インク切れの行に書いてあるガード硬直とダメージで有利と確定を出しています。その行が無い技は、この切り替えでも通常の値のままです。</p>` : "") +
       (altLine.length ? `<p>${altLine.map((x) => `${esc(x.label)}をガードした有利は ${fmtAdv(x.adv)}F`).join("。")}。${a.usedArsene ? "この段は確定の数に入れていません。" : "確定の数は通常の段だけです。"}</p>` : "") +
       (hitList ? `<ul class="hits">${hitList}</ul>` : `<p>基礎ダメージはシートにありません。</p>`) +
       (landBoxes ? (a.landingCases.length >= 2

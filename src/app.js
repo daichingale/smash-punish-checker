@@ -5,7 +5,7 @@
   const Mii = window.MiiSlots;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const state = { me: 0, opp: 0, mode: "A", moveId: null, ps: false, oo: false, arsene: false, mat: {}, group: 0, slot: "" };
+  const state = { me: 0, opp: 0, mode: "A", moveId: null, ps: false, oo: false, arsene: false, crit: false, ink: false, mat: {}, group: 0, slot: "" };
   const OO_KEY = "punish.oo";
   let D, pushNext = false, overlay = null;
 
@@ -52,6 +52,8 @@
     state.mode = q.get("mode") === "B" ? "B" : "A";
     state.ps = q.get("ps") === "1";
     state.arsene = q.get("ars") === "1";
+    state.crit = q.get("crit") === "1";
+    state.ink = q.get("ink") === "1";
     if (q.has("oo")) state.oo = q.get("oo") === "1";
     else { try { state.oo = localStorage.getItem(OO_KEY) === "1"; } catch (e) { state.oo = false; } }
     try { localStorage.setItem(OO_KEY, state.oo ? "1" : "0"); } catch (e) {}
@@ -79,6 +81,8 @@
     if (state.moveId) p.set("move", state.moveId);
     if (state.ps) p.set("ps", "1");
     if (state.arsene) p.set("ars", "1");
+    if (state.crit) p.set("crit", "1");
+    if (state.ink) p.set("ink", "1");
     p.set("oo", state.oo ? "1" : "0");
     const meC = D.chars[state.me], oppC = D.chars[state.opp];
     if (meC.materials.length) p.set("mm", matOf(state.me));
@@ -135,6 +139,10 @@
     $("ooDock").onclick = (e) => { const b = e.target.closest("[data-oo]"); if (b) setOo(b.dataset.oo === "1"); };
     $("ars").onclick = (e) => { const b = e.target.closest("[data-ars]"); if (b) setArs(b.dataset.ars === "1"); };
     $("arsDock").onclick = (e) => { const b = e.target.closest("[data-ars]"); if (b) setArs(b.dataset.ars === "1"); };
+    $("crit").onclick = (e) => { const b = e.target.closest("[data-crit]"); if (b) setCrit(b.dataset.crit === "1"); };
+    $("critDock").onclick = (e) => { const b = e.target.closest("[data-crit]"); if (b) setCrit(b.dataset.crit === "1"); };
+    $("ink").onclick = (e) => { const b = e.target.closest("[data-ink]"); if (b) setInk(b.dataset.ink === "1"); };
+    $("inkDock").onclick = (e) => { const b = e.target.closest("[data-ink]"); if (b) setInk(b.dataset.ink === "1"); };
     $("flip").onclick = () => setMode(state.mode === "A" ? "B" : "A");
     $("slots").onclick = (e) => {
       const b = e.target.closest("[data-slot]");
@@ -210,7 +218,28 @@
     pushNext = true;
     render();
   }
-  function useArsene() { return state.arsene && attackerChar().name === "ジョーカー"; }
+  function setCrit(on) {
+    on = !!on;
+    if (state.crit === on) return;
+    state.crit = on;
+    pushNext = true;
+    render();
+  }
+  function setInk(on) {
+    on = !!on;
+    if (state.ink === on) return;
+    state.ink = on;
+    pushNext = true;
+    render();
+  }
+  function formOpts() {
+    const name = attackerChar().name;
+    return {
+      arsene: state.arsene && name === "ジョーカー",
+      crit: state.crit && name === "勇者",
+      ink: state.ink && name === "インクリング",
+    };
+  }
   function setGroup(i) {
     if (!GROUPS[i] || state.group === i) return;
     state.group = i;
@@ -344,17 +373,32 @@
       const el = $(id);
       if (el) el.setAttribute("aria-pressed", (id.indexOf("On") >= 0) === state.oo ? "true" : "false");
     }
-    const jokerAtt = attackerChar().name === "ジョーカー";
+    const attName = attackerChar().name;
+    const jokerAtt = attName === "ジョーカー";
+    const heroAtt = attName === "勇者";
+    const inkAtt = attName === "インクリング";
     for (const id of ["ars", "arsDock"]) { const el = $(id); if (el) el.hidden = !jokerAtt; }
-    document.body.classList.toggle("has-ars", jokerAtt && !!state.moveId);
+    for (const id of ["crit", "critDock"]) { const el = $(id); if (el) el.hidden = !heroAtt; }
+    for (const id of ["ink", "inkDock"]) { const el = $(id); if (el) el.hidden = !inkAtt; }
+    document.body.classList.toggle("has-form", (jokerAtt || heroAtt || inkAtt) && !!state.moveId);
     for (const id of ["arsOff", "arsOn", "arsOffDock", "arsOnDock"]) {
       const el = $(id);
       if (el) el.setAttribute("aria-pressed", (id.indexOf("On") >= 0) === state.arsene ? "true" : "false");
+    }
+    for (const id of ["critOff", "critOn", "critOffDock", "critOnDock"]) {
+      const el = $(id);
+      if (el) el.setAttribute("aria-pressed", (id.indexOf("On") >= 0) === state.crit ? "true" : "false");
+    }
+    for (const id of ["inkOff", "inkOn", "inkOffDock", "inkOnDock"]) {
+      const el = $(id);
+      if (el) el.setAttribute("aria-pressed", (id.indexOf("On") >= 0) === state.ink ? "true" : "false");
     }
     document.querySelectorAll('a[href^="table.html"]').forEach((a) => {
       const p = new URLSearchParams();
       p.set("oo", state.oo ? "1" : "0");
       if (state.arsene) p.set("ars", "1");
+      if (state.crit) p.set("crit", "1");
+      if (state.ink) p.set("ink", "1");
       a.hash = p.toString();
     });
     $("modeA").classList.toggle("on", state.mode === "A");
@@ -395,7 +439,7 @@
       ? (slotExists ? "この番号の必殺は、当たる判定がシートに無いため一覧にありません。" : "この番号の必殺はありません。")
       : "この種類の技はありません。";
     $("moveArea").innerHTML = shown.length ? `<div class="moves">` + shown.map((m) => {
-      const a = C.shieldAdvantage(m, { arsene: useArsene() });
+      const a = C.shieldAdvantage(m, formOpts());
       const sub = [m.input === "button" ? "ボタン" : m.input === "command" ? (m.command ? "コマンド " + m.command : "コマンド") : m.command || "", m.material || ""].filter(Boolean).join("・");
       return `<button type="button" class="mv ${m.id === state.moveId ? "on" : ""} ${a.ok ? "" : "na"}" data-id="${m.id}">${esc(shortName(m))}${sub ? `<small>${esc(sub)}</small>` : ""}</button>`;
     }).join("") + `</div>` : `<p class="empty">${emptyMsg}</p>`;
@@ -452,7 +496,7 @@
     const attIdx = D.chars.indexOf(att), defIdx = D.chars.indexOf(def);
     const attWho = state.mode === "A" ? "相手" : "自分";
     const defWho = state.mode === "A" ? "自分" : "相手";
-    const opts = { perfectShield: state.ps, defenderMaterial: matOf(defIdx), arsene: useArsene() };
+    const opts = Object.assign({ perfectShield: state.ps, defenderMaterial: matOf(defIdx) }, formOpts());
     const rows = [];
     for (const m of visibleMoves()) {
       const r = C.evaluate(att, m, def, opts);
@@ -476,7 +520,10 @@
     else if (can.length) say += "シールドを解かずに返せる技が" + can.length + "個あります。";
     else say += "シールドを解かずに間に合う反撃はありません。下の技を開くと、理由が分かります。";
     if (state.ps) say += "ジャストシールドした場合です。";
-    if (useArsene()) say += "アルセーヌありで見ています。";
+    const form = formOpts();
+    if (form.arsene) say += "アルセーヌありで見ています。";
+    if (form.crit) say += "会心の一撃ありで見ています。";
+    if (form.ink) say += "インク切れで見ています。";
     const buckets = GROUPS.map(() => []);
     for (const row of can) buckets[groupOf(row.move)].push(row);
     for (const b of buckets) b.sort((a, c) => familiarRank(a.move) - familiarRank(c.move) || c.adv - a.adv);
@@ -540,13 +587,13 @@
     const move = att.moves.find((m) => m.id === state.moveId);
     if (!move) { $("result").innerHTML = ""; $("sheetBody").innerHTML = ""; return; }
     const defIdx = D.chars.indexOf(def);
-    const r = C.evaluate(att, move, def, { perfectShield: state.ps, defenderMaterial: matOf(defIdx), arsene: useArsene() });
+    const r = C.evaluate(att, move, def, Object.assign({ perfectShield: state.ps, defenderMaterial: matOf(defIdx) }, formOpts()));
     const a = r.adv;
     const attWho = state.mode === "A" ? "相手" : "自分", defWho = state.mode === "A" ? "自分" : "相手";
     const name = `${esc(shortName(move))}${move.input === "button" ? "［ボタン］" : move.input === "command" && move.category !== "command" ? "［コマンド］" : ""}`;
     let h = `<button type="button" class="backlist" data-act="back">例の一覧に戻る</button><div class="sum"><div class="t">${attWho}の ${esc(att.name)}「${name}」${move.material ? "【" + esc(move.material) + "】" : ""}を${defWho}（${esc(def.name)}）がガード${state.ps ? "（ジャストシールド）" : ""}</div>`;
     if (move.command) h += `<div class="cmd">入力: ${esc(move.command)}${move.commandDerived ? "（シート備考から作成）" : ""}</div>`;
-    const hits = C.formatHitboxes(move, state.oo);
+    const hits = C.formatHitboxes(move, state.oo, formOpts());
     if (hits.text) h += `<div class="cmd">ダメージ ${esc(hits.text)}${state.oo ? "（1on1・基礎×1.2）" : ""}</div>`;
     const hitList = hits.items.map((it) => {
       const stunTxt = it.stunSpan ? it.stunSpan[0] + "〜" + it.stunSpan[1] + "F" : it.stuns ? it.stuns.map((s) => s + "F").join(" / ") : "—";
@@ -588,8 +635,10 @@
     }
     h += `<div class="late">${a.lateUnknown ? "終わり際はシート上で不定" : a.worstEff === a.primaryEff ? "終わり際をガードしても同じ" : `終わり際をガードすると ${fmtAdv(a.worstEff)}F`}</div>`;
     if (a.bounceLag != null && a.landingLag != null && a.bounceLag !== a.landingLag) h += `<div class="note">ヒット時はバウンドの全体${a.bounceLag}Fから硬直を引いています。空振りの着地隙は${a.landingLag}Fです。</div>`;
-    const altLine = (a.alt || []).filter((x) => x.adv != null && /アルセーヌ|（後）/.test(x.label));
+    const altLine = (a.alt || []).filter((x) => x.adv != null && /アルセーヌ|会心の一撃|インク切れ|（後）/.test(x.label));
     if (a.usedArsene) h += `<div class="note">アルセーヌの段のガード硬直と全体Fで計算しています。</div>`;
+    if (a.usedCrit) h += `<div class="note">会心の一撃の行のガード硬直とダメージで計算しています。</div>`;
+    if (a.usedInk) h += `<div class="note">インク切れの行のガード硬直とダメージで計算しています。</div>`;
     if (altLine.length) h += `<div class="note">${altLine.map((x) => `${esc(x.label)}は ${fmtAdv(x.adv + (state.ps ? C.PERFECT_SHIELD_BONUS : 0))}F`).join("、")}（確定の数には入れていません）</div>`;
     if (move.guardNote) h += `<div class="note">${esc(move.guardNote)}</div>`;
     h += `</div>`;
@@ -639,6 +688,8 @@
       `<p>${state.oo ? "ダメージはシートの基礎ダメージ×1.2（1on1補正）です。ガード硬直はシートの値のままなので、有利と確定は変わりません。" : "ダメージはシートの基礎ダメージです。1on1補正は掛けていません。"}</p>` +
       (a.bounceLag != null && a.landingLag != null && a.bounceLag !== a.landingLag ? `<p>この技はヒットするとバウンドします。シートのバウンド行の全体Fは${a.bounceLag}Fなので、有利は ${a.bounceLag}F − ガード硬直です。空振りの着地隙${a.landingLag}Fは使っていません。</p>` : "") +
       (a.usedArsene ? `<p>アルセーヌの段のガード硬直と全体Fで有利と確定を出しています。アルセーヌの段が無い技は、この切り替えでも通常の値のままです。</p>` : "") +
+      (a.usedCrit ? `<p>会心の一撃の行に書いてあるガード硬直とダメージで有利と確定を出しています。その行が無い技は、この切り替えでも通常の値のままです。</p>` : "") +
+      (a.usedInk ? `<p>インク切れの行に書いてあるガード硬直とダメージで有利と確定を出しています。その行が無い技は、この切り替えでも通常の値のままです。</p>` : "") +
       (altLine.length ? `<p>${altLine.map((x) => `${esc(x.label)}をガードした有利は ${fmtAdv(x.adv)}F`).join("。")}。${a.usedArsene ? "この段は確定の数に入れていません。" : "確定の数は通常の段だけです。"}</p>` : "") +
       (hitList ? `<ul class="hits">${hitList}</ul>` : `<p>基礎ダメージはシートにありません。</p>`) +
       (landBoxes ? (a.landingCases.length >= 2

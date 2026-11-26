@@ -64,8 +64,8 @@ body.has-move #swap{height:44px}
 .oo button{min-height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);white-space:nowrap}
 .oo button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:750}
 #dock .oo{margin-top:6px}
-body.has-move.has-ars main{padding-bottom:168px}
-body.has-move.has-ars footer{padding-bottom:calc(160px + env(safe-area-inset-bottom))}
+body.has-move.has-form main{padding-bottom:168px}
+body.has-move.has-form footer{padding-bottom:calc(160px + env(safe-area-inset-bottom))}
 main{padding:10px 12px 24px}
 body.has-move main{padding-bottom:96px}
 body.has-move footer{padding-bottom:calc(88px + env(safe-area-inset-bottom))}
