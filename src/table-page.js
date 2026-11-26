@@ -24,7 +24,7 @@
   const parsed = T.parseQuery(location.hash);
   const state = parsed;
   state.oo = parsed.oo == null ? storedOo() : parsed.oo;
-  let rows = [], needs = [], chars = [], view = [], headH = 44, start = -1, end = -1, pushNext = false, sureMode, draft = [], source = null, builtArsene = null;
+  let rows = [], needs = [], chars = [], view = [], headH = 44, start = -1, end = -1, pushNext = false, sureMode, draft = [], source = null, builtForm = "";
 
   function storedOo() {
     try { return localStorage.getItem(OO_KEY) === "1"; } catch (e) { return false; }
@@ -66,20 +66,32 @@
     if (state.slot) bits.push("必殺 " + Mii.slotLabel(state.slot));
     bits.push(state.vs == null ? "確定数は全キャラ平均" : "確定数は対 " + (chars[state.vs] ? chars[state.vs].name : ""));
     bits.push(state.oo ? "1on1補正あり（ダメージ×1.2）" : "1on1補正なし（基礎ダメージ）");
-    const showArs = jokerInView();
+    const showArs = charInView("ジョーカー");
+    const showCrit = charInView("勇者");
+    const showInk = charInView("インクリング");
     if (showArs) bits.push(state.arsene ? "ジョーカーはアルセーヌ" : "ジョーカーは通常");
+    if (showCrit) bits.push(state.crit ? "勇者は会心の一撃" : "勇者は通常");
+    if (showInk) bits.push(state.ink ? "インクリングはインク切れ" : "インクリングはインクあり");
     $("meta").textContent = bits.join(" · ");
     $("ars").hidden = !showArs;
+    $("crit").hidden = !showCrit;
+    $("ink").hidden = !showInk;
     $("dmgAgg").innerHTML = [["max", "ダメージ最大"], ["min", "ダメージ最小"]].map(([id, label]) => `<button type="button" data-dmg="${id}" aria-pressed="${state.dmg === id}">${label}</button>`).join("");
     $("ooOff").setAttribute("aria-pressed", state.oo ? "false" : "true");
     $("ooOn").setAttribute("aria-pressed", state.oo ? "true" : "false");
     $("arsOff").setAttribute("aria-pressed", state.arsene ? "false" : "true");
     $("arsOn").setAttribute("aria-pressed", state.arsene ? "true" : "false");
+    $("critOff").setAttribute("aria-pressed", state.crit ? "false" : "true");
+    $("critOn").setAttribute("aria-pressed", state.crit ? "true" : "false");
+    $("inkOff").setAttribute("aria-pressed", state.ink ? "false" : "true");
+    $("inkOn").setAttribute("aria-pressed", state.ink ? "true" : "false");
     renderSlots();
     document.querySelectorAll('a[href^="index.html"]').forEach((a) => {
       const p = new URLSearchParams();
       p.set("oo", state.oo ? "1" : "0");
       if (state.arsene) p.set("ars", "1");
+      if (state.crit) p.set("crit", "1");
+      if (state.ink) p.set("ink", "1");
       a.hash = p.toString();
     });
     $("head").innerHTML = `<span class="c-rank"></span>` + COLS.map(([key, label, side]) => {
@@ -131,6 +143,8 @@
     if (r.material) p.set("mo", r.material);
     p.set("oo", state.oo ? "1" : "0");
     if (state.arsene && r.char === "ジョーカー") p.set("ars", "1");
+    if (state.crit && r.char === "勇者") p.set("crit", "1");
+    if (state.ink && r.char === "インクリング") p.set("ink", "1");
     if (state.slot) p.set("slot", state.slot);
     return "index.html#" + p.toString();
   }
@@ -144,16 +158,20 @@
     if (!on) { el.innerHTML = ""; return; }
     el.innerHTML = `<span class="oolab">必殺番号</span>` + Mii.SLOTS.map((s) => `<button type="button" data-slot="${s.id}" aria-pressed="${state.slot === s.id}" aria-label="${esc(s.label)}">${esc(s.label)}</button>`).join("");
   }
-  function jokerInView() {
-    const ji = chars.findIndex((c) => c.name === "ジョーカー");
+  function charInView(name) {
+    const ji = chars.findIndex((c) => c.name === name);
     if (ji < 0) return false;
     if (!state.chars.length) return true;
     return state.chars.indexOf(ji) >= 0;
   }
+  function formKey() {
+    return (state.arsene ? "a" : "") + (state.crit ? "c" : "") + (state.ink ? "i" : "");
+  }
   function ensureRows() {
-    if (!source || (builtArsene === !!state.arsene && rows.length)) return;
-    rows = T.buildRows(source, C, { arsene: !!state.arsene });
-    builtArsene = !!state.arsene;
+    const key = formKey();
+    if (!source || (builtForm === key && rows.length)) return;
+    rows = T.buildRows(source, C, { arsene: !!state.arsene, crit: !!state.crit, ink: !!state.ink });
+    builtForm = key;
     // null は「全キャラ平均」なので、再計算の印には使わない
     sureMode = -2;
   }
@@ -218,6 +236,20 @@
       const on = b.dataset.ars === "1";
       if (state.arsene === on) return;
       state.arsene = on;
+      pushNext = true; apply(false);
+    };
+    $("crit").onclick = (e) => {
+      const b = e.target.closest("[data-crit]"); if (!b) return;
+      const on = b.dataset.crit === "1";
+      if (state.crit === on) return;
+      state.crit = on;
+      pushNext = true; apply(false);
+    };
+    $("ink").onclick = (e) => {
+      const b = e.target.closest("[data-ink]"); if (!b) return;
+      const on = b.dataset.ink === "1";
+      if (state.ink === on) return;
+      state.ink = on;
       pushNext = true; apply(false);
     };
     $("picked").onclick = (e) => {
@@ -294,7 +326,7 @@
     source = data;
     chars = data.chars;
     needs = T.punishNeeds(chars, C);
-    builtArsene = null;
+    builtForm = "";
     rows = [];
     $("vs").innerHTML = `<option value="">平均</option>` + chars.map((c, i) => `<option value="${i}">${esc(c.name)}</option>`).join("");
     bind();

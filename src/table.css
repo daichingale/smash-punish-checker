@@ -42,8 +42,8 @@ a{color:var(--accent)}
 .chips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:750}
 #slots.chips{flex-wrap:wrap;overflow:visible}
 #slots[hidden]{display:none}
-#ars[hidden]{display:none}
-#ars{align-items:center}
+#ars[hidden],#crit[hidden],#ink[hidden]{display:none}
+#ars,#crit,#ink{align-items:center}
 .picked{display:flex;gap:6px;overflow-x:auto}
 .picked:empty{display:none}
 .picked button{flex:0 0 auto;min-height:36px;padding:0 10px;border-radius:999px;border:1px solid var(--line);background:var(--card)}

@@ -718,3 +718,93 @@ test("条件つき着地隙は条件ごとに有利を出し、表示と確定�
   assert.equal(frames.advMax, 23);
   assert.equal(frames.landing, 20);
 });
+
+test("会心とインク切れは初期が通常の段で、ありのときだけシートの別行に変わる", () => {
+  const hero = ch("勇者");
+  const ink = ch("インクリング");
+  const mario = ch("マリオ");
+  const fsmash = mv(hero, "横スマッシュ");
+  const usmash = mv(hero, "上スマッシュ");
+  const dsmash = mv(hero, "下スマッシュ");
+  const hoff = C.shieldAdvantage(fsmash);
+  const hon = C.shieldAdvantage(fsmash, { crit: true });
+  assert.equal(hoff.primary, 36);
+  assert.equal(hoff.primaryStun, 12);
+  assert.equal(hoff.damage, 18);
+  assert.equal(hoff.worst, 34);
+  assert.equal(hoff.usedCrit, false);
+  assert.equal(hoff.primaryLabel, "");
+  assert.equal(hon.primary, 26);
+  assert.equal(hon.primaryStun, 22);
+  assert.equal(hon.damage, 36);
+  assert.equal(hon.worst, 24);
+  assert.equal(hon.usedCrit, true);
+  assert.equal(hon.primaryLabel, "会心の一撃");
+  assert.equal(C.formatHitboxes(fsmash, false).text, "hit1 18 / hit2 18 / hit3 16");
+  assert.equal(C.formatHitboxes(fsmash, false, { crit: true }).text, "36 / 36 / 32 (会心の一撃)");
+  assert.equal(C.formatHitboxes(fsmash, true, { crit: true }).text, "43.2 / 43.2 / 38.4 (会心の一撃)");
+  assert.equal(C.shieldAdvantage(usmash).primary, 29);
+  assert.equal(C.shieldAdvantage(usmash).primaryStun, 11);
+  assert.equal(C.shieldAdvantage(usmash, { crit: true }).primary, 20);
+  assert.equal(C.shieldAdvantage(usmash, { crit: true }).damage, 32);
+  assert.equal(C.shieldAdvantage(dsmash).primary, 26);
+  assert.equal(C.shieldAdvantage(dsmash).primaryLabel, "Hit 2");
+  assert.equal(C.shieldAdvantage(dsmash).primaryStun, 9);
+  assert.equal(C.shieldAdvantage(dsmash, { crit: true }).primary, 18);
+  assert.equal(C.shieldAdvantage(dsmash, { crit: true }).primaryLabel, "会心の一撃");
+  assert.equal(C.shieldAdvantage(dsmash, { crit: true }).primaryStun, 17);
+  const jab = C.shieldAdvantage(mv(hero, "弱1"));
+  assert.equal(C.shieldAdvantage(mv(hero, "弱1"), { crit: true }).primary, jab.primary);
+  assert.equal(C.shieldAdvantage(mv(hero, "弱1"), { crit: true }).usedCrit, false);
+  const nb = C.evaluate(hero, fsmash, mario, {}).list.find((x) => x.move.name === "NB" && x.route === "drop");
+  const nbOn = C.evaluate(hero, fsmash, mario, { crit: true }).list.find((x) => x.move.name === "NB" && x.route === "drop");
+  assert.equal(nb.status, "sure");
+  assert.equal(nb.margin, 8);
+  assert.equal(nbOn.status, "impossible");
+  assert.equal(nbOn.margin, -2);
+
+  const ifs = mv(ink, "横スマッシュ");
+  const ioff = C.shieldAdvantage(ifs);
+  const ion = C.shieldAdvantage(ifs, { ink: true });
+  assert.equal(ioff.primary, 24);
+  assert.equal(ioff.primaryStun, 11);
+  assert.equal(ioff.damage, 16);
+  assert.equal(ioff.usedInk, false);
+  assert.equal(ion.primary, 27);
+  assert.equal(ion.primaryStun, 8);
+  assert.equal(ion.damage, 12);
+  assert.equal(ion.usedInk, true);
+  assert.equal(ion.primaryLabel, "インク切れ");
+  assert.equal(C.formatHitboxes(ifs, false).text, "hit1 14 / hit2 16");
+  assert.equal(C.formatHitboxes(ifs, false, { ink: true }).text, "12 (インク切れ)");
+  assert.equal(C.shieldAdvantage(mv(ink, "上スマッシュ")).primary, 29);
+  assert.equal(C.shieldAdvantage(mv(ink, "上スマッシュ")).primaryLabel, "Hit 2");
+  assert.equal(C.shieldAdvantage(mv(ink, "上スマッシュ"), { ink: true }).primary, 32);
+  assert.equal(C.shieldAdvantage(mv(ink, "下スマッシュ")).primary, 22);
+  assert.equal(C.shieldAdvantage(mv(ink, "下スマッシュ")).primaryLabel, "Hit 2, 持続");
+  assert.equal(C.shieldAdvantage(mv(ink, "下スマッシュ"), { ink: true }).primary, 23);
+  assert.equal(C.shieldAdvantage(mv(ink, "下スマッシュ"), { ink: true }).primaryLabel, "インク切れ");
+  assert.equal(C.shieldAdvantage(mv(ink, "弱1"), { ink: true }).primary, C.shieldAdvantage(mv(ink, "弱1")).primary);
+  assert.equal(C.shieldAdvantage(mv(ink, "下B（地上）"), { ink: true }).primary, C.shieldAdvantage(mv(ink, "下B（地上）")).primary);
+  assert.equal(C.shieldAdvantage(mv(ink, "下B（地上）"), { ink: true }).usedInk, false);
+  const smash = C.evaluate(ink, ifs, mario, {}).list.find((x) => x.move.name === "横スマッシュ" && x.route === "drop");
+  const smashOn = C.evaluate(ink, ifs, mario, { ink: true }).list.find((x) => x.move.name === "横スマッシュ" && x.route === "drop");
+  assert.equal(smash.status, "impossible");
+  assert.equal(smash.margin, -2);
+  assert.equal(smashOn.status, "sure");
+  assert.equal(smashOn.margin, 1);
+
+  assert.equal(C.shieldAdvantage(mv(ch("ジョーカー"), "横強"), { crit: true, ink: true }).primary, 15);
+  assert.equal(C.shieldAdvantage(mv(mario, "上強"), { crit: true, ink: true }).primary, 18);
+  for (const c of data.chars) {
+    if (c.name === "勇者" || c.name === "インクリング") continue;
+    for (const m of c.moves) {
+      const a = C.shieldAdvantage(m);
+      const b = C.shieldAdvantage(m, { crit: true, ink: true });
+      assert.equal(b.primary, a.primary, c.name + " " + m.name);
+      assert.equal(b.worst, a.worst, c.name + " " + m.name);
+      assert.equal(!!b.usedCrit, false);
+      assert.equal(!!b.usedInk, false);
+    }
+  }
+});

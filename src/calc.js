@@ -18,6 +18,20 @@
   const THRESHOLDS = { severeMax: 2, easyMin: 8 };
   const SEQ_RE = /Hit|連|〆|派生/;
   const STARTER_SEQ = /^(弱1|横強1|空N1|空前1)/;
+  // シートが同じ技に別行で書いた状態。倍率しか無い状態はここへ足さない。
+  const CRIT_RE = /会心の一撃/;
+  const INK_RE = /インク切れ/;
+  /** 印の行があるとき、on ならその行だけ、off なら印の行を除く。印が無ければそのまま */
+  function applyMark(current, source, re, on) {
+    const marked = [];
+    for (let i = 0; i < source.length; i++) if (re.test(source[i].label || "")) marked.push(source[i]);
+    if (!marked.length) return { rows: current, used: false };
+    if (on) return { rows: marked, used: true };
+    const rest = [];
+    for (let i = 0; i < current.length; i++) if (!re.test(current[i].label || "")) rest.push(current[i]);
+    if (!rest.length) return { rows: current, used: false };
+    return { rows: rest, used: false };
+  }
 
   const maxOf = (a) => Math.max.apply(null, a);
   const minOf = (a) => Math.min.apply(null, a);
@@ -64,7 +78,9 @@
 
   /** 攻撃側の技をガードしたときのガード側有利F。
    * primary: 最速判定（多段技は最終段）をガードした場合 / worst: いちばん遅い判定の終わり際をガードした場合
-   * o.arsene: 真のとき、アルセーヌの段がある技はその段のガード硬直と全体Fを使う。段が無い技は通常のまま */
+   * o.arsene: 真のとき、アルセーヌの段がある技はその段のガード硬直と全体Fを使う。段が無い技は通常のまま
+   * o.crit: 真のとき、会心の一撃の行がある技はその行の硬直とダメージを使う。初期は通常の段
+   * o.ink: 真のとき、インク切れの行がある技はその行を使う。初期はインクあり（通常の段）。硬直か全体Fが読めない行は使わない */
   function shieldAdvantage(move, o) {
     o = o || {};
     if (move.category === "grab") return { ok: false, reason: "つかみはガードできない" };
@@ -98,6 +114,14 @@
       use = rows.slice(arseneAt);
       usedArsene = true;
     }
+    // 会心・インク切れは通常の段と交互に並ぶ。アルセーヌのように「最初の印から末尾」にはしない。
+    // 印の行だけ硬直とダメージが違い、全体Fの空欄は結合セル（直前行と同じ）として既に入っている。
+    const critPick = applyMark(use, rows, CRIT_RE, !!o.crit);
+    use = critPick.rows;
+    const usedCrit = critPick.used;
+    const inkPick = applyMark(use, rows, INK_RE, !!o.ink);
+    use = inkPick.rows;
+    const usedInk = inkPick.used;
     // 前と後ろの両方がある技は、密着している正面の段だけを使う
     if (use.some((r) => /（前）/.test(r.label)) && use.some((r) => /（後）/.test(r.label))) {
       use = use.filter((r) => !/（後）/.test(r.label));
@@ -133,7 +157,9 @@
         hitboxes: pairedHitboxes(row, ofStun), advOf: ofStun,
       };
     }
-    const seq = use.some((r) => SEQ_RE.test(r.label));
+    // 会心・インク切れだけの複数行は、ラベルに Hit が残らない。シートの並びの最後を最終段にする
+    const formSeq = use.length > 1 && (use.every((r) => CRIT_RE.test(r.label || "")) || use.every((r) => INK_RE.test(r.label || "")));
+    const seq = use.some((r) => SEQ_RE.test(r.label)) || formSeq;
     const pRow0 = seq ? use[use.length - 1] : use[0];
     const caseSpecs = isAir && Array.isArray(move.landingCases) && move.landingCases.length >= 1 ? move.landingCases : null;
     // ヒットするとバウンドし、その行だけ全体Fが書いてあるときは、空振りの着地隙ではなくその全体F。
@@ -208,7 +234,7 @@
     return {
       ok: true, primary, loose, worst: Math.min(worst, primary), lateUnknown, primaryStun: maxOf(pRow.stun),
       stunSpan: seOut.span, stunLo: seOut.lo, stunHi: seOut.hi,
-      primaryLabel: pRow.label || "", multiHit: multi, aerial: isAir, landingLag: shownLag, landingName: landingName, landingCases: landingCases, bounceLag: bounce ? bounce.total : null, alt, damage, total, totalHi, detail, hitboxes, advMin, advMax, usedArsene,
+      primaryLabel: pRow.label || "", multiHit: multi, aerial: isAir, landingLag: shownLag, landingName: landingName, landingCases: landingCases, bounceLag: bounce ? bounce.total : null, alt, damage, total, totalHi, detail, hitboxes, advMin, advMax, usedArsene, usedCrit, usedInk,
     };
   }
 
@@ -322,7 +348,7 @@
   /** attacker の move をガードした defender の反撃一覧 */
   function evaluate(attacker, move, defender, o) {
     o = o || {};
-    const adv = shieldAdvantage(move, { arsene: !!o.arsene });
+    const adv = shieldAdvantage(move, { arsene: !!o.arsene, crit: !!o.crit, ink: !!o.ink });
     if (!adv.ok) return { adv, list: [] };
     const bonus = o.perfectShield ? PERFECT_SHIELD_BONUS : 0;
     const list = punishOptions(defender, o.defenderMaterial).map((opt) => {
@@ -356,9 +382,24 @@
   }
 
   /** シートの行ラベルと基礎ダメージ。行メモからは名前を作らない。硬直は個数がダメージと一致するときだけ対応づける */
-  function hitboxParts(move) {
+  /** ダメージ表示用。印の行にダメージが無いときは、ありにしても通常の段のダメージを残す */
+  function applyMarkDamage(rows, re, on) {
+    const marked = [];
+    for (let i = 0; i < rows.length; i++) if (re.test(rows[i].label || "")) marked.push(rows[i]);
+    if (!marked.length) return rows;
+    const usable = on && marked.some((r) => Array.isArray(r.damage) && r.damage.some((d) => typeof d === "number" && !Number.isNaN(d)));
+    if (usable) return marked;
+    const rest = [];
+    for (let i = 0; i < rows.length; i++) if (!re.test(rows[i].label || "")) rest.push(rows[i]);
+    return rest.length ? rest : rows;
+  }
+  function hitboxParts(move, o) {
+    o = o || {};
+    let rows = (move && move.rows) || [];
+    rows = applyMarkDamage(rows, CRIT_RE, !!o.crit);
+    rows = applyMarkDamage(rows, INK_RE, !!o.ink);
     const parts = [];
-    for (const row of (move && move.rows) || []) {
+    for (const row of rows) {
       const damages = (row.damage || []).filter((d) => typeof d === "number" && !Number.isNaN(d));
       if (!damages.length) continue;
       const stuns = (row.stun || []).filter((s) => typeof s === "number" && !Number.isNaN(s));
@@ -392,8 +433,8 @@
     });
     return { text: items.map((it) => it.text).join(" · "), items, max, min };
   }
-  function formatHitboxes(move, oneOnOne) {
-    return formatParts(hitboxParts(move), oneOnOne);
+  function formatHitboxes(move, oneOnOne, o) {
+    return formatParts(hitboxParts(move, o), oneOnOne);
   }
 
   const api = {

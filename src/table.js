@@ -64,11 +64,16 @@
     let order = 0;
     data.chars.forEach((ch, ci) => {
       ch.moves.forEach((m) => {
-        const f = calc.listFrames(m, o.arsene && ch.name === "ジョーカー" ? { arsene: true } : undefined);
+        const form = {
+          arsene: !!(o.arsene && ch.name === "ジョーカー"),
+          crit: !!(o.crit && ch.name === "勇者"),
+          ink: !!(o.ink && ch.name === "インクリング"),
+        };
+        const f = calc.listFrames(m, form);
         const kind = kindOf(m);
         const place = placeOf(m);
         const name = moveLabel(m);
-        const parts = calc.hitboxParts(m);
+        const parts = calc.hitboxParts(m, form);
         const span = calc.formatParts(parts, false);
         rows.push({
           order: order++, ci, id: m.id, char: ch.name, name, kind, place,
@@ -234,9 +239,11 @@
     const ooRaw = q.get("oo");
     const oo = ooRaw === "1" ? true : ooRaw === "0" ? false : null;
     const arsene = q.get("ars") === "1";
+    const crit = q.get("crit") === "1";
+    const ink = q.get("ink") === "1";
     const slotRaw = q.get("slot") || "";
     const slot = Mii.SLOT_IDS.indexOf(slotRaw) >= 0 ? slotRaw : "";
-    return { sort, dir, preset, kinds, place, chars, text: q.get("q") || "", vs, dmg, oo, arsene, slot };
+    return { sort, dir, preset, kinds, place, chars, text: q.get("q") || "", vs, dmg, oo, arsene, crit, ink, slot };
   }
   function serialize(s) {
     const p = new URLSearchParams();
@@ -252,6 +259,8 @@
     if (s.oo === true) p.set("oo", "1");
     else if (s.oo === false) p.set("oo", "0");
     if (s.arsene) p.set("ars", "1");
+    if (s.crit) p.set("crit", "1");
+    if (s.ink) p.set("ink", "1");
     if (s.slot && Mii.SLOT_IDS.indexOf(s.slot) >= 0) p.set("slot", s.slot);
     return p.toString();
   }

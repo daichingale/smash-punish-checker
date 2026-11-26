@@ -95,8 +95,8 @@ a{color:var(--accent)}
 .chips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:750}
 #slots.chips{flex-wrap:wrap;overflow:visible}
 #slots[hidden]{display:none}
-#ars[hidden]{display:none}
-#ars{align-items:center}
+#ars[hidden],#crit[hidden],#ink[hidden]{display:none}
+#ars,#crit,#ink{align-items:center}
 .picked{display:flex;gap:6px;overflow-x:auto}
 .picked:empty{display:none}
 .picked button{flex:0 0 auto;min-height:36px;padding:0 10px;border-radius:999px;border:1px solid var(--line);background:var(--card)}
@@ -177,6 +177,16 @@ body.noscroll{overflow:hidden}
       <button type="button" id="arsOff" data-ars="0" aria-pressed="true">なし</button>
       <button type="button" id="arsOn" data-ars="1" aria-pressed="false">あり</button>
     </div>
+    <div id="crit" class="chips" role="group" aria-label="会心の一撃" hidden>
+      <span class="oolab">会心の一撃</span>
+      <button type="button" id="critOff" data-crit="0" aria-pressed="true">なし</button>
+      <button type="button" id="critOn" data-crit="1" aria-pressed="false">あり</button>
+    </div>
+    <div id="ink" class="chips" role="group" aria-label="インク" hidden>
+      <span class="oolab">インク</span>
+      <button type="button" id="inkOff" data-ink="0" aria-pressed="true">あり</button>
+      <button type="button" id="inkOn" data-ink="1" aria-pressed="false">切れ</button>
+    </div>
   </div>
   <div id="picked" class="picked"></div>
 </div>
@@ -191,7 +201,7 @@ body.noscroll{overflow:hidden}
   <a href="index.html">反撃チェックに戻る</a> · <a href="tier.html">ティア表</a> · <a href="result.html">リザルト</a><br>
   フレームデータ: <a href="https://docs.google.com/spreadsheets/d/15SClMwvDIqovtO3DJnf1GGIteH35UX3IM7-mnbdG6eE/edit" target="_blank" rel="noopener">スマブラSP検証窓</a>（<a href="https://w.atwiki.jp/smashsp_kensyou/" target="_blank" rel="noopener">スマブラSPECIAL 検証wiki</a>）のフレームシートをもとに計算しています。<br>
   このページは個人が作った非公式の試作です。検証窓・任天堂とは関係ありません。表示内容の正確さは保証しません。実際の対戦ではトレーニングモードで確認してください。<br>
-  ガード有利は反撃チェックと同じ式（ガード側の有利。＋ならガードした側が有利）。多段は通常の最終段、前と後ろがある技は正面です。同じ段で硬直が違う技は、きびしい方〜弱い方の範囲を出します。並び順と確定数はきびしい方のままです。着地隙が条件で複数ある空中必殺も、ガード有利ときびしい着地隙〜弱い着地隙を範囲で出します。並べ替えと確定数は、きびしい着地のままです。ダメージは判定ごとで、行の名前がシートにあるときだけ括弧で付けます。1on1補正ありは表示ダメージだけ基礎ダメージの1.2倍で、ガード硬直とガード有利は変わりません。攻撃側にジョーカーがいるときだけ「アルセーヌ」を切り替えられます。ありはアルセーヌの段のガード硬直と全体Fで有利と確定数を出し、段が無い技と他のキャラは通常のままです（初期はなし）。
+  ガード有利は反撃チェックと同じ式（ガード側の有利。＋ならガードした側が有利）。多段は通常の最終段、前と後ろがある技は正面です。同じ段で硬直が違う技は、きびしい方〜弱い方の範囲を出します。並び順と確定数はきびしい方のままです。着地隙が条件で複数ある空中必殺も、ガード有利ときびしい着地隙〜弱い着地隙を範囲で出します。並べ替えと確定数は、きびしい着地のままです。ダメージは判定ごとで、行の名前がシートにあるときだけ括弧で付けます。1on1補正ありは表示ダメージだけ基礎ダメージの1.2倍で、ガード硬直とガード有利は変わりません。攻撃側にジョーカーがいるときだけ「アルセーヌ」を切り替えられます。ありはアルセーヌの段のガード硬直と全体Fで有利と確定数を出し、段が無い技と他のキャラは通常のままです（初期はなし）。勇者が表示されているとき「会心の一撃」、インクリングが表示されているとき「インク」も同じです。初期は会心なし・インクありで、シートにその行のガード硬直とダメージがあるスマッシュだけ数字が変わります。倍率だけで技ごとの硬直が無い状態は切り替えません。
 </footer>
 <div id="picker" hidden role="dialog" aria-modal="true" aria-labelledby="pkTitle">
   <div class="pkHead">
@@ -221,6 +231,20 @@ body.noscroll{overflow:hidden}
   const THRESHOLDS = { severeMax: 2, easyMin: 8 };
   const SEQ_RE = /Hit|連|〆|派生/;
   const STARTER_SEQ = /^(弱1|横強1|空N1|空前1)/;
+  // シートが同じ技に別行で書いた状態。倍率しか無い状態はここへ足さない。
+  const CRIT_RE = /会心の一撃/;
+  const INK_RE = /インク切れ/;
+  /** 印の行があるとき、on ならその行だけ、off なら印の行を除く。印が無ければそのまま */
+  function applyMark(current, source, re, on) {
+    const marked = [];
+    for (let i = 0; i < source.length; i++) if (re.test(source[i].label || "")) marked.push(source[i]);
+    if (!marked.length) return { rows: current, used: false };
+    if (on) return { rows: marked, used: true };
+    const rest = [];
+    for (let i = 0; i < current.length; i++) if (!re.test(current[i].label || "")) rest.push(current[i]);
+    if (!rest.length) return { rows: current, used: false };
+    return { rows: rest, used: false };
+  }
 
   const maxOf = (a) => Math.max.apply(null, a);
   const minOf = (a) => Math.min.apply(null, a);
@@ -267,7 +291,9 @@ body.noscroll{overflow:hidden}
 
   /** 攻撃側の技をガードしたときのガード側有利F。
    * primary: 最速判定（多段技は最終段）をガードした場合 / worst: いちばん遅い判定の終わり際をガードした場合
-   * o.arsene: 真のとき、アルセーヌの段がある技はその段のガード硬直と全体Fを使う。段が無い技は通常のまま */
+   * o.arsene: 真のとき、アルセーヌの段がある技はその段のガード硬直と全体Fを使う。段が無い技は通常のまま
+   * o.crit: 真のとき、会心の一撃の行がある技はその行の硬直とダメージを使う。初期は通常の段
+   * o.ink: 真のとき、インク切れの行がある技はその行を使う。初期はインクあり（通常の段）。硬直か全体Fが読めない行は使わない */
   function shieldAdvantage(move, o) {
     o = o || {};
     if (move.category === "grab") return { ok: false, reason: "つかみはガードできない" };
@@ -301,6 +327,14 @@ body.noscroll{overflow:hidden}
       use = rows.slice(arseneAt);
       usedArsene = true;
     }
+    // 会心・インク切れは通常の段と交互に並ぶ。アルセーヌのように「最初の印から末尾」にはしない。
+    // 印の行だけ硬直とダメージが違い、全体Fの空欄は結合セル（直前行と同じ）として既に入っている。
+    const critPick = applyMark(use, rows, CRIT_RE, !!o.crit);
+    use = critPick.rows;
+    const usedCrit = critPick.used;
+    const inkPick = applyMark(use, rows, INK_RE, !!o.ink);
+    use = inkPick.rows;
+    const usedInk = inkPick.used;
     // 前と後ろの両方がある技は、密着している正面の段だけを使う
     if (use.some((r) => /（前）/.test(r.label)) && use.some((r) => /（後）/.test(r.label))) {
       use = use.filter((r) => !/（後）/.test(r.label));
@@ -336,7 +370,9 @@ body.noscroll{overflow:hidden}
         hitboxes: pairedHitboxes(row, ofStun), advOf: ofStun,
       };
     }
-    const seq = use.some((r) => SEQ_RE.test(r.label));
+    // 会心・インク切れだけの複数行は、ラベルに Hit が残らない。シートの並びの最後を最終段にする
+    const formSeq = use.length > 1 && (use.every((r) => CRIT_RE.test(r.label || "")) || use.every((r) => INK_RE.test(r.label || "")));
+    const seq = use.some((r) => SEQ_RE.test(r.label)) || formSeq;
     const pRow0 = seq ? use[use.length - 1] : use[0];
     const caseSpecs = isAir && Array.isArray(move.landingCases) && move.landingCases.length >= 1 ? move.landingCases : null;
     // ヒットするとバウンドし、その行だけ全体Fが書いてあるときは、空振りの着地隙ではなくその全体F。
@@ -411,7 +447,7 @@ body.noscroll{overflow:hidden}
     return {
       ok: true, primary, loose, worst: Math.min(worst, primary), lateUnknown, primaryStun: maxOf(pRow.stun),
       stunSpan: seOut.span, stunLo: seOut.lo, stunHi: seOut.hi,
-      primaryLabel: pRow.label || "", multiHit: multi, aerial: isAir, landingLag: shownLag, landingName: landingName, landingCases: landingCases, bounceLag: bounce ? bounce.total : null, alt, damage, total, totalHi, detail, hitboxes, advMin, advMax, usedArsene,
+      primaryLabel: pRow.label || "", multiHit: multi, aerial: isAir, landingLag: shownLag, landingName: landingName, landingCases: landingCases, bounceLag: bounce ? bounce.total : null, alt, damage, total, totalHi, detail, hitboxes, advMin, advMax, usedArsene, usedCrit, usedInk,
     };
   }
 
@@ -525,7 +561,7 @@ body.noscroll{overflow:hidden}
   /** attacker の move をガードした defender の反撃一覧 */
   function evaluate(attacker, move, defender, o) {
     o = o || {};
-    const adv = shieldAdvantage(move, { arsene: !!o.arsene });
+    const adv = shieldAdvantage(move, { arsene: !!o.arsene, crit: !!o.crit, ink: !!o.ink });
     if (!adv.ok) return { adv, list: [] };
     const bonus = o.perfectShield ? PERFECT_SHIELD_BONUS : 0;
     const list = punishOptions(defender, o.defenderMaterial).map((opt) => {
@@ -559,9 +595,24 @@ body.noscroll{overflow:hidden}
   }
 
   /** シートの行ラベルと基礎ダメージ。行メモからは名前を作らない。硬直は個数がダメージと一致するときだけ対応づける */
-  function hitboxParts(move) {
+  /** ダメージ表示用。印の行にダメージが無いときは、ありにしても通常の段のダメージを残す */
+  function applyMarkDamage(rows, re, on) {
+    const marked = [];
+    for (let i = 0; i < rows.length; i++) if (re.test(rows[i].label || "")) marked.push(rows[i]);
+    if (!marked.length) return rows;
+    const usable = on && marked.some((r) => Array.isArray(r.damage) && r.damage.some((d) => typeof d === "number" && !Number.isNaN(d)));
+    if (usable) return marked;
+    const rest = [];
+    for (let i = 0; i < rows.length; i++) if (!re.test(rows[i].label || "")) rest.push(rows[i]);
+    return rest.length ? rest : rows;
+  }
+  function hitboxParts(move, o) {
+    o = o || {};
+    let rows = (move && move.rows) || [];
+    rows = applyMarkDamage(rows, CRIT_RE, !!o.crit);
+    rows = applyMarkDamage(rows, INK_RE, !!o.ink);
     const parts = [];
-    for (const row of (move && move.rows) || []) {
+    for (const row of rows) {
       const damages = (row.damage || []).filter((d) => typeof d === "number" && !Number.isNaN(d));
       if (!damages.length) continue;
       const stuns = (row.stun || []).filter((s) => typeof s === "number" && !Number.isNaN(s));
@@ -595,8 +646,8 @@ body.noscroll{overflow:hidden}
     });
     return { text: items.map((it) => it.text).join(" · "), items, max, min };
   }
-  function formatHitboxes(move, oneOnOne) {
-    return formatParts(hitboxParts(move), oneOnOne);
+  function formatHitboxes(move, oneOnOne, o) {
+    return formatParts(hitboxParts(move, o), oneOnOne);
   }
 
   const api = {
@@ -777,11 +828,16 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     let order = 0;
     data.chars.forEach((ch, ci) => {
       ch.moves.forEach((m) => {
-        const f = calc.listFrames(m, o.arsene && ch.name === "ジョーカー" ? { arsene: true } : undefined);
+        const form = {
+          arsene: !!(o.arsene && ch.name === "ジョーカー"),
+          crit: !!(o.crit && ch.name === "勇者"),
+          ink: !!(o.ink && ch.name === "インクリング"),
+        };
+        const f = calc.listFrames(m, form);
         const kind = kindOf(m);
         const place = placeOf(m);
         const name = moveLabel(m);
-        const parts = calc.hitboxParts(m);
+        const parts = calc.hitboxParts(m, form);
         const span = calc.formatParts(parts, false);
         rows.push({
           order: order++, ci, id: m.id, char: ch.name, name, kind, place,
@@ -947,9 +1003,11 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     const ooRaw = q.get("oo");
     const oo = ooRaw === "1" ? true : ooRaw === "0" ? false : null;
     const arsene = q.get("ars") === "1";
+    const crit = q.get("crit") === "1";
+    const ink = q.get("ink") === "1";
     const slotRaw = q.get("slot") || "";
     const slot = Mii.SLOT_IDS.indexOf(slotRaw) >= 0 ? slotRaw : "";
-    return { sort, dir, preset, kinds, place, chars, text: q.get("q") || "", vs, dmg, oo, arsene, slot };
+    return { sort, dir, preset, kinds, place, chars, text: q.get("q") || "", vs, dmg, oo, arsene, crit, ink, slot };
   }
   function serialize(s) {
     const p = new URLSearchParams();
@@ -965,6 +1023,8 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     if (s.oo === true) p.set("oo", "1");
     else if (s.oo === false) p.set("oo", "0");
     if (s.arsene) p.set("ars", "1");
+    if (s.crit) p.set("crit", "1");
+    if (s.ink) p.set("ink", "1");
     if (s.slot && Mii.SLOT_IDS.indexOf(s.slot) >= 0) p.set("slot", s.slot);
     return p.toString();
   }
@@ -1002,7 +1062,7 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
   const parsed = T.parseQuery(location.hash);
   const state = parsed;
   state.oo = parsed.oo == null ? storedOo() : parsed.oo;
-  let rows = [], needs = [], chars = [], view = [], headH = 44, start = -1, end = -1, pushNext = false, sureMode, draft = [], source = null, builtArsene = null;
+  let rows = [], needs = [], chars = [], view = [], headH = 44, start = -1, end = -1, pushNext = false, sureMode, draft = [], source = null, builtForm = "";
 
   function storedOo() {
     try { return localStorage.getItem(OO_KEY) === "1"; } catch (e) { return false; }
@@ -1044,20 +1104,32 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     if (state.slot) bits.push("必殺 " + Mii.slotLabel(state.slot));
     bits.push(state.vs == null ? "確定数は全キャラ平均" : "確定数は対 " + (chars[state.vs] ? chars[state.vs].name : ""));
     bits.push(state.oo ? "1on1補正あり（ダメージ×1.2）" : "1on1補正なし（基礎ダメージ）");
-    const showArs = jokerInView();
+    const showArs = charInView("ジョーカー");
+    const showCrit = charInView("勇者");
+    const showInk = charInView("インクリング");
     if (showArs) bits.push(state.arsene ? "ジョーカーはアルセーヌ" : "ジョーカーは通常");
+    if (showCrit) bits.push(state.crit ? "勇者は会心の一撃" : "勇者は通常");
+    if (showInk) bits.push(state.ink ? "インクリングはインク切れ" : "インクリングはインクあり");
     $("meta").textContent = bits.join(" · ");
     $("ars").hidden = !showArs;
+    $("crit").hidden = !showCrit;
+    $("ink").hidden = !showInk;
     $("dmgAgg").innerHTML = [["max", "ダメージ最大"], ["min", "ダメージ最小"]].map(([id, label]) => `<button type="button" data-dmg="${id}" aria-pressed="${state.dmg === id}">${label}</button>`).join("");
     $("ooOff").setAttribute("aria-pressed", state.oo ? "false" : "true");
     $("ooOn").setAttribute("aria-pressed", state.oo ? "true" : "false");
     $("arsOff").setAttribute("aria-pressed", state.arsene ? "false" : "true");
     $("arsOn").setAttribute("aria-pressed", state.arsene ? "true" : "false");
+    $("critOff").setAttribute("aria-pressed", state.crit ? "false" : "true");
+    $("critOn").setAttribute("aria-pressed", state.crit ? "true" : "false");
+    $("inkOff").setAttribute("aria-pressed", state.ink ? "false" : "true");
+    $("inkOn").setAttribute("aria-pressed", state.ink ? "true" : "false");
     renderSlots();
     document.querySelectorAll('a[href^="index.html"]').forEach((a) => {
       const p = new URLSearchParams();
       p.set("oo", state.oo ? "1" : "0");
       if (state.arsene) p.set("ars", "1");
+      if (state.crit) p.set("crit", "1");
+      if (state.ink) p.set("ink", "1");
       a.hash = p.toString();
     });
     $("head").innerHTML = `<span class="c-rank"></span>` + COLS.map(([key, label, side]) => {
@@ -1109,6 +1181,8 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     if (r.material) p.set("mo", r.material);
     p.set("oo", state.oo ? "1" : "0");
     if (state.arsene && r.char === "ジョーカー") p.set("ars", "1");
+    if (state.crit && r.char === "勇者") p.set("crit", "1");
+    if (state.ink && r.char === "インクリング") p.set("ink", "1");
     if (state.slot) p.set("slot", state.slot);
     return "index.html#" + p.toString();
   }
@@ -1122,16 +1196,20 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     if (!on) { el.innerHTML = ""; return; }
     el.innerHTML = `<span class="oolab">必殺番号</span>` + Mii.SLOTS.map((s) => `<button type="button" data-slot="${s.id}" aria-pressed="${state.slot === s.id}" aria-label="${esc(s.label)}">${esc(s.label)}</button>`).join("");
   }
-  function jokerInView() {
-    const ji = chars.findIndex((c) => c.name === "ジョーカー");
+  function charInView(name) {
+    const ji = chars.findIndex((c) => c.name === name);
     if (ji < 0) return false;
     if (!state.chars.length) return true;
     return state.chars.indexOf(ji) >= 0;
   }
+  function formKey() {
+    return (state.arsene ? "a" : "") + (state.crit ? "c" : "") + (state.ink ? "i" : "");
+  }
   function ensureRows() {
-    if (!source || (builtArsene === !!state.arsene && rows.length)) return;
-    rows = T.buildRows(source, C, { arsene: !!state.arsene });
-    builtArsene = !!state.arsene;
+    const key = formKey();
+    if (!source || (builtForm === key && rows.length)) return;
+    rows = T.buildRows(source, C, { arsene: !!state.arsene, crit: !!state.crit, ink: !!state.ink });
+    builtForm = key;
     // null は「全キャラ平均」なので、再計算の印には使わない
     sureMode = -2;
   }
@@ -1196,6 +1274,20 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
       const on = b.dataset.ars === "1";
       if (state.arsene === on) return;
       state.arsene = on;
+      pushNext = true; apply(false);
+    };
+    $("crit").onclick = (e) => {
+      const b = e.target.closest("[data-crit]"); if (!b) return;
+      const on = b.dataset.crit === "1";
+      if (state.crit === on) return;
+      state.crit = on;
+      pushNext = true; apply(false);
+    };
+    $("ink").onclick = (e) => {
+      const b = e.target.closest("[data-ink]"); if (!b) return;
+      const on = b.dataset.ink === "1";
+      if (state.ink === on) return;
+      state.ink = on;
       pushNext = true; apply(false);
     };
     $("picked").onclick = (e) => {
@@ -1272,7 +1364,7 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     source = data;
     chars = data.chars;
     needs = T.punishNeeds(chars, C);
-    builtArsene = null;
+    builtForm = "";
     rows = [];
     $("vs").innerHTML = `<option value="">平均</option>` + chars.map((c, i) => `<option value="${i}">${esc(c.name)}</option>`).join("");
     bind();

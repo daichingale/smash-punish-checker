@@ -264,6 +264,58 @@ test("アルセーヌありはジョーカーの有利と確定数だけ変わ�
   assert.equal(T.serialize({ sort: "order", dir: "asc", arsene: false }).includes("ars="), false);
 });
 
+test("会心とインク切れは表の有利・ダメージ・確定数が変わり、URLは付けたときだけ", () => {
+  const off = T.buildRows(data, C);
+  const crit = T.buildRows(data, C, { crit: true });
+  const ink = T.buildRows(data, C, { ink: true });
+  const pick = (rows, ch, name) => rows.find((r) => r.char === ch && r.name === name);
+  assert.equal(pick(off, "勇者", "横スマッシュ").adv, 36);
+  assert.equal(pick(off, "勇者", "横スマッシュ").stun, 12);
+  assert.equal(pick(off, "勇者", "横スマッシュ").damage, 18);
+  assert.equal(pick(crit, "勇者", "横スマッシュ").adv, 26);
+  assert.equal(pick(crit, "勇者", "横スマッシュ").stun, 22);
+  assert.equal(pick(crit, "勇者", "横スマッシュ").damage, 36);
+  assert.equal(pick(off, "勇者", "下スマッシュ").adv, 26);
+  assert.equal(pick(crit, "勇者", "下スマッシュ").adv, 18);
+  assert.equal(pick(off, "勇者", "弱1").adv, pick(crit, "勇者", "弱1").adv);
+  assert.equal(pick(off, "勇者", "弱1").damage, pick(crit, "勇者", "弱1").damage);
+  assert.equal(pick(off, "インクリング", "横スマッシュ").adv, 24);
+  assert.equal(pick(off, "インクリング", "横スマッシュ").damage, 16);
+  assert.equal(pick(ink, "インクリング", "横スマッシュ").adv, 27);
+  assert.equal(pick(ink, "インクリング", "横スマッシュ").damage, 12);
+  assert.equal(pick(off, "インクリング", "上スマッシュ").adv, 29);
+  assert.equal(pick(ink, "インクリング", "上スマッシュ").adv, 32);
+  assert.equal(pick(off, "マリオ", "上強").adv, 18);
+  assert.equal(pick(crit, "マリオ", "上強").adv, 18);
+  assert.equal(pick(ink, "マリオ", "上強").adv, 18);
+  assert.equal(pick(crit, "ジョーカー", "横強").adv, pick(off, "ジョーカー", "横強").adv);
+  const keys = ["startup", "activeEnd", "total", "landing", "stun", "adv", "advMin", "advMax", "damage"];
+  for (let i = 0; i < off.length; i++) {
+    if (off[i].char === "勇者") continue;
+    for (const k of keys) assert.equal(crit[i][k], off[i][k], off[i].char + " " + off[i].name + " " + k);
+  }
+  for (let i = 0; i < off.length; i++) {
+    if (off[i].char === "インクリング") continue;
+    for (const k of keys) assert.equal(ink[i][k], off[i][k], off[i].char + " " + off[i].name + " " + k);
+  }
+  const needs = T.punishNeeds(data.chars, C);
+  const marioIdx = data.chars.findIndex((c) => c.name === "マリオ");
+  const pair = [pick(off, "勇者", "横スマッシュ"), pick(crit, "勇者", "横スマッシュ")];
+  T.fillSure(pair, needs, marioIdx);
+  assert.ok(pair[0].sure > pair[1].sure);
+  assert.equal(T.parseQuery("").crit, false);
+  assert.equal(T.parseQuery("").ink, false);
+  assert.equal(T.parseQuery("#crit=1").crit, true);
+  assert.equal(T.parseQuery("#ink=1").ink, true);
+  assert.equal(T.parseQuery("#crit=0").crit, false);
+  const s = { sort: "adv", dir: "desc", preset: "", kinds: [], place: "", chars: [], text: "", vs: null, dmg: "max", oo: false, arsene: false, crit: true, ink: true };
+  const back = T.parseQuery("#" + T.serialize(s));
+  assert.equal(back.crit, true);
+  assert.equal(back.ink, true);
+  assert.equal(T.serialize({ sort: "order", dir: "asc", crit: false, ink: false }).includes("crit="), false);
+  assert.equal(T.serialize({ sort: "order", dir: "asc", crit: false, ink: false }).includes("ink="), false);
+});
+
 test("URLのソートとプリセットを復元できる", () => {
   const s = { sort: "startup", dir: "asc", preset: "fast", kinds: ["air"], place: "air", chars: [0, 66], text: "上", vs: 1 };
   const back = T.parseQuery("#" + T.serialize(s));
