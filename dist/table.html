@@ -650,9 +650,41 @@ body.noscroll{overflow:hidden}
     return formatParts(hitboxParts(move, o), oneOnOne);
   }
 
+  /** 対キャラ早見。攻撃側の技ごとに、防御側の最速の確定反撃を1つ返す。
+   *  最速は evaluate() の並びの先頭（確定のうち猶予が最大＝必要Fが最小）。新しい閾値は作らない。
+   *  有利が数値にならない技（計算対象外）は skipped で、adv は付けない。確定が無い技は none。
+   *  sure と none はガード有利（攻撃側の不利）の大きい順。同点は moves の順のまま。 */
+  function matchupGlance(attacker, defender, moves, o) {
+    const sure = [];
+    const none = [];
+    const skipped = [];
+    const list = moves || [];
+    for (let i = 0; i < list.length; i++) {
+      const move = list[i];
+      const r = evaluate(attacker, move, defender, o || {});
+      const adv = r.adv;
+      if (!adv || !adv.ok || typeof adv.primaryEff !== "number" || Number.isNaN(adv.primaryEff)) {
+        skipped.push({ move: move, reason: (adv && adv.reason) || "" });
+        continue;
+      }
+      let best = null;
+      const items = r.list || [];
+      for (let j = 0; j < items.length; j++) {
+        if (items[j].status === "sure") { best = items[j]; break; }
+      }
+      const row = { move: move, adv: adv.primaryEff, best: best };
+      if (best) sure.push(row);
+      else none.push(row);
+    }
+    const byAdv = (a, b) => b.adv - a.adv;
+    sure.sort(byAdv);
+    none.sort(byAdv);
+    return { sure: sure, none: none, skipped: skipped };
+  }
+
   const api = {
     THRESHOLDS, marginTier, shieldAdvantage, listFrames, punishOptions, evaluate, weakSureNote, startupOf, routeCost, isStarter,
-    ROUTE_LABEL, SHIELD_DROP, GRAB_EXTRA, PERFECT_SHIELD_BONUS,
+    ROUTE_LABEL, SHIELD_DROP, GRAB_EXTRA, PERFECT_SHIELD_BONUS, matchupGlance,
     ONE_ON_ONE, scaleDamage, hitboxParts, formatParts, formatHitboxes,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;

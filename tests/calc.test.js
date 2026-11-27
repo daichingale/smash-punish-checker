@@ -808,3 +808,121 @@ test("会心とインク切れは初期が通常の段で、ありのときだ�
     }
   }
 });
+
+test("対キャラ早見: 有利が大きい順。同点は並びのまま。最速は必要Fが最小の確定", () => {
+  const ground = (name, startup, total, stun) => ({
+    name, category: "ground",
+    rows: [row({ active: act([startup], startup), total, stun: [stun], damage: [5] })],
+  });
+  const att = { name: "A", moves: [] };
+  const def = { name: "D", jumpsquat: 3, moves: [
+    { name: "上B", category: "special", group: "上B", variant: "地上", rows: [row({ active: act([20], 21) })] },
+    { name: "弱", category: "ground", rows: [row({ active: act([2], 3) })] },
+  ]};
+  const big = ground("大隙", 10, 40, 5); // 有利25。弱の解除(必要13)が上B(必要20)より速い
+  const mid = ground("中隙", 10, 30, 6); // 有利14。解除だけ確定（猶予1、シビア）
+  const tieA = ground("同点A", 8, 20, 6);
+  const tieB = ground("同点B", 8, 20, 6);
+  const small = ground("小隙", 6, 12, 5); // 有利1。確定なし
+  const shot = { name: "弾", category: "special", projectile: true, rows: [row({ active: act([10], 12), total: 40, stun: [5] })] };
+  const grab = { name: "つかみ", category: "grab", rows: [row({ label: "その場", active: act([6], 7), damage: null })] };
+  const g = C.matchupGlance(att, def, [small, big, shot, tieB, mid, tieA, grab], {});
+  assert.deepEqual(g.sure.map((r) => r.move.name), ["大隙", "中隙"]);
+  assert.deepEqual(g.sure.map((r) => r.adv), [25, 14]);
+  assert.equal(g.sure[0].best.move.name, "弱");
+  assert.equal(g.sure[0].best.route, "drop");
+  assert.equal(g.sure[0].best.margin, 12);
+  assert.equal(g.sure[0].best.tier, "easy");
+  assert.equal(g.sure[1].best.route, "drop");
+  assert.equal(g.sure[1].best.margin, 1);
+  assert.equal(g.sure[1].best.tier, "severe");
+  assert.deepEqual(g.none.map((r) => [r.move.name, r.adv, r.best]), [["同点B", 6, null], ["同点A", 6, null], ["小隙", 1, null]]);
+  assert.deepEqual(g.skipped.map((r) => r.move.name), ["弾", "つかみ"]);
+  for (const r of g.skipped) assert.equal(r.adv, undefined);
+  const ps = C.matchupGlance(att, def, [small], { perfectShield: true });
+  const ev = C.evaluate(att, small, def, { perfectShield: true });
+  const best = ev.list.find((x) => x.status === "sure");
+  assert.equal(ps.sure.length, 1);
+  assert.equal(ps.sure[0].adv, ev.adv.primaryEff);
+  assert.equal(ps.sure[0].adv, 1 + C.PERFECT_SHIELD_BONUS);
+  assert.equal(ps.sure[0].best.move.name, best.move.name);
+  assert.equal(ps.sure[0].best.route, best.route);
+  assert.equal(ps.sure[0].best.margin, best.margin);
+  assert.equal(ps.sure[0].best.tier, best.tier);
+});
+
+function assertGlanceMatchesEvaluate(att, def, moves, o) {
+  const g = C.matchupGlance(att, def, moves, o);
+  const seen = new Set();
+  for (const row of g.sure.concat(g.none, g.skipped)) {
+    assert.equal(seen.has(row.move), false);
+    seen.add(row.move);
+  }
+  assert.equal(seen.size, moves.length);
+  for (let i = 1; i < g.sure.length; i++) assert.ok(g.sure[i - 1].adv >= g.sure[i].adv);
+  for (let i = 1; i < g.none.length; i++) assert.ok(g.none[i - 1].adv >= g.none[i].adv);
+  for (const row of g.skipped) {
+    assert.equal(Object.hasOwn(row, "adv"), false);
+    assert.equal(C.evaluate(att, row.move, def, o).adv.ok, false);
+  }
+  for (const row of g.sure.concat(g.none)) {
+    const ev = C.evaluate(att, row.move, def, o);
+    assert.equal(ev.adv.ok, true);
+    assert.equal(row.adv, ev.adv.primaryEff);
+    const best = ev.list.find((x) => x.status === "sure") || null;
+    if (!best) {
+      assert.equal(row.best, null);
+      assert.equal(g.none.includes(row), true);
+      continue;
+    }
+    assert.equal(g.sure.includes(row), true);
+    assert.equal(row.best.move, best.move);
+    assert.equal(row.best.route, best.route);
+    assert.equal(row.best.margin, best.margin);
+    assert.equal(row.best.need, best.need);
+    assert.equal(row.best.tier, best.tier);
+    assert.equal(row.best.tier, C.marginTier(best.margin));
+    const needs = ev.list.filter((x) => x.status === "sure").map((x) => x.need);
+    assert.equal(row.best.need, Math.min.apply(null, needs));
+  }
+  return g;
+}
+
+test("対キャラ早見はマリオ対クッパの全技で、単技の evaluate と一致する", () => {
+  const mario = ch("マリオ");
+  const bowser = ch("クッパ");
+  const ab = assertGlanceMatchesEvaluate(bowser, mario, bowser.moves, {});
+  const ba = assertGlanceMatchesEvaluate(mario, bowser, mario.moves, {});
+  assert.ok(ab.sure.length > 0 && ab.none.length > 0);
+  assert.ok(ba.sure.length > 0);
+  const base = new Map(ab.sure.concat(ab.none).map((r) => [r.move, r.adv]));
+  const ps = assertGlanceMatchesEvaluate(bowser, mario, bowser.moves, { perfectShield: true });
+  for (const row of ps.sure.concat(ps.none)) assert.equal(row.adv, base.get(row.move) + C.PERFECT_SHIELD_BONUS);
+});
+
+test("対キャラ早見はアルセーヌ・会心・インク切れ・素材を evaluate と同じに反映する", () => {
+  const mario = ch("マリオ");
+  for (const [name, moveName, key, offAdv, onAdv] of [
+    ["ジョーカー", "横強", "arsene", 15, 11],
+    ["勇者", "横スマッシュ", "crit", 36, 26],
+    ["インクリング", "横スマッシュ", "ink", 24, 27],
+  ]) {
+    const att = ch(name);
+    const move = mv(att, moveName);
+    const off = assertGlanceMatchesEvaluate(att, mario, [move], {});
+    const on = assertGlanceMatchesEvaluate(att, mario, [move], { [key]: true });
+    assert.equal(off.sure.concat(off.none)[0].adv, offAdv);
+    assert.equal(on.sure.concat(on.none)[0].adv, onAdv);
+    assert.notEqual(off.sure.concat(off.none)[0].adv, on.sure.concat(on.none)[0].adv);
+  }
+  const joker = ch("ジョーカー");
+  assertGlanceMatchesEvaluate(joker, mario, joker.moves, {});
+  assertGlanceMatchesEvaluate(joker, mario, joker.moves, { arsene: true });
+  const steve = ch("スティーブ／アレックス");
+  for (const mat of ["木材", "鉄"]) {
+    const g = assertGlanceMatchesEvaluate(mario, steve, mario.moves, { defenderMaterial: mat });
+    for (const row of g.sure) {
+      if (row.best.move.material) assert.equal(row.best.move.material, mat);
+    }
+  }
+});

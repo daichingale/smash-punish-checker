@@ -205,7 +205,50 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
 .ex,.backlist{display:block;width:100%;text-align:left;min-height:52px;margin:0 0 8px;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:var(--card);font-size:15px;font-weight:650;line-height:1.4}
 .ex.nope{color:var(--sub)}
 #glance:empty{display:none}
-#glance,#result{scroll-margin-top:calc(var(--bar) + 8px)}
+#glance,#result,#matchup{scroll-margin-top:calc(var(--bar) + 8px)}
+#matchup{padding:0 8px 8px}
+#matchup[hidden]{display:none}
+#matchup > summary{justify-content:space-between;gap:8px;list-style:none}
+#matchup summary::-webkit-details-marker{display:none}
+#matchup summary .chev{flex:none;width:1em;text-align:center}
+#matchup summary .chev::before{content:"▸"}
+#matchup[open] > summary .chev::before{content:"▾"}
+#matchup .mutitle{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#matchup .mucount{flex:none;color:var(--sub);font-size:13px;font-weight:650;white-space:nowrap}
+#matchup .mucap,#matchup .munote{margin:4px 0 8px;font-size:13px;line-height:1.45;color:var(--sub)}
+#matchup .munote{margin-top:-4px}
+#matchup .muhead,#matchup .murow{
+  display:grid;
+  grid-template-columns:minmax(0,1.15fr) 40px minmax(0,1fr) 60px 36px 40px;
+  column-gap:3px;align-items:center;width:100%;min-width:0
+}
+#matchup .muhead{padding:0 2px 4px;font-size:10px;font-weight:750;color:var(--sub)}
+#matchup .murow{
+  margin:0 0 4px;padding:4px 2px;min-height:44px;overflow:hidden;border:1px solid var(--line);
+  border-radius:10px;background:var(--bg);text-align:left;font-size:12px;font-weight:650;line-height:1.2
+}
+#matchup .murow.none{color:var(--sub)}
+#matchup .nm,#matchup .pn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#matchup .adv,#matchup .route,#matchup .mg,#matchup .tier{min-width:0;white-space:nowrap}
+#matchup .adv,#matchup .mg{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
+#matchup .adv.pos,#matchup .mg.pos{color:var(--sure)}
+#matchup .adv.neg{color:var(--bad)}
+#matchup .adv.zero,#matchup .mg.zero{color:var(--range)}
+#matchup .route{font-size:11px;font-weight:750;color:var(--sub);text-align:center}
+#matchup .tier{display:flex;justify-content:flex-end}
+#matchup .tier .t2{padding:0 3px;font-size:10px;line-height:1.5}
+#matchup details.miss{margin:4px 0 0;padding:0;border:0;border-radius:0;background:transparent}
+#matchup details.miss summary{justify-content:flex-start;min-height:44px;font-size:14px;color:var(--sub);list-style:none}
+#matchup details.miss summary::before{content:"▸";margin-right:6px}
+#matchup details.miss[open] > summary::before{content:"▾"}
+body.has-move #matchup{display:none}
+@media (min-width:800px){
+  #matchup .muhead,#matchup .murow{grid-template-columns:minmax(0,1.3fr) 56px minmax(0,1.15fr) 84px 52px 64px;column-gap:8px}
+  #matchup .murow{font-size:14px}
+  #matchup .muhead{font-size:12px}
+  #matchup .route{font-size:13px}
+  #matchup .tier .t2{padding:1px 6px;font-size:12px}
+}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .ch{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;border:1px solid var(--line);background:var(--card);border-radius:14px;padding:8px 4px;font-size:13px;line-height:1.25;min-height:112px;text-align:center}
 .ch img{width:64px;height:64px;object-fit:contain}
@@ -288,6 +331,10 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
       <button type="button" id="inkOn" data-ink="1" aria-pressed="false">切れ</button>
     </div>
   </div>
+  <details id="matchup" hidden>
+    <summary id="matchupSum"><span class="chev" aria-hidden="true"></span><span class="mutitle">対キャラ早見</span><span class="mucount"></span></summary>
+    <div id="matchupBody"></div>
+  </details>
   <p class="hint" id="lead"></p>
   <div id="groups" class="segs" role="tablist" aria-label="技の種類"></div>
   <div id="slots" class="slots" role="toolbar" aria-label="必殺の番号" hidden></div>
@@ -315,6 +362,7 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
         </ul></li>
       <li><b>猶予</b> ＝ 有利F − 必要F。0以上ならフレーム上は間に合います。</li>
       <li><b>密着が前提</b>: このツールは相手と密着している状態を想定しています。<b>技のリーチ（届くかどうか）と、ガードで押される距離（シールドノックバック）は考慮していません</b>。フレームが間に合えば「確定」、足りなければ「不可」です。先端当てなどで離れた場合は届かないことがあります。</li>
+      <li><b>対キャラ早見</b>: 技を選ぶ前に、相手の全技について最速の確定反撃を1つずつ出します。並びはガード有利が大きい順です。数字と確定は、技を1つ開いたときと同じ計算です。計算対象外の技は「—」で、数値は作りません。</li>
       <li><b>猶予のラベル</b>（しきい値は calc.js の <code>THRESHOLDS</code> で変更可）
         <ul>
           <li>シビア: 猶予0〜2F。最速入力から1〜2F遅れるだけで間に合わなくなります。</li>
@@ -820,9 +868,41 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
     return formatParts(hitboxParts(move, o), oneOnOne);
   }
 
+  /** 対キャラ早見。攻撃側の技ごとに、防御側の最速の確定反撃を1つ返す。
+   *  最速は evaluate() の並びの先頭（確定のうち猶予が最大＝必要Fが最小）。新しい閾値は作らない。
+   *  有利が数値にならない技（計算対象外）は skipped で、adv は付けない。確定が無い技は none。
+   *  sure と none はガード有利（攻撃側の不利）の大きい順。同点は moves の順のまま。 */
+  function matchupGlance(attacker, defender, moves, o) {
+    const sure = [];
+    const none = [];
+    const skipped = [];
+    const list = moves || [];
+    for (let i = 0; i < list.length; i++) {
+      const move = list[i];
+      const r = evaluate(attacker, move, defender, o || {});
+      const adv = r.adv;
+      if (!adv || !adv.ok || typeof adv.primaryEff !== "number" || Number.isNaN(adv.primaryEff)) {
+        skipped.push({ move: move, reason: (adv && adv.reason) || "" });
+        continue;
+      }
+      let best = null;
+      const items = r.list || [];
+      for (let j = 0; j < items.length; j++) {
+        if (items[j].status === "sure") { best = items[j]; break; }
+      }
+      const row = { move: move, adv: adv.primaryEff, best: best };
+      if (best) sure.push(row);
+      else none.push(row);
+    }
+    const byAdv = (a, b) => b.adv - a.adv;
+    sure.sort(byAdv);
+    none.sort(byAdv);
+    return { sure: sure, none: none, skipped: skipped };
+  }
+
   const api = {
     THRESHOLDS, marginTier, shieldAdvantage, listFrames, punishOptions, evaluate, weakSureNote, startupOf, routeCost, isStarter,
-    ROUTE_LABEL, SHIELD_DROP, GRAB_EXTRA, PERFECT_SHIELD_BONUS,
+    ROUTE_LABEL, SHIELD_DROP, GRAB_EXTRA, PERFECT_SHIELD_BONUS, matchupGlance,
     ONE_ON_ONE, scaleDamage, hitboxParts, formatParts, formatHitboxes,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
@@ -939,7 +1019,7 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
   const Mii = window.MiiSlots;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const state = { me: 0, opp: 0, mode: "A", moveId: null, ps: false, oo: false, arsene: false, crit: false, ink: false, mat: {}, group: 0, slot: "" };
+  const state = { me: 0, opp: 0, mode: "A", moveId: null, ps: false, oo: false, arsene: false, crit: false, ink: false, mat: {}, group: 0, slot: "", mu: false };
   const OO_KEY = "punish.oo";
   let D, pushNext = false, overlay = null;
 
@@ -1004,6 +1084,7 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     else if (state.moveId) state.group = groupOf(att.moves.find((m) => m.id === state.moveId));
     const slot = q.get("slot") || "";
     state.slot = Mii.SLOT_IDS.indexOf(slot) >= 0 ? slot : "";
+    state.mu = q.get("mu") === "1";
     scrollToResult = !!state.moveId;
   }
   function hashString() {
@@ -1022,6 +1103,7 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     if (meC.materials.length) p.set("mm", matOf(state.me));
     if (oppC.materials.length) p.set("mo", matOf(state.opp));
     if (state.slot && attackerIsMii()) p.set("slot", state.slot);
+    if (state.mu) p.set("mu", "1");
     return p.toString();
   }
   function writeHash() {
@@ -1047,21 +1129,27 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     $("glance").onclick = (e) => {
       const b = e.target.closest(".ex");
       if (!b) return;
-      const move = attackerChar().moves.find((m) => m.id === b.dataset.id);
-      if (!move) return;
-      state.moveId = move.id;
-      state.group = groupOf(move);
-      pushNext = true;
-      scrollToResult = true;
-      render();
+      openMove(b.dataset.id);
     };
+    $("matchup").addEventListener("toggle", () => {
+      if (state.moveId) return;
+      const open = $("matchup").open;
+      if (open === state.mu) return;
+      state.mu = open;
+      writeHash();
+    });
+    $("matchup").addEventListener("click", (e) => {
+      const b = e.target.closest(".murow");
+      if (!b) return;
+      openMove(b.dataset.id);
+    });
     $("result").addEventListener("click", (e) => {
       if (!e.target.closest("[data-act=back]")) return;
       state.moveId = null;
       pushNext = true;
       render();
       const behavior = matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
-      $("glance").scrollIntoView({ behavior: behavior, block: "start" });
+      (state.mu ? $("matchup") : $("glance")).scrollIntoView({ behavior: behavior, block: "start" });
     });
     $("swap").onclick = swap;
     initPicker();
@@ -1366,8 +1454,8 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     if (state.slot) shown = Mii.filterBySlot(shown, state.slot);
     const unnamed = slotOn && shown.some((m) => Mii.miiSlot(m) == null);
     $("lead").textContent = state.moveId ? "" : slotOn
-      ? Mii.slotLabel(state.slot) + " の必殺に絞っています。" + (unnamed ? "番号のない技も残しています。" : "") + "同じチップをもう一度押すと解除します。"
-      : "行を押すと、その技だけの詳しい数字が出ます。";
+      ? Mii.slotLabel(state.slot) + " の必殺に絞っています。" + (unnamed ? "番号のない技も残しています。" : "") + "同じチップをもう一度押すと解除します。対キャラ早見は全技のままです。"
+      : "上の対キャラ早見に、確定がある技をまとめています。下の行を押すと、その技だけの数字が出ます。";
     const slotExists = slotOn && attackerChar().moves.some((m) => Mii.miiSlot(m) === state.slot);
     const emptyMsg = slotOn
       ? (slotExists ? "この番号の必殺は、当たる判定がシートに無いため一覧にありません。" : "この番号の必殺はありません。")
@@ -1384,6 +1472,7 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
       render();
     }));
     renderGlance();
+    renderMatchup();
     renderResult();
     writeHash();
     if (scrollToResult && state.moveId) {
@@ -1394,6 +1483,81 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     }
   }
 
+  function openMove(id) {
+    const move = attackerChar().moves.find((m) => m.id === id);
+    if (!move) return;
+    state.moveId = move.id;
+    state.group = groupOf(move);
+    pushNext = true;
+    scrollToResult = true;
+    render();
+  }
+  function routeShort(route) {
+    return route === "drop" ? "解除" : "ガーキャン";
+  }
+  /** 1行に収める短い技名。全文は shortName を title と読み上げに残す */
+  function listName(m) {
+    if ((m.category === "special" || m.category === "command") && m.group) {
+      const place = m.landingVariant ? "着地" : (m.versionLabel || (m.variant === "地上" || m.variant === "空中" ? m.variant : ""));
+      const extra = [place, m.strength].filter(Boolean).join("・");
+      return extra ? m.group + "・" + extra : m.group;
+    }
+    return shortName(m);
+  }
+  function tierMark(tier) {
+    if (tier === "severe") return `<span class="t2 severe">シビア</span>`;
+    if (tier === "easy") return `<span class="t2 easy">余裕</span>`;
+    return "";
+  }
+  function renderMatchup() {
+    const det = $("matchup");
+    if (state.moveId) { det.hidden = true; return; }
+    det.hidden = false;
+    if (det.open !== !!state.mu) det.open = !!state.mu;
+    const att = attackerChar(), def = defenderChar();
+    const defIdx = D.chars.indexOf(def);
+    const attWho = state.mode === "A" ? "相手" : "自分";
+    const defWho = state.mode === "A" ? "自分" : "相手";
+    const opts = Object.assign({ perfectShield: state.ps, defenderMaterial: matOf(defIdx) }, formOpts());
+    const g = C.matchupGlance(att, def, visibleMoves(), opts);
+    const count = det.querySelector(".mucount");
+    if (count) count.textContent = "確定 " + g.sure.length + "件";
+    const form = formOpts();
+    const notes = [];
+    if (state.ps) notes.push("ジャストシールドした場合です。");
+    if (form.arsene) notes.push("アルセーヌありです。");
+    if (form.crit) notes.push("会心の一撃ありです。");
+    if (form.ink) notes.push("インク切れです。");
+    const cap = attWho + "の全技です。ガードしたときの、" + defWho + "の最速の確定反撃を、有利が大きい順に並べています。";
+    const advCls = (v) => (v > 0 ? "pos" : v < 0 ? "neg" : "zero");
+    const rowBtn = (row, kind) => {
+      const full = shortName(row.move);
+      const name = listName(row.move);
+      const b = row.best;
+      let label, cells;
+      if (kind === "skip") {
+        label = attWho + "の" + full + "は計算対象外";
+        cells = `<span class="nm" title="${esc(full)}">${esc(name)}</span><span class="adv">—</span><span class="pn">対象外</span><span class="route"></span><span class="mg"></span><span class="tier"></span>`;
+      } else if (!b) {
+        label = attWho + "の" + full + "をガード、有利" + fmtAdv(row.adv) + "F。確定の反撃はありません";
+        cells = `<span class="nm" title="${esc(full)}">${esc(name)}</span><span class="adv ${advCls(row.adv)}">${fmtAdv(row.adv)}</span><span class="pn">確定なし</span><span class="route"></span><span class="mg"></span><span class="tier"></span>`;
+      } else {
+        const punishFull = shortName(b.move);
+        const punish = listName(b.move);
+        const tierWord = b.tier === "severe" ? "、シビア" : b.tier === "easy" ? "、余裕" : "";
+        label = attWho + "の" + full + "をガード、有利" + fmtAdv(row.adv) + "F。" + defWho + "は" + punishFull + "、" + b.routeLabel + "、猶予" + fmtAdv(b.margin) + "F" + tierWord;
+        cells = `<span class="nm" title="${esc(full)}">${esc(name)}</span><span class="adv ${advCls(row.adv)}">${fmtAdv(row.adv)}</span><span class="pn" title="${esc(punishFull)}">${esc(punish)}</span><span class="route" title="${esc(b.routeLabel)}">${routeShort(b.route)}</span><span class="mg ${advCls(b.margin)}">${fmtAdv(b.margin)}</span><span class="tier">${tierMark(b.tier)}</span>`;
+      }
+      return `<button type="button" class="murow${kind === "none" ? " none" : ""}" data-id="${esc(row.move.id)}" aria-label="${esc(label)}">${cells}</button>`;
+    };
+    const head = `<div class="muhead" aria-hidden="true"><span>技</span><span>有利</span><span>反撃</span><span>出し方</span><span>猶予</span><span></span></div>`;
+    let body = `<p class="mucap">${esc(cap)}</p>` + (notes.length ? `<p class="munote">${notes.map(esc).join("")}</p>` : "");
+    if (g.sure.length) body += head + g.sure.map((r) => rowBtn(r, "sure")).join("");
+    else body += `<p class="empty">確定の反撃はありません。</p>`;
+    if (g.none.length) body += `<details class="miss"><summary>確定なし ${g.none.length}件</summary>${g.none.map((r) => rowBtn(r, "none")).join("")}</details>`;
+    if (g.skipped.length) body += `<details class="miss"><summary>計算対象外 ${g.skipped.length}件</summary>${g.skipped.map((r) => rowBtn(r, "skip")).join("")}</details>`;
+    $("matchupBody").innerHTML = body;
+  }
   function easeWord(margin) {
     if (margin >= C.THRESHOLDS.easyMin) return "余裕があります";
     if (margin <= C.THRESHOLDS.severeMax) return "入力はシビアです";
