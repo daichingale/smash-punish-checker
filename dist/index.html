@@ -217,24 +217,26 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
 #matchup .mucount{flex:none;color:var(--sub);font-size:13px;font-weight:650;white-space:nowrap}
 #matchup .mucap,#matchup .munote{margin:4px 0 8px;font-size:13px;line-height:1.45;color:var(--sub)}
 #matchup .munote{margin-top:-4px}
-#matchup .muhead,#matchup .murow{
-  display:grid;
-  grid-template-columns:minmax(0,1.15fr) 40px minmax(0,1fr) 60px 36px 40px;
-  column-gap:3px;align-items:center;width:100%;min-width:0
-}
-#matchup .muhead{padding:0 2px 4px;font-size:10px;font-weight:750;color:var(--sub)}
 #matchup .murow{
-  margin:0 0 4px;padding:4px 2px;min-height:44px;overflow:hidden;border:1px solid var(--line);
-  border-radius:10px;background:var(--bg);text-align:left;font-size:12px;font-weight:650;line-height:1.2
+  display:flex;flex-direction:column;align-items:stretch;gap:2px;width:100%;max-width:100%;min-width:0;
+  margin:0 0 4px;padding:6px 4px;min-height:44px;overflow:hidden;border:1px solid var(--line);
+  border-radius:10px;background:var(--bg);text-align:left;font-size:12px;font-weight:650;line-height:1.25
 }
 #matchup .murow.none{color:var(--sub)}
-#matchup .nm,#matchup .pn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#matchup .adv,#matchup .route,#matchup .mg,#matchup .tier{min-width:0;white-space:nowrap}
-#matchup .adv,#matchup .mg{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
+#matchup .top{display:flex;align-items:baseline;gap:8px;min-width:0;max-width:100%}
+#matchup .top .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:750}
+#matchup .top .adv{flex:none;font-weight:800;font-variant-numeric:tabular-nums}
+#matchup .pline{display:flex;flex-wrap:wrap;align-items:center;gap:2px 4px;min-width:0;max-width:100%}
+#matchup .k{flex:none;padding:0 4px;border-radius:6px;background:color-mix(in srgb,var(--line) 70%,transparent);font-size:10px;font-weight:800;line-height:1.6;color:var(--sub)}
+#matchup .k.same{color:var(--text)}
+#matchup .pn{flex:0 1 auto;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#matchup .route,#matchup .mg,#matchup .tier{flex:none;white-space:nowrap}
+#matchup .dmg{flex:1 1 4.2em;min-width:0;max-width:100%;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
 #matchup .adv.pos,#matchup .mg.pos{color:var(--sure)}
 #matchup .adv.neg{color:var(--bad)}
 #matchup .adv.zero,#matchup .mg.zero{color:var(--range)}
-#matchup .route{font-size:11px;font-weight:750;color:var(--sub);text-align:center}
+#matchup .mg{font-weight:800;font-variant-numeric:tabular-nums}
+#matchup .route{font-size:11px;font-weight:750;color:var(--sub)}
 #matchup .tier{display:flex;justify-content:flex-end}
 #matchup .tier .t2{padding:0 3px;font-size:10px;line-height:1.5}
 #matchup details.miss{margin:4px 0 0;padding:0;border:0;border-radius:0;background:transparent}
@@ -243,10 +245,12 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
 #matchup details.miss[open] > summary::before{content:"▾"}
 body.has-move #matchup{display:none}
 @media (min-width:800px){
-  #matchup .muhead,#matchup .murow{grid-template-columns:minmax(0,1.3fr) 56px minmax(0,1.15fr) 84px 52px 64px;column-gap:8px}
-  #matchup .murow{font-size:14px}
-  #matchup .muhead{font-size:12px}
+  #matchup .murow{font-size:14px;padding:8px 10px}
+  #matchup .top .nm{font-size:15px}
+  #matchup .pline{display:grid;grid-template-columns:6.4em minmax(0,1.05fr) 5.6em minmax(0,1.35fr) 3.4em auto;column-gap:8px;align-items:center}
+  #matchup .dmg{text-align:right}
   #matchup .route{font-size:13px}
+  #matchup .k{font-size:12px}
   #matchup .tier .t2{padding:1px 6px;font-size:12px}
 }
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
@@ -362,7 +366,7 @@ body.has-move #matchup{display:none}
         </ul></li>
       <li><b>猶予</b> ＝ 有利F − 必要F。0以上ならフレーム上は間に合います。</li>
       <li><b>密着が前提</b>: このツールは相手と密着している状態を想定しています。<b>技のリーチ（届くかどうか）と、ガードで押される距離（シールドノックバック）は考慮していません</b>。フレームが間に合えば「確定」、足りなければ「不可」です。先端当てなどで離れた場合は届かないことがあります。</li>
-      <li><b>対キャラ早見</b>: 技を選ぶ前に、相手の全技について最速の確定反撃を1つずつ出します。並びはガード有利が大きい順です。数字と確定は、技を1つ開いたときと同じ計算です。計算対象外の技は「—」で、数値は作りません。</li>
+      <li><b>対キャラ早見</b>: 技を選ぶ前に、相手の全技について最速の確定反撃と、ダメージが最大の確定反撃を出します。並びはガード有利が大きい順です。有利が大きい技は、それより小さい有利で確定する反撃をすべて含むので、最大ダメージの順もこれと同じです。最速と最大が同じ技のときは「最速=最大」と1行です。ダメージの比較は、技を開いたときと同じ表示（判定が複数ならその最大値。1on1補正ありのときはその倍率）です。表示文も同じ書式です。数字と確定は、技を1つ開いたときと同じ計算です。計算対象外の技は「—」で、数値は作りません。</li>
       <li><b>猶予のラベル</b>（しきい値は calc.js の <code>THRESHOLDS</code> で変更可）
         <ul>
           <li>シビア: 猶予0〜2F。最速入力から1〜2F遅れるだけで間に合わなくなります。</li>
@@ -868,8 +872,35 @@ body.has-move #matchup{display:none}
     return formatParts(hitboxParts(move, o), oneOnOne);
   }
 
-  /** 対キャラ早見。攻撃側の技ごとに、防御側の最速の確定反撃を1つ返す。
+  /** 反撃技の表示ダメージ。比較は formatHitboxes の最大値、表示文は同じ関数の text。
+   *  1on1・会心・インクは o をそのまま渡す。判定ルールは足さない。 */
+  function punishDamage(move, o) {
+    const hits = formatHitboxes(move, !!(o && o.oneOnOne), o || {});
+    const max = hits && typeof hits.max === "number" && !Number.isNaN(hits.max) ? hits.max : null;
+    return { max: max, text: hits && hits.text ? hits.text : "" };
+  }
+
+  /** 確定のうち、表示ダメージの最大値が一番大きいもの。
+   *  同点は必要Fが小さい方（最速とダメージが同じなら最速側）。ダメージが無い確定は比べない。 */
+  function pickMaxPunish(items, o) {
+    let chosen = null;
+    let chosenDmg = null;
+    for (let j = 0; j < items.length; j++) {
+      const x = items[j];
+      if (x.status !== "sure") continue;
+      const d = punishDamage(x.move, o);
+      if (d.max == null) continue;
+      if (chosen == null || d.max > chosenDmg || (d.max === chosenDmg && x.need < chosen.need)) {
+        chosen = x;
+        chosenDmg = d.max;
+      }
+    }
+    return chosen;
+  }
+
+  /** 対キャラ早見。攻撃側の技ごとに、防御側の最速の確定反撃と、ダメージ最大の確定反撃を返す。
    *  最速は evaluate() の並びの先頭（確定のうち猶予が最大＝必要Fが最小）。新しい閾値は作らない。
+   *  最大は、その確定のうち punishDamage の最大値が一番大きいもの。最速と同じ技なら same。
    *  有利が数値にならない技（計算対象外）は skipped で、adv は付けない。確定が無い技は none。
    *  sure と none はガード有利（攻撃側の不利）の大きい順。同点は moves の順のまま。 */
   function matchupGlance(attacker, defender, moves, o) {
@@ -877,9 +908,10 @@ body.has-move #matchup{display:none}
     const none = [];
     const skipped = [];
     const list = moves || [];
+    const opts = o || {};
     for (let i = 0; i < list.length; i++) {
       const move = list[i];
-      const r = evaluate(attacker, move, defender, o || {});
+      const r = evaluate(attacker, move, defender, opts);
       const adv = r.adv;
       if (!adv || !adv.ok || typeof adv.primaryEff !== "number" || Number.isNaN(adv.primaryEff)) {
         skipped.push({ move: move, reason: (adv && adv.reason) || "" });
@@ -890,7 +922,20 @@ body.has-move #matchup{display:none}
       for (let j = 0; j < items.length; j++) {
         if (items[j].status === "sure") { best = items[j]; break; }
       }
-      const row = { move: move, adv: adv.primaryEff, best: best };
+      const max = best ? pickMaxPunish(items, opts) : null;
+      const bestD = best ? punishDamage(best.move, opts) : null;
+      const maxD = max ? punishDamage(max.move, opts) : null;
+      const row = {
+        move: move,
+        adv: adv.primaryEff,
+        best: best,
+        bestDamage: bestD ? bestD.max : null,
+        bestText: bestD ? bestD.text : "",
+        max: max,
+        maxDamage: maxD ? maxD.max : null,
+        maxText: maxD ? maxD.text : "",
+        same: !!(best && max && best.move === max.move && best.route === max.route),
+      };
       if (best) sure.push(row);
       else none.push(row);
     }
@@ -1518,7 +1563,7 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     const defIdx = D.chars.indexOf(def);
     const attWho = state.mode === "A" ? "相手" : "自分";
     const defWho = state.mode === "A" ? "自分" : "相手";
-    const opts = Object.assign({ perfectShield: state.ps, defenderMaterial: matOf(defIdx) }, formOpts());
+    const opts = Object.assign({ perfectShield: state.ps, defenderMaterial: matOf(defIdx), oneOnOne: state.oo }, formOpts());
     const g = C.matchupGlance(att, def, visibleMoves(), opts);
     const count = det.querySelector(".mucount");
     if (count) count.textContent = "確定 " + g.sure.length + "件";
@@ -1528,8 +1573,20 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
     if (form.arsene) notes.push("アルセーヌありです。");
     if (form.crit) notes.push("会心の一撃ありです。");
     if (form.ink) notes.push("インク切れです。");
-    const cap = attWho + "の全技です。ガードしたときの、" + defWho + "の最速の確定反撃を、有利が大きい順に並べています。";
+    if (state.oo) notes.push("ダメージは1on1補正ありです。");
+    const cap = attWho + "の全技を、有利が大きい順に並べています。下段は" + defWho + "の最速の確定と、ダメージ最大の確定です。技名のあとは出し方、ダメージ、猶予F。同じ技なら「最速=最大」。";
     const advCls = (v) => (v > 0 ? "pos" : v < 0 ? "neg" : "zero");
+    const tierWord = (tier) => tier === "severe" ? "、シビア" : tier === "easy" ? "、余裕" : "";
+    const dmgWord = (text) => text ? "、ダメージ" + text : "、ダメージなし";
+    const punishBits = (opt, text) => {
+      const full = shortName(opt.move);
+      const shown = text || "—";
+      return `<span class="pn" title="${esc(full)}">${esc(listName(opt.move))}</span>` +
+        `<span class="route" title="${esc(opt.routeLabel)}">${routeShort(opt.route)}</span>` +
+        `<span class="dmg" title="ダメージ ${esc(shown)}">${esc(shown)}</span>` +
+        `<span class="mg ${advCls(opt.margin)}">${fmtAdv(opt.margin)}</span>` +
+        `<span class="tier">${tierMark(opt.tier)}</span>`;
+    };
     const rowBtn = (row, kind) => {
       const full = shortName(row.move);
       const name = listName(row.move);
@@ -1537,22 +1594,27 @@ const faceName = (name) => name === "ゼニガメ" ? "ポケモントレーナ�
       let label, cells;
       if (kind === "skip") {
         label = attWho + "の" + full + "は計算対象外";
-        cells = `<span class="nm" title="${esc(full)}">${esc(name)}</span><span class="adv">—</span><span class="pn">対象外</span><span class="route"></span><span class="mg"></span><span class="tier"></span>`;
+        cells = `<span class="top"><span class="nm" title="${esc(full)}">${esc(name)}</span><span class="adv">—</span></span><span class="pline"><span class="pn">対象外</span></span>`;
       } else if (!b) {
         label = attWho + "の" + full + "をガード、有利" + fmtAdv(row.adv) + "F。確定の反撃はありません";
-        cells = `<span class="nm" title="${esc(full)}">${esc(name)}</span><span class="adv ${advCls(row.adv)}">${fmtAdv(row.adv)}</span><span class="pn">確定なし</span><span class="route"></span><span class="mg"></span><span class="tier"></span>`;
+        cells = `<span class="top"><span class="nm" title="${esc(full)}">${esc(name)}</span><span class="adv ${advCls(row.adv)}">${fmtAdv(row.adv)}</span></span><span class="pline"><span class="pn">確定なし</span></span>`;
+      } else if (row.same || !row.max) {
+        const tag = row.same ? "最速=最大" : "最速";
+        label = attWho + "の" + full + "をガード、有利" + fmtAdv(row.adv) + "F。" + tag + "は" + shortName(b.move) + "、" + b.routeLabel + dmgWord(row.bestText) + "、猶予" + fmtAdv(b.margin) + "F" + tierWord(b.tier);
+        cells = `<span class="top"><span class="nm" title="${esc(full)}">${esc(name)}</span><span class="adv ${advCls(row.adv)}">${fmtAdv(row.adv)}</span></span>` +
+          `<span class="pline"><span class="k${row.same ? " same" : ""}">${tag}</span>${punishBits(b, row.bestText)}</span>`;
       } else {
-        const punishFull = shortName(b.move);
-        const punish = listName(b.move);
-        const tierWord = b.tier === "severe" ? "、シビア" : b.tier === "easy" ? "、余裕" : "";
-        label = attWho + "の" + full + "をガード、有利" + fmtAdv(row.adv) + "F。" + defWho + "は" + punishFull + "、" + b.routeLabel + "、猶予" + fmtAdv(b.margin) + "F" + tierWord;
-        cells = `<span class="nm" title="${esc(full)}">${esc(name)}</span><span class="adv ${advCls(row.adv)}">${fmtAdv(row.adv)}</span><span class="pn" title="${esc(punishFull)}">${esc(punish)}</span><span class="route" title="${esc(b.routeLabel)}">${routeShort(b.route)}</span><span class="mg ${advCls(b.margin)}">${fmtAdv(b.margin)}</span><span class="tier">${tierMark(b.tier)}</span>`;
+        const m = row.max;
+        label = attWho + "の" + full + "をガード、有利" + fmtAdv(row.adv) + "F。最速は" + shortName(b.move) + "、" + b.routeLabel + dmgWord(row.bestText) + "、猶予" + fmtAdv(b.margin) + "F" + tierWord(b.tier) +
+          "。最大反確は" + shortName(m.move) + "、" + m.routeLabel + dmgWord(row.maxText) + "、猶予" + fmtAdv(m.margin) + "F" + tierWord(m.tier);
+        cells = `<span class="top"><span class="nm" title="${esc(full)}">${esc(name)}</span><span class="adv ${advCls(row.adv)}">${fmtAdv(row.adv)}</span></span>` +
+          `<span class="pline"><span class="k">最速</span>${punishBits(b, row.bestText)}</span>` +
+          `<span class="pline"><span class="k">最大</span>${punishBits(m, row.maxText)}</span>`;
       }
       return `<button type="button" class="murow${kind === "none" ? " none" : ""}" data-id="${esc(row.move.id)}" aria-label="${esc(label)}">${cells}</button>`;
     };
-    const head = `<div class="muhead" aria-hidden="true"><span>技</span><span>有利</span><span>反撃</span><span>出し方</span><span>猶予</span><span></span></div>`;
     let body = `<p class="mucap">${esc(cap)}</p>` + (notes.length ? `<p class="munote">${notes.map(esc).join("")}</p>` : "");
-    if (g.sure.length) body += head + g.sure.map((r) => rowBtn(r, "sure")).join("");
+    if (g.sure.length) body += g.sure.map((r) => rowBtn(r, "sure")).join("");
     else body += `<p class="empty">確定の反撃はありません。</p>`;
     if (g.none.length) body += `<details class="miss"><summary>確定なし ${g.none.length}件</summary>${g.none.map((r) => rowBtn(r, "none")).join("")}</details>`;
     if (g.skipped.length) body += `<details class="miss"><summary>計算対象外 ${g.skipped.length}件</summary>${g.skipped.map((r) => rowBtn(r, "skip")).join("")}</details>`;

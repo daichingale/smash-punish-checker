@@ -872,6 +872,8 @@ function assertGlanceMatchesEvaluate(att, def, moves, o) {
     const best = ev.list.find((x) => x.status === "sure") || null;
     if (!best) {
       assert.equal(row.best, null);
+      assert.equal(row.max, null);
+      assert.equal(row.same, false);
       assert.equal(g.none.includes(row), true);
       continue;
     }
@@ -884,8 +886,56 @@ function assertGlanceMatchesEvaluate(att, def, moves, o) {
     assert.equal(row.best.tier, C.marginTier(best.margin));
     const needs = ev.list.filter((x) => x.status === "sure").map((x) => x.need);
     assert.equal(row.best.need, Math.min.apply(null, needs));
+    const bestHits = C.formatHitboxes(best.move, !!(o && o.oneOnOne), o || {});
+    assert.equal(row.bestText, bestHits.text || "");
+    assert.equal(row.bestDamage, typeof bestHits.max === "number" ? bestHits.max : null);
+    const max = maxSurePunish(ev, o);
+    if (!max) {
+      assert.equal(row.max, null);
+      assert.equal(row.same, false);
+      continue;
+    }
+    assert.equal(row.max.status, "sure");
+    assert.equal(row.max.move, max.move);
+    assert.equal(row.max.route, max.route);
+    assert.equal(row.max.margin, max.margin);
+    assert.equal(row.max.need, max.need);
+    assert.equal(row.max.tier, max.tier);
+    assert.equal(row.max.tier, C.marginTier(max.margin));
+    const maxHits = C.formatHitboxes(max.move, !!(o && o.oneOnOne), o || {});
+    assert.equal(row.maxDamage, maxHits.max);
+    assert.equal(row.maxText, maxHits.text);
+    const damages = ev.list.filter((x) => x.status === "sure").map((x) => {
+      const h = C.formatHitboxes(x.move, !!(o && o.oneOnOne), o || {});
+      return typeof h.max === "number" && !Number.isNaN(h.max) ? h.max : null;
+    }).filter((n) => n != null);
+    assert.equal(row.maxDamage, Math.max.apply(null, damages));
+    const ties = ev.list.filter((x) => x.status === "sure" && glanceDamage(x.move, o) === row.maxDamage);
+    assert.equal(row.max.need, Math.min.apply(null, ties.map((x) => x.need)));
+    assert.equal(row.same, row.best.move === row.max.move && row.best.route === row.max.route);
   }
   return g;
+}
+
+function glanceDamage(move, o) {
+  const h = C.formatHitboxes(move, !!(o && o.oneOnOne), o || {});
+  return typeof h.max === "number" && !Number.isNaN(h.max) ? h.max : null;
+}
+
+/** evaluate の確定のうち、既存の表示ダメージが最大のもの。同点は必要Fが小さい方 */
+function maxSurePunish(ev, o) {
+  let chosen = null;
+  let chosenDmg = null;
+  for (const x of ev.list) {
+    if (x.status !== "sure") continue;
+    const d = glanceDamage(x.move, o);
+    if (d == null) continue;
+    if (chosen == null || d > chosenDmg || (d === chosenDmg && x.need < chosen.need)) {
+      chosen = x;
+      chosenDmg = d;
+    }
+  }
+  return chosen;
 }
 
 test("対キャラ早見はマリオ対クッパの全技で、単技の evaluate と一致する", () => {
@@ -898,6 +948,8 @@ test("対キャラ早見はマリオ対クッパの全技で、単技の evaluat
   const base = new Map(ab.sure.concat(ab.none).map((r) => [r.move, r.adv]));
   const ps = assertGlanceMatchesEvaluate(bowser, mario, bowser.moves, { perfectShield: true });
   for (const row of ps.sure.concat(ps.none)) assert.equal(row.adv, base.get(row.move) + C.PERFECT_SHIELD_BONUS);
+  assertGlanceMatchesEvaluate(bowser, mario, bowser.moves, { oneOnOne: true });
+  assert.ok(ab.sure.some((r) => r.same === false && r.max && r.max.move !== r.best.move));
 });
 
 test("対キャラ早見はアルセーヌ・会心・インク切れ・素材を evaluate と同じに反映する", () => {
@@ -923,6 +975,78 @@ test("対キャラ早見はアルセーヌ・会心・インク切れ・素材�
     const g = assertGlanceMatchesEvaluate(mario, steve, mario.moves, { defenderMaterial: mat });
     for (const row of g.sure) {
       if (row.best.move.material) assert.equal(row.best.move.material, mat);
+      if (row.max && row.max.move.material) assert.equal(row.max.move.material, mat);
     }
   }
+});
+
+test("最大反確は evaluate の確定のうち、表示ダメージが最大のものと一致する", () => {
+  const big = {
+    name: "大隙", category: "ground",
+    rows: [row({ active: act([10], 12), total: 80, stun: [5], damage: [1] })],
+  };
+  const upB = (damage) => ({
+    name: "上B", category: "special", group: "上B", variant: "地上",
+    rows: [row({ active: act([8], 10), damage: damage })],
+  });
+  const weak = {
+    name: "弱", category: "ground",
+    rows: [row({ active: act([2], 3), damage: [6] })],
+  };
+  const fsmash = {
+    name: "横スマッシュ", category: "ground",
+    rows: [row({ active: act([12], 14), damage: [9, 22] })],
+  };
+  const usmash = {
+    name: "上スマッシュ", category: "ground",
+    rows: [row({ label: "先端", active: act([15], 16), damage: [18, 11] })],
+  };
+  const att = { name: "A", moves: [] };
+  const def = { name: "D", jumpsquat: 3, moves: [upB([4]), weak, fsmash, usmash] };
+  const g = assertGlanceMatchesEvaluate(att, def, [big], {});
+  const line = g.sure[0];
+  assert.equal(line.best.move.name, "上B");
+  assert.equal(line.best.route, "oos");
+  assert.equal(line.bestText, "4");
+  assert.equal(line.same, false);
+  assert.equal(line.max.move.name, "横スマッシュ");
+  assert.equal(line.max.route, "drop");
+  assert.equal(line.maxDamage, 22);
+  assert.equal(line.maxText, "hit1 9 / hit2 22");
+  assert.equal(line.max.tier, C.marginTier(line.max.margin));
+  const labeled = C.formatHitboxes(usmash, false, {});
+  assert.equal(labeled.text, "18 / 11 (先端)");
+  assert.ok(line.maxDamage > labeled.max);
+
+  const scaled = assertGlanceMatchesEvaluate(att, def, [big], { oneOnOne: true });
+  assert.equal(scaled.sure[0].max.move.name, "横スマッシュ");
+  assert.equal(scaled.sure[0].maxDamage, C.scaleDamage(22, true));
+  assert.equal(scaled.sure[0].maxText, C.formatHitboxes(fsmash, true, {}).text);
+  assert.notEqual(scaled.sure[0].maxText, line.maxText);
+
+  const tied = { name: "D2", jumpsquat: 3, moves: [upB([22]), weak, fsmash, usmash] };
+  const same = assertGlanceMatchesEvaluate(att, tied, [big], {});
+  assert.equal(same.sure[0].best.move.name, "上B");
+  assert.equal(same.sure[0].max.move.name, "上B");
+  assert.equal(same.sure[0].same, true);
+  assert.equal(same.sure[0].maxDamage, 22);
+  assert.equal(same.sure[0].maxText, "22");
+
+  const hero = ch("勇者");
+  const off = assertGlanceMatchesEvaluate(att, hero, [big], {});
+  const on = assertGlanceMatchesEvaluate(att, hero, [big], { crit: true });
+  const both = assertGlanceMatchesEvaluate(att, hero, [big], { crit: true, oneOnOne: true });
+  assert.equal(off.sure[0].max.move.name, "NB（メラゾーマ）");
+  assert.equal(off.sure[0].maxDamage, 19);
+  assert.equal(/会心/.test(off.sure[0].maxText), false);
+  assert.equal(on.sure[0].max.move.name, "横スマッシュ");
+  assert.equal(on.sure[0].max.route, "drop");
+  assert.equal(on.sure[0].maxDamage, 36);
+  assert.match(on.sure[0].maxText, /会心の一撃/);
+  assert.equal(on.sure[0].max.tier, C.marginTier(on.sure[0].max.margin));
+  assert.equal(both.sure[0].max.move.name, "横スマッシュ");
+  assert.equal(both.sure[0].maxDamage, C.scaleDamage(36, true));
+  assert.match(both.sure[0].maxText, /43\.2/);
+  const ink = ch("インクリング");
+  assertGlanceMatchesEvaluate(att, ink, [big], { ink: true });
 });

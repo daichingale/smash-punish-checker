@@ -650,8 +650,35 @@ body.noscroll{overflow:hidden}
     return formatParts(hitboxParts(move, o), oneOnOne);
   }
 
-  /** 対キャラ早見。攻撃側の技ごとに、防御側の最速の確定反撃を1つ返す。
+  /** 反撃技の表示ダメージ。比較は formatHitboxes の最大値、表示文は同じ関数の text。
+   *  1on1・会心・インクは o をそのまま渡す。判定ルールは足さない。 */
+  function punishDamage(move, o) {
+    const hits = formatHitboxes(move, !!(o && o.oneOnOne), o || {});
+    const max = hits && typeof hits.max === "number" && !Number.isNaN(hits.max) ? hits.max : null;
+    return { max: max, text: hits && hits.text ? hits.text : "" };
+  }
+
+  /** 確定のうち、表示ダメージの最大値が一番大きいもの。
+   *  同点は必要Fが小さい方（最速とダメージが同じなら最速側）。ダメージが無い確定は比べない。 */
+  function pickMaxPunish(items, o) {
+    let chosen = null;
+    let chosenDmg = null;
+    for (let j = 0; j < items.length; j++) {
+      const x = items[j];
+      if (x.status !== "sure") continue;
+      const d = punishDamage(x.move, o);
+      if (d.max == null) continue;
+      if (chosen == null || d.max > chosenDmg || (d.max === chosenDmg && x.need < chosen.need)) {
+        chosen = x;
+        chosenDmg = d.max;
+      }
+    }
+    return chosen;
+  }
+
+  /** 対キャラ早見。攻撃側の技ごとに、防御側の最速の確定反撃と、ダメージ最大の確定反撃を返す。
    *  最速は evaluate() の並びの先頭（確定のうち猶予が最大＝必要Fが最小）。新しい閾値は作らない。
+   *  最大は、その確定のうち punishDamage の最大値が一番大きいもの。最速と同じ技なら same。
    *  有利が数値にならない技（計算対象外）は skipped で、adv は付けない。確定が無い技は none。
    *  sure と none はガード有利（攻撃側の不利）の大きい順。同点は moves の順のまま。 */
   function matchupGlance(attacker, defender, moves, o) {
@@ -659,9 +686,10 @@ body.noscroll{overflow:hidden}
     const none = [];
     const skipped = [];
     const list = moves || [];
+    const opts = o || {};
     for (let i = 0; i < list.length; i++) {
       const move = list[i];
-      const r = evaluate(attacker, move, defender, o || {});
+      const r = evaluate(attacker, move, defender, opts);
       const adv = r.adv;
       if (!adv || !adv.ok || typeof adv.primaryEff !== "number" || Number.isNaN(adv.primaryEff)) {
         skipped.push({ move: move, reason: (adv && adv.reason) || "" });
@@ -672,7 +700,20 @@ body.noscroll{overflow:hidden}
       for (let j = 0; j < items.length; j++) {
         if (items[j].status === "sure") { best = items[j]; break; }
       }
-      const row = { move: move, adv: adv.primaryEff, best: best };
+      const max = best ? pickMaxPunish(items, opts) : null;
+      const bestD = best ? punishDamage(best.move, opts) : null;
+      const maxD = max ? punishDamage(max.move, opts) : null;
+      const row = {
+        move: move,
+        adv: adv.primaryEff,
+        best: best,
+        bestDamage: bestD ? bestD.max : null,
+        bestText: bestD ? bestD.text : "",
+        max: max,
+        maxDamage: maxD ? maxD.max : null,
+        maxText: maxD ? maxD.text : "",
+        same: !!(best && max && best.move === max.move && best.route === max.route),
+      };
       if (best) sure.push(row);
       else none.push(row);
     }

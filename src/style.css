@@ -162,24 +162,26 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
 #matchup .mucount{flex:none;color:var(--sub);font-size:13px;font-weight:650;white-space:nowrap}
 #matchup .mucap,#matchup .munote{margin:4px 0 8px;font-size:13px;line-height:1.45;color:var(--sub)}
 #matchup .munote{margin-top:-4px}
-#matchup .muhead,#matchup .murow{
-  display:grid;
-  grid-template-columns:minmax(0,1.15fr) 40px minmax(0,1fr) 60px 36px 40px;
-  column-gap:3px;align-items:center;width:100%;min-width:0
-}
-#matchup .muhead{padding:0 2px 4px;font-size:10px;font-weight:750;color:var(--sub)}
 #matchup .murow{
-  margin:0 0 4px;padding:4px 2px;min-height:44px;overflow:hidden;border:1px solid var(--line);
-  border-radius:10px;background:var(--bg);text-align:left;font-size:12px;font-weight:650;line-height:1.2
+  display:flex;flex-direction:column;align-items:stretch;gap:2px;width:100%;max-width:100%;min-width:0;
+  margin:0 0 4px;padding:6px 4px;min-height:44px;overflow:hidden;border:1px solid var(--line);
+  border-radius:10px;background:var(--bg);text-align:left;font-size:12px;font-weight:650;line-height:1.25
 }
 #matchup .murow.none{color:var(--sub)}
-#matchup .nm,#matchup .pn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#matchup .adv,#matchup .route,#matchup .mg,#matchup .tier{min-width:0;white-space:nowrap}
-#matchup .adv,#matchup .mg{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
+#matchup .top{display:flex;align-items:baseline;gap:8px;min-width:0;max-width:100%}
+#matchup .top .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:750}
+#matchup .top .adv{flex:none;font-weight:800;font-variant-numeric:tabular-nums}
+#matchup .pline{display:flex;flex-wrap:wrap;align-items:center;gap:2px 4px;min-width:0;max-width:100%}
+#matchup .k{flex:none;padding:0 4px;border-radius:6px;background:color-mix(in srgb,var(--line) 70%,transparent);font-size:10px;font-weight:800;line-height:1.6;color:var(--sub)}
+#matchup .k.same{color:var(--text)}
+#matchup .pn{flex:0 1 auto;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#matchup .route,#matchup .mg,#matchup .tier{flex:none;white-space:nowrap}
+#matchup .dmg{flex:1 1 4.2em;min-width:0;max-width:100%;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
 #matchup .adv.pos,#matchup .mg.pos{color:var(--sure)}
 #matchup .adv.neg{color:var(--bad)}
 #matchup .adv.zero,#matchup .mg.zero{color:var(--range)}
-#matchup .route{font-size:11px;font-weight:750;color:var(--sub);text-align:center}
+#matchup .mg{font-weight:800;font-variant-numeric:tabular-nums}
+#matchup .route{font-size:11px;font-weight:750;color:var(--sub)}
 #matchup .tier{display:flex;justify-content:flex-end}
 #matchup .tier .t2{padding:0 3px;font-size:10px;line-height:1.5}
 #matchup details.miss{margin:4px 0 0;padding:0;border:0;border-radius:0;background:transparent}
@@ -188,10 +190,12 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
 #matchup details.miss[open] > summary::before{content:"▾"}
 body.has-move #matchup{display:none}
 @media (min-width:800px){
-  #matchup .muhead,#matchup .murow{grid-template-columns:minmax(0,1.3fr) 56px minmax(0,1.15fr) 84px 52px 64px;column-gap:8px}
-  #matchup .murow{font-size:14px}
-  #matchup .muhead{font-size:12px}
+  #matchup .murow{font-size:14px;padding:8px 10px}
+  #matchup .top .nm{font-size:15px}
+  #matchup .pline{display:grid;grid-template-columns:6.4em minmax(0,1.05fr) 5.6em minmax(0,1.35fr) 3.4em auto;column-gap:8px;align-items:center}
+  #matchup .dmg{text-align:right}
   #matchup .route{font-size:13px}
+  #matchup .k{font-size:12px}
   #matchup .tier .t2{padding:1px 6px;font-size:12px}
 }
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
