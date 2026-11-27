@@ -150,7 +150,50 @@ kbd{border:1px solid var(--line);border-radius:5px;padding:0 4px;font-family:inh
 .ex,.backlist{display:block;width:100%;text-align:left;min-height:52px;margin:0 0 8px;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:var(--card);font-size:15px;font-weight:650;line-height:1.4}
 .ex.nope{color:var(--sub)}
 #glance:empty{display:none}
-#glance,#result{scroll-margin-top:calc(var(--bar) + 8px)}
+#glance,#result,#matchup{scroll-margin-top:calc(var(--bar) + 8px)}
+#matchup{padding:0 8px 8px}
+#matchup[hidden]{display:none}
+#matchup > summary{justify-content:space-between;gap:8px;list-style:none}
+#matchup summary::-webkit-details-marker{display:none}
+#matchup summary .chev{flex:none;width:1em;text-align:center}
+#matchup summary .chev::before{content:"▸"}
+#matchup[open] > summary .chev::before{content:"▾"}
+#matchup .mutitle{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#matchup .mucount{flex:none;color:var(--sub);font-size:13px;font-weight:650;white-space:nowrap}
+#matchup .mucap,#matchup .munote{margin:4px 0 8px;font-size:13px;line-height:1.45;color:var(--sub)}
+#matchup .munote{margin-top:-4px}
+#matchup .muhead,#matchup .murow{
+  display:grid;
+  grid-template-columns:minmax(0,1.15fr) 40px minmax(0,1fr) 60px 36px 40px;
+  column-gap:3px;align-items:center;width:100%;min-width:0
+}
+#matchup .muhead{padding:0 2px 4px;font-size:10px;font-weight:750;color:var(--sub)}
+#matchup .murow{
+  margin:0 0 4px;padding:4px 2px;min-height:44px;overflow:hidden;border:1px solid var(--line);
+  border-radius:10px;background:var(--bg);text-align:left;font-size:12px;font-weight:650;line-height:1.2
+}
+#matchup .murow.none{color:var(--sub)}
+#matchup .nm,#matchup .pn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#matchup .adv,#matchup .route,#matchup .mg,#matchup .tier{min-width:0;white-space:nowrap}
+#matchup .adv,#matchup .mg{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
+#matchup .adv.pos,#matchup .mg.pos{color:var(--sure)}
+#matchup .adv.neg{color:var(--bad)}
+#matchup .adv.zero,#matchup .mg.zero{color:var(--range)}
+#matchup .route{font-size:11px;font-weight:750;color:var(--sub);text-align:center}
+#matchup .tier{display:flex;justify-content:flex-end}
+#matchup .tier .t2{padding:0 3px;font-size:10px;line-height:1.5}
+#matchup details.miss{margin:4px 0 0;padding:0;border:0;border-radius:0;background:transparent}
+#matchup details.miss summary{justify-content:flex-start;min-height:44px;font-size:14px;color:var(--sub);list-style:none}
+#matchup details.miss summary::before{content:"▸";margin-right:6px}
+#matchup details.miss[open] > summary::before{content:"▾"}
+body.has-move #matchup{display:none}
+@media (min-width:800px){
+  #matchup .muhead,#matchup .murow{grid-template-columns:minmax(0,1.3fr) 56px minmax(0,1.15fr) 84px 52px 64px;column-gap:8px}
+  #matchup .murow{font-size:14px}
+  #matchup .muhead{font-size:12px}
+  #matchup .route{font-size:13px}
+  #matchup .tier .t2{padding:1px 6px;font-size:12px}
+}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .ch{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;border:1px solid var(--line);background:var(--card);border-radius:14px;padding:8px 4px;font-size:13px;line-height:1.25;min-height:112px;text-align:center}
 .ch img{width:64px;height:64px;object-fit:contain}

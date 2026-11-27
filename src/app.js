@@ -5,7 +5,7 @@
   const Mii = window.MiiSlots;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const state = { me: 0, opp: 0, mode: "A", moveId: null, ps: false, oo: false, arsene: false, crit: false, ink: false, mat: {}, group: 0, slot: "" };
+  const state = { me: 0, opp: 0, mode: "A", moveId: null, ps: false, oo: false, arsene: false, crit: false, ink: false, mat: {}, group: 0, slot: "", mu: false };
   const OO_KEY = "punish.oo";
   let D, pushNext = false, overlay = null;
 
@@ -70,6 +70,7 @@
     else if (state.moveId) state.group = groupOf(att.moves.find((m) => m.id === state.moveId));
     const slot = q.get("slot") || "";
     state.slot = Mii.SLOT_IDS.indexOf(slot) >= 0 ? slot : "";
+    state.mu = q.get("mu") === "1";
     scrollToResult = !!state.moveId;
   }
   function hashString() {
@@ -88,6 +89,7 @@
     if (meC.materials.length) p.set("mm", matOf(state.me));
     if (oppC.materials.length) p.set("mo", matOf(state.opp));
     if (state.slot && attackerIsMii()) p.set("slot", state.slot);
+    if (state.mu) p.set("mu", "1");
     return p.toString();
   }
   function writeHash() {
@@ -113,21 +115,27 @@
     $("glance").onclick = (e) => {
       const b = e.target.closest(".ex");
       if (!b) return;
-      const move = attackerChar().moves.find((m) => m.id === b.dataset.id);
-      if (!move) return;
-      state.moveId = move.id;
-      state.group = groupOf(move);
-      pushNext = true;
-      scrollToResult = true;
-      render();
+      openMove(b.dataset.id);
     };
+    $("matchup").addEventListener("toggle", () => {
+      if (state.moveId) return;
+      const open = $("matchup").open;
+      if (open === state.mu) return;
+      state.mu = open;
+      writeHash();
+    });
+    $("matchup").addEventListener("click", (e) => {
+      const b = e.target.closest(".murow");
+      if (!b) return;
+      openMove(b.dataset.id);
+    });
     $("result").addEventListener("click", (e) => {
       if (!e.target.closest("[data-act=back]")) return;
       state.moveId = null;
       pushNext = true;
       render();
       const behavior = matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
-      $("glance").scrollIntoView({ behavior: behavior, block: "start" });
+      (state.mu ? $("matchup") : $("glance")).scrollIntoView({ behavior: behavior, block: "start" });
     });
     $("swap").onclick = swap;
     initPicker();
@@ -432,8 +440,8 @@
     if (state.slot) shown = Mii.filterBySlot(shown, state.slot);
     const unnamed = slotOn && shown.some((m) => Mii.miiSlot(m) == null);
     $("lead").textContent = state.moveId ? "" : slotOn
-      ? Mii.slotLabel(state.slot) + " の必殺に絞っています。" + (unnamed ? "番号のない技も残しています。" : "") + "同じチップをもう一度押すと解除します。"
-      : "行を押すと、その技だけの詳しい数字が出ます。";
+      ? Mii.slotLabel(state.slot) + " の必殺に絞っています。" + (unnamed ? "番号のない技も残しています。" : "") + "同じチップをもう一度押すと解除します。対キャラ早見は全技のままです。"
+      : "上の対キャラ早見に、確定がある技をまとめています。下の行を押すと、その技だけの数字が出ます。";
     const slotExists = slotOn && attackerChar().moves.some((m) => Mii.miiSlot(m) === state.slot);
     const emptyMsg = slotOn
       ? (slotExists ? "この番号の必殺は、当たる判定がシートに無いため一覧にありません。" : "この番号の必殺はありません。")
@@ -450,6 +458,7 @@
       render();
     }));
     renderGlance();
+    renderMatchup();
     renderResult();
     writeHash();
     if (scrollToResult && state.moveId) {
@@ -460,6 +469,81 @@
     }
   }
 
+  function openMove(id) {
+    const move = attackerChar().moves.find((m) => m.id === id);
+    if (!move) return;
+    state.moveId = move.id;
+    state.group = groupOf(move);
+    pushNext = true;
+    scrollToResult = true;
+    render();
+  }
+  function routeShort(route) {
+    return route === "drop" ? "解除" : "ガーキャン";
+  }
+  /** 1行に収める短い技名。全文は shortName を title と読み上げに残す */
+  function listName(m) {
+    if ((m.category === "special" || m.category === "command") && m.group) {
+      const place = m.landingVariant ? "着地" : (m.versionLabel || (m.variant === "地上" || m.variant === "空中" ? m.variant : ""));
+      const extra = [place, m.strength].filter(Boolean).join("・");
+      return extra ? m.group + "・" + extra : m.group;
+    }
+    return shortName(m);
+  }
+  function tierMark(tier) {
+    if (tier === "severe") return `<span class="t2 severe">シビア</span>`;
+    if (tier === "easy") return `<span class="t2 easy">余裕</span>`;
+    return "";
+  }
+  function renderMatchup() {
+    const det = $("matchup");
+    if (state.moveId) { det.hidden = true; return; }
+    det.hidden = false;
+    if (det.open !== !!state.mu) det.open = !!state.mu;
+    const att = attackerChar(), def = defenderChar();
+    const defIdx = D.chars.indexOf(def);
+    const attWho = state.mode === "A" ? "相手" : "自分";
+    const defWho = state.mode === "A" ? "自分" : "相手";
+    const opts = Object.assign({ perfectShield: state.ps, defenderMaterial: matOf(defIdx) }, formOpts());
+    const g = C.matchupGlance(att, def, visibleMoves(), opts);
+    const count = det.querySelector(".mucount");
+    if (count) count.textContent = "確定 " + g.sure.length + "件";
+    const form = formOpts();
+    const notes = [];
+    if (state.ps) notes.push("ジャストシールドした場合です。");
+    if (form.arsene) notes.push("アルセーヌありです。");
+    if (form.crit) notes.push("会心の一撃ありです。");
+    if (form.ink) notes.push("インク切れです。");
+    const cap = attWho + "の全技です。ガードしたときの、" + defWho + "の最速の確定反撃を、有利が大きい順に並べています。";
+    const advCls = (v) => (v > 0 ? "pos" : v < 0 ? "neg" : "zero");
+    const rowBtn = (row, kind) => {
+      const full = shortName(row.move);
+      const name = listName(row.move);
+      const b = row.best;
+      let label, cells;
+      if (kind === "skip") {
+        label = attWho + "の" + full + "は計算対象外";
+        cells = `<span class="nm" title="${esc(full)}">${esc(name)}</span><span class="adv">—</span><span class="pn">対象外</span><span class="route"></span><span class="mg"></span><span class="tier"></span>`;
+      } else if (!b) {
+        label = attWho + "の" + full + "をガード、有利" + fmtAdv(row.adv) + "F。確定の反撃はありません";
+        cells = `<span class="nm" title="${esc(full)}">${esc(name)}</span><span class="adv ${advCls(row.adv)}">${fmtAdv(row.adv)}</span><span class="pn">確定なし</span><span class="route"></span><span class="mg"></span><span class="tier"></span>`;
+      } else {
+        const punishFull = shortName(b.move);
+        const punish = listName(b.move);
+        const tierWord = b.tier === "severe" ? "、シビア" : b.tier === "easy" ? "、余裕" : "";
+        label = attWho + "の" + full + "をガード、有利" + fmtAdv(row.adv) + "F。" + defWho + "は" + punishFull + "、" + b.routeLabel + "、猶予" + fmtAdv(b.margin) + "F" + tierWord;
+        cells = `<span class="nm" title="${esc(full)}">${esc(name)}</span><span class="adv ${advCls(row.adv)}">${fmtAdv(row.adv)}</span><span class="pn" title="${esc(punishFull)}">${esc(punish)}</span><span class="route" title="${esc(b.routeLabel)}">${routeShort(b.route)}</span><span class="mg ${advCls(b.margin)}">${fmtAdv(b.margin)}</span><span class="tier">${tierMark(b.tier)}</span>`;
+      }
+      return `<button type="button" class="murow${kind === "none" ? " none" : ""}" data-id="${esc(row.move.id)}" aria-label="${esc(label)}">${cells}</button>`;
+    };
+    const head = `<div class="muhead" aria-hidden="true"><span>技</span><span>有利</span><span>反撃</span><span>出し方</span><span>猶予</span><span></span></div>`;
+    let body = `<p class="mucap">${esc(cap)}</p>` + (notes.length ? `<p class="munote">${notes.map(esc).join("")}</p>` : "");
+    if (g.sure.length) body += head + g.sure.map((r) => rowBtn(r, "sure")).join("");
+    else body += `<p class="empty">確定の反撃はありません。</p>`;
+    if (g.none.length) body += `<details class="miss"><summary>確定なし ${g.none.length}件</summary>${g.none.map((r) => rowBtn(r, "none")).join("")}</details>`;
+    if (g.skipped.length) body += `<details class="miss"><summary>計算対象外 ${g.skipped.length}件</summary>${g.skipped.map((r) => rowBtn(r, "skip")).join("")}</details>`;
+    $("matchupBody").innerHTML = body;
+  }
   function easeWord(margin) {
     if (margin >= C.THRESHOLDS.easyMin) return "余裕があります";
     if (margin <= C.THRESHOLDS.severeMax) return "入力はシビアです";

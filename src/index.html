@@ -67,6 +67,10 @@
       <button type="button" id="inkOn" data-ink="1" aria-pressed="false">切れ</button>
     </div>
   </div>
+  <details id="matchup" hidden>
+    <summary id="matchupSum"><span class="chev" aria-hidden="true"></span><span class="mutitle">対キャラ早見</span><span class="mucount"></span></summary>
+    <div id="matchupBody"></div>
+  </details>
   <p class="hint" id="lead"></p>
   <div id="groups" class="segs" role="tablist" aria-label="技の種類"></div>
   <div id="slots" class="slots" role="toolbar" aria-label="必殺の番号" hidden></div>
@@ -94,6 +98,7 @@
         </ul></li>
       <li><b>猶予</b> ＝ 有利F − 必要F。0以上ならフレーム上は間に合います。</li>
       <li><b>密着が前提</b>: このツールは相手と密着している状態を想定しています。<b>技のリーチ（届くかどうか）と、ガードで押される距離（シールドノックバック）は考慮していません</b>。フレームが間に合えば「確定」、足りなければ「不可」です。先端当てなどで離れた場合は届かないことがあります。</li>
+      <li><b>対キャラ早見</b>: 技を選ぶ前に、相手の全技について最速の確定反撃を1つずつ出します。並びはガード有利が大きい順です。数字と確定は、技を1つ開いたときと同じ計算です。計算対象外の技は「—」で、数値は作りません。</li>
       <li><b>猶予のラベル</b>（しきい値は calc.js の <code>THRESHOLDS</code> で変更可）
         <ul>
           <li>シビア: 猶予0〜2F。最速入力から1〜2F遅れるだけで間に合わなくなります。</li>
