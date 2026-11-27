@@ -504,7 +504,7 @@
     const defIdx = D.chars.indexOf(def);
     const attWho = state.mode === "A" ? "相手" : "自分";
     const defWho = state.mode === "A" ? "自分" : "相手";
-    const opts = Object.assign({ perfectShield: state.ps, defenderMaterial: matOf(defIdx) }, formOpts());
+    const opts = Object.assign({ perfectShield: state.ps, defenderMaterial: matOf(defIdx), oneOnOne: state.oo }, formOpts());
     const g = C.matchupGlance(att, def, visibleMoves(), opts);
     const count = det.querySelector(".mucount");
     if (count) count.textContent = "確定 " + g.sure.length + "件";
@@ -514,8 +514,20 @@
     if (form.arsene) notes.push("アルセーヌありです。");
     if (form.crit) notes.push("会心の一撃ありです。");
     if (form.ink) notes.push("インク切れです。");
-    const cap = attWho + "の全技です。ガードしたときの、" + defWho + "の最速の確定反撃を、有利が大きい順に並べています。";
+    if (state.oo) notes.push("ダメージは1on1補正ありです。");
+    const cap = attWho + "の全技を、有利が大きい順に並べています。下段は" + defWho + "の最速の確定と、ダメージ最大の確定です。技名のあとは出し方、ダメージ、猶予F。同じ技なら「最速=最大」。";
     const advCls = (v) => (v > 0 ? "pos" : v < 0 ? "neg" : "zero");
+    const tierWord = (tier) => tier === "severe" ? "、シビア" : tier === "easy" ? "、余裕" : "";
+    const dmgWord = (text) => text ? "、ダメージ" + text : "、ダメージなし";
+    const punishBits = (opt, text) => {
+      const full = shortName(opt.move);
+      const shown = text || "—";
+      return `<span class="pn" title="${esc(full)}">${esc(listName(opt.move))}</span>` +
+        `<span class="route" title="${esc(opt.routeLabel)}">${routeShort(opt.route)}</span>` +
+        `<span class="dmg" title="ダメージ ${esc(shown)}">${esc(shown)}</span>` +
+        `<span class="mg ${advCls(opt.margin)}">${fmtAdv(opt.margin)}</span>` +
+        `<span class="tier">${tierMark(opt.tier)}</span>`;
+    };
     const rowBtn = (row, kind) => {
       const full = shortName(row.move);
       const name = listName(row.move);
@@ -523,22 +535,27 @@
       let label, cells;
       if (kind === "skip") {
         label = attWho + "の" + full + "は計算対象外";
-        cells = `<span class="nm" title="${esc(full)}">${esc(name)}</span><span class="adv">—</span><span class="pn">対象外</span><span class="route"></span><span class="mg"></span><span class="tier"></span>`;
+        cells = `<span class="top"><span class="nm" title="${esc(full)}">${esc(name)}</span><span class="adv">—</span></span><span class="pline"><span class="pn">対象外</span></span>`;
       } else if (!b) {
         label = attWho + "の" + full + "をガード、有利" + fmtAdv(row.adv) + "F。確定の反撃はありません";
-        cells = `<span class="nm" title="${esc(full)}">${esc(name)}</span><span class="adv ${advCls(row.adv)}">${fmtAdv(row.adv)}</span><span class="pn">確定なし</span><span class="route"></span><span class="mg"></span><span class="tier"></span>`;
+        cells = `<span class="top"><span class="nm" title="${esc(full)}">${esc(name)}</span><span class="adv ${advCls(row.adv)}">${fmtAdv(row.adv)}</span></span><span class="pline"><span class="pn">確定なし</span></span>`;
+      } else if (row.same || !row.max) {
+        const tag = row.same ? "最速=最大" : "最速";
+        label = attWho + "の" + full + "をガード、有利" + fmtAdv(row.adv) + "F。" + tag + "は" + shortName(b.move) + "、" + b.routeLabel + dmgWord(row.bestText) + "、猶予" + fmtAdv(b.margin) + "F" + tierWord(b.tier);
+        cells = `<span class="top"><span class="nm" title="${esc(full)}">${esc(name)}</span><span class="adv ${advCls(row.adv)}">${fmtAdv(row.adv)}</span></span>` +
+          `<span class="pline"><span class="k${row.same ? " same" : ""}">${tag}</span>${punishBits(b, row.bestText)}</span>`;
       } else {
-        const punishFull = shortName(b.move);
-        const punish = listName(b.move);
-        const tierWord = b.tier === "severe" ? "、シビア" : b.tier === "easy" ? "、余裕" : "";
-        label = attWho + "の" + full + "をガード、有利" + fmtAdv(row.adv) + "F。" + defWho + "は" + punishFull + "、" + b.routeLabel + "、猶予" + fmtAdv(b.margin) + "F" + tierWord;
-        cells = `<span class="nm" title="${esc(full)}">${esc(name)}</span><span class="adv ${advCls(row.adv)}">${fmtAdv(row.adv)}</span><span class="pn" title="${esc(punishFull)}">${esc(punish)}</span><span class="route" title="${esc(b.routeLabel)}">${routeShort(b.route)}</span><span class="mg ${advCls(b.margin)}">${fmtAdv(b.margin)}</span><span class="tier">${tierMark(b.tier)}</span>`;
+        const m = row.max;
+        label = attWho + "の" + full + "をガード、有利" + fmtAdv(row.adv) + "F。最速は" + shortName(b.move) + "、" + b.routeLabel + dmgWord(row.bestText) + "、猶予" + fmtAdv(b.margin) + "F" + tierWord(b.tier) +
+          "。最大反確は" + shortName(m.move) + "、" + m.routeLabel + dmgWord(row.maxText) + "、猶予" + fmtAdv(m.margin) + "F" + tierWord(m.tier);
+        cells = `<span class="top"><span class="nm" title="${esc(full)}">${esc(name)}</span><span class="adv ${advCls(row.adv)}">${fmtAdv(row.adv)}</span></span>` +
+          `<span class="pline"><span class="k">最速</span>${punishBits(b, row.bestText)}</span>` +
+          `<span class="pline"><span class="k">最大</span>${punishBits(m, row.maxText)}</span>`;
       }
       return `<button type="button" class="murow${kind === "none" ? " none" : ""}" data-id="${esc(row.move.id)}" aria-label="${esc(label)}">${cells}</button>`;
     };
-    const head = `<div class="muhead" aria-hidden="true"><span>技</span><span>有利</span><span>反撃</span><span>出し方</span><span>猶予</span><span></span></div>`;
     let body = `<p class="mucap">${esc(cap)}</p>` + (notes.length ? `<p class="munote">${notes.map(esc).join("")}</p>` : "");
-    if (g.sure.length) body += head + g.sure.map((r) => rowBtn(r, "sure")).join("");
+    if (g.sure.length) body += g.sure.map((r) => rowBtn(r, "sure")).join("");
     else body += `<p class="empty">確定の反撃はありません。</p>`;
     if (g.none.length) body += `<details class="miss"><summary>確定なし ${g.none.length}件</summary>${g.none.map((r) => rowBtn(r, "none")).join("")}</details>`;
     if (g.skipped.length) body += `<details class="miss"><summary>計算対象外 ${g.skipped.length}件</summary>${g.skipped.map((r) => rowBtn(r, "skip")).join("")}</details>`;
